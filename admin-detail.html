@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 - 세부 신청자 명단</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --blue: #2D468D; --bg: #f4f6fb; --card: #ffffff; --border: #eee; --text: #333; }
+        body { font-family: 'Inter', -apple-system, sans-serif; padding: 20px; background: var(--bg); color: var(--text); margin: 0; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .header h1 { font-size: 20px; color: var(--blue); margin: 0; }
+        .btn-back { text-decoration: none; font-size: 14px; color: var(--blue); font-weight: 600; }
+        
+        .card { background: white; padding: 0; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); overflow: hidden; }
+        .table-wrapper { overflow-x: auto; width: 100%; }
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; font-size: 13px; }
+        th { background: #f8f9fa; padding: 14px 10px; text-align: left; color: #666; border-bottom: 2px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
+        th:hover { background: #f0f2f5; color: var(--blue); }
+        th.sort-asc::after { content: ' ↑'; }
+        th.sort-desc::after { content: ' ↓'; }
+        
+        td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; }
+        tr:hover { background: #fafbfc; }
+        
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+        .badge-reg { background: #e6f7ed; color: #22C55E; }
+        .badge-wait { background: #fff4e0; color: #F5A623; }
+        .badge-army { background: #e0f2fe; color: #0EA5E9; }
+
+        .search-box { margin-bottom: 15px; display: flex; gap: 10px; align-items: center; }
+        .search-box input { padding: 10px 15px; border: 1.5px solid var(--border); border-radius: 10px; flex: 1; font-size: 14px; outline: none; }
+        .search-box input:focus { border-color: var(--blue); }
+
+        .summary-bar { display: flex; gap: 20px; margin-bottom: 15px; font-size: 13px; font-weight: 600; color: #555; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 세부 신청자 명단 관리</h1>
+            <a href="admin.html" class="btn-back">← 기본 관리자로 돌아가기</a>
+        </div>
+
+        <div class="summary-bar" id="summaryBar">
+            <span>총 인원: <span id="totalCount">0</span>명</span>
+            <span>신청 완료: <span id="regCount">0</span>명</span>
+            <span>입금 완료: <span id="depositCount">0</span>명</span>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="이름, 기수, 연락처, 메모 등으로 검색..." oninput="filterData()">
+        </div>
+
+        <h2 style="font-size: 16px; margin: 20px 0 10px; color: #2D468D;">✅ MT 신청 완료 명단</h2>
+        <div class="card" style="margin-bottom: 30px;">
+            <div class="table-wrapper">
+                <table id="regTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('name')">이름</th>
+                            <th onclick="sortTable('generation')">기수</th>
+                            <th onclick="sortTable('type')">구분</th>
+                            <th onclick="sortTable('phoneNumber')">연락처</th>
+                            <th onclick="sortTable('studentId')">학번</th>
+                            <th onclick="sortTable('isDepositConfirmed')">입금</th>
+                            <th onclick="sortTable('transportation')">이동수단</th>
+                            <th onclick="sortTable('carpoolSeats')">카풀</th>
+                            <th onclick="sortTable('departureArea')">출발지</th>
+                            <th onclick="sortTable('allergies')">알레르기</th>
+                            <th onclick="sortTable('remarks')">메모/요청</th>
+                            <th onclick="sortTable('createdAt')">등록일</th>
+                        </tr>
+                    </thead>
+                    <tbody id="regTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <h2 style="font-size: 16px; margin: 20px 0 10px; color: #666;">⏳ 미신청자 명단 (마스터 리스트)</h2>
+        <div class="card">
+            <div class="table-wrapper">
+                <table id="unregTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable('name')">이름</th>
+                            <th onclick="sortTable('generation')">기수</th>
+                            <th onclick="sortTable('type')">구분</th>
+                            <th onclick="sortTable('phoneNumber')">연락처</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unregTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api';
+        let ACCESS_TOKEN = localStorage.getItem('admin_token');
+        let rawData = [];
+        let sortConfig = { key: 'name', direction: 'asc' };
+
+        if (!ACCESS_TOKEN) {
+            alert('로그인이 필요합니다.');
+            window.location.href = 'admin.html';
+        }
+
+        function formatPhone(num) {
+            if (!num) return '-';
+            const clean = num.replace(/\D/g, '');
+            if (clean.length === 11) {
+                return clean.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+            } else if (clean.length === 10) {
+                return clean.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
+            }
+            return num;
+        }
+
+        async function fetchData() {
+            try {
+                const res = await fetch(`${API_BASE}/Participants`, {
+                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
+                });
+                if (res.status === 401) {
+                    alert('세션이 만료되었습니다.');
+                    window.location.href = 'admin.html';
+                    return;
+                }
+                rawData = await res.json();
+                updateSummary();
+                renderTables();
+            } catch (e) {
+                console.error(e);
+                alert('데이터를 불러오는 중 오류가 발생했습니다.');
+            }
+        }
+
+        const typeLabels = ['재학생', '졸업생', '휴학생', '군인', '기타'];
+
+        function renderTables() {
+            const filtered = sortData(getFilteredData(), sortConfig.key, sortConfig.direction);
+            
+            const regParticipants = filtered.filter(p => p.isRegistered);
+            const unregParticipants = filtered.filter(p => !p.isRegistered);
+
+            // Render Registered
+            const regTbody = document.getElementById('regTableBody');
+            regTbody.innerHTML = regParticipants.map(p => `
+                <tr>
+                    <td><b>${p.name}</b></td>
+                    <td>${p.generation}기</td>
+                    <td><span class="badge">${typeLabels[p.type] || '기타'}</span></td>
+                    <td>${formatPhone(p.phoneNumber)}</td>
+                    <td>${p.studentId || '-'}</td>
+                    <td style="color: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; font-weight:bold;">${p.isDepositConfirmed ? '완료' : '대기'}</td>
+                    <td>${p.transportation === 'Car' ? '🚗 자차' : '🚌 대중교통'}</td>
+                    <td>${p.isCarpoolAvailable ? `✅ ${p.carpoolSeats}석` : '-'}</td>
+                    <td>${p.departureArea || '-'}</td>
+                    <td style="color: #E8392D;">${p.allergies || '-'}</td>
+                    <td title="${p.remarks || ''}">${p.remarks ? (p.remarks.length > 15 ? p.remarks.substring(0, 15) + '...' : p.remarks) : '-'}</td>
+                    <td style="font-size: 11px; color: #999;">${new Date(p.createdAt).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+
+            // Render Unregistered
+            const unregTbody = document.getElementById('unregTableBody');
+            unregTbody.innerHTML = unregParticipants.map(p => `
+                <tr>
+                    <td><b>${p.name}</b></td>
+                    <td>${p.generation}기</td>
+                    <td><span class="badge">${typeLabels[p.type] || '기타'}</span></td>
+                    <td>${formatPhone(p.phoneNumber)}</td>
+                </tr>
+            `).join('');
+            
+            // Update sort icons for all tables
+            document.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sort-asc', 'sort-desc');
+                if (th.getAttribute('onclick')?.includes(`'${sortConfig.key}'`)) {
+                    th.classList.add(sortConfig.direction === 'asc' ? 'sort-asc' : 'sort-desc');
+                }
+            });
+        }
+
+        function sortData(data, key, direction) {
+            return [...data].sort((a, b) => {
+                let vA = a[key];
+                let vB = b[key];
+                if (vA === null || vA === undefined) vA = '';
+                if (vB === null || vB === undefined) vB = '';
+                if (vA < vB) return direction === 'asc' ? -1 : 1;
+                if (vA > vB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        function sortTable(key) {
+            if (sortConfig.key === key) {
+                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortConfig.key = key;
+                sortConfig.direction = 'asc';
+            }
+            renderTables();
+        }
+
+        function getFilteredData() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            if (!term) return rawData;
+            return rawData.filter(p => 
+                p.name.toLowerCase().includes(term) ||
+                p.generation.toString().includes(term) ||
+                (p.phoneNumber && p.phoneNumber.includes(term)) ||
+                (p.remarks && p.remarks.toLowerCase().includes(term)) ||
+                (p.departureArea && p.departureArea.toLowerCase().includes(term))
+            );
+        }
+
+        function filterData() {
+            renderTables();
+        }
+
+        function updateSummary() {
+            document.getElementById('totalCount').textContent = rawData.length;
+            document.getElementById('regCount').textContent = rawData.filter(p => p.isRegistered).length;
+            document.getElementById('depositCount').textContent = rawData.filter(p => p.isDepositConfirmed).length;
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>

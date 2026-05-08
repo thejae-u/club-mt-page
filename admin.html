@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지 - MT 설정</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', -apple-system, sans-serif; padding: 15px; max-width: 900px; margin: 0 auto; background: #f4f6fb; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { font-size: 18px; margin-bottom: 20px; color: #2D468D; display: flex; align-items: center; gap: 8px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #666; }
+        input, textarea { width: 100%; padding: 12px; border: 1.5px solid #eee; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s; }
+        input:focus, textarea:focus { border-color: #2D468D; }
+        button { width: 100%; padding: 14px; background: #2D468D; color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 15px; transition: background 0.2s; }
+        button:hover { background: #1E3070; }
+        .nav { margin-bottom: 15px; font-size: 14px; }
+        .nav a { color: #2D468D; text-decoration: none; font-weight: 600; }
+        
+        /* Table Responsive */
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -5px; }
+        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        th { background: #f8f9fa; padding: 12px 10px; text-align: left; font-size: 12px; color: #777; border-bottom: 2px solid #eee; }
+        td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+        
+        @media (max-width: 480px) {
+            body { padding: 10px; }
+            .card { padding: 15px; }
+            h1 { font-size: 16px; }
+        }
+    </style>
+</head>
+<body style="display:none;"> <!-- Hidden until auth check -->
+    
+    <!-- LOGIN OVERLAY -->
+    <div id="loginOverlay" style="display:none; position:fixed; inset:0; z-index:10000; background:#f4f6fb; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
+        <div class="card" style="width:100%; max-width:400px;">
+            <h1 style="text-align:center; justify-content:center;">🔐 관리자 로그인</h1>
+            <div class="form-group">
+                <label>아이디</label>
+                <input type="text" id="login-username" value="admin">
+            </div>
+            <div class="form-group">
+                <label>비밀번호</label>
+                <input type="password" id="login-password" placeholder="ADMIN_KEY를 입력하세요">
+            </div>
+            <button onclick="doLogin()">로그인</button>
+            <div style="text-align:center; margin-top:15px;"><a href="index.html" style="font-size:12px; color:#999; text-decoration:none;">← 메인으로 돌아가기</a></div>
+        </div>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" style="display:none; position:fixed; inset:0; z-index:20000; background:rgba(244,246,251,0.8); flex-direction:column; align-items:center; justify-content:center; padding:20px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
+        <div class="card" style="width:100%; max-width:300px; text-align:center;">
+            <div style="margin-bottom:15px; font-size:24px;">⏳</div>
+            <h1 style="justify-content:center; margin-bottom:10px;">데이터 처리 중...</h1>
+            <p style="font-size:12px; color:#666; margin-bottom:20px;">대량의 데이터를 처리하고 있습니다.<br>잠시만 기다려 주세요.</p>
+            <button id="btnCancelUpload" style="background:#999; font-size:13px; padding:10px;">작업 취소</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="nav">
+        <a href="index.html">← 메인 페이지로</a>
+        <button onclick="logout()" style="width:auto; padding:4px 10px; float:right; background:#999; font-size:11px;">로그아웃</button>
+    </div>
+
+    <div class="card">
+        <h1>⚙️ MT 사이트 설정 관리</h1>
+        <div class="form-group">
+            <label>사이트 제목</label>
+            <input type="text" id="title">
+        </div>
+        <div class="form-group">
+            <label>서브 타이틀</label>
+            <input type="text" id="subtitle">
+        </div>
+        <div class="form-group">
+            <label>행사 일정 (텍스트)</label>
+            <input type="text" id="eventDateRange">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+            <div class="form-group">
+                <label>디데이 기준 날짜</label>
+                <input type="date" id="dDayTargetDate">
+            </div>
+            <div class="form-group">
+                <label>장소</label>
+                <input type="text" id="location">
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px;">
+            <div class="form-group">
+                <label>일반 신청 정원</label>
+                <input type="number" id="maxGeneralCapacity">
+            </div>
+            <div class="form-group">
+                <label>군인 우선 정원</label>
+                <input type="number" id="maxMilitaryCapacity">
+            </div>
+            <div class="form-group">
+                <label>회비 (원)</label>
+                <input type="number" id="registrationFee">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>상세 일정 관리 (Visual Editor)</label>
+            <div id="scheduleEditor" style="background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1.5px dashed #ccc;"></div>
+            <button type="button" onclick="addDay()" style="background: #5B9E78; margin-top: 10px; font-size: 13px; padding: 10px;">+ 새로운 날짜(Day) 추가</button>
+            
+            <details style="margin-top: 15px;">
+                <summary style="font-size: 11px; color: #999; cursor: pointer;">고급 설정 (RAW JSON)</summary>
+                <textarea id="scheduleDataJson" style="height: 100px; font-family: monospace; font-size: 11px; margin-top: 5px;"></textarea>
+            </details>
+        </div>
+        <button onclick="saveSettings()">설정 저장하기</button>
+    </div>
+
+    <div class="card">
+        <h1>📁 동문 명단 데이터 관리 (CSV)</h1>
+        <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+            기존 명단(미신청자)을 모두 삭제하고 새로운 CSV 데이터로 교체합니다.<br>
+            <b>CSV 형식:</b> 이름,기수,전화번호,구분 (헤더 포함 필수)
+        </p>
+        <div class="form-group" style="display: flex; gap: 10px;">
+            <input type="file" id="csvFile" accept=".csv" style="padding: 8px;">
+            <button onclick="uploadCsv()" style="width: 120px; padding: 10px; background: #5B9E78;">업로드</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h1 style="margin: 0;">👥 신청자 명단 관리</h1>
+            <a href="admin-detail.html" style="background: #2D468D; color: white; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; text-decoration: none;">세부 신청 내역 보기 (전체 데이터) →</a>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>이름</th>
+                        <th>구분</th>
+                        <th>기수</th>
+                        <th>연락처</th>
+                        <th>신청일</th>
+                        <th>입금상태</th>
+                        <th style="text-align: center;">관리</th>
+                    </tr>
+                </thead>
+                <tbody id="participantList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:5001/api';
+        let ACCESS_TOKEN = localStorage.getItem('admin_token');
+
+        function checkAuth() {
+            if (!ACCESS_TOKEN) {
+                document.getElementById('loginOverlay').style.display = 'flex';
+                document.body.style.display = 'block';
+            } else {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.body.style.display = 'block';
+                loadSettings();
+                loadParticipants();
+            }
+        }
+
+        async function doLogin() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const res = await fetch(`${API_BASE}/Auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    ACCESS_TOKEN = data.token;
+                    localStorage.setItem('admin_token', ACCESS_TOKEN);
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    loadSettings();
+                    loadParticipants();
+                } else {
+                    alert('로그인 실패: 비밀번호가 올바르지 않습니다.');
+                }
+            } catch (e) {
+                alert('서버 연결 오류');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_token');
+            location.reload();
+        }
+
+        const typeLabels = ['재학생', '졸업생', '휴학생', '군인', '기타'];
+
+        async function uploadCsv() {
+            const fileInput = document.getElementById('csvFile');
+            if (!fileInput.files.length) return alert('파일을 선택해주세요.');
+
+            if (!confirm('정말 명단을 교체하시겠습니까?\n이미 신청을 완료한 데이터는 유지되지만, 신청하지 않은 모든 대기 명단은 삭제되고 업로드한 파일로 대체됩니다.')) return;
+
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const btnCancel = document.getElementById('btnCancelUpload');
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+
+            loadingOverlay.style.display = 'flex';
+            btnCancel.onclick = () => {
+                controller.abort();
+                alert('사용자에 의해 작업이 취소되었습니다.');
+            };
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const res = await fetch(`${API_BASE}/Management/import-csv`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` },
+                    body: formData,
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (res.status === 401) return logout();
+                
+                if (res.ok) {
+                    const result = await res.json();
+                    alert(`✅ 성공: ${result.message}`);
+                    loadParticipants();
+                } else {
+                    const err = await res.text();
+                    alert(`❌ 업로드 실패: ${err}`);
+                }
+            } catch (e) {
+                if (e.name === 'AbortError') {
+                    console.log('Upload aborted or timed out');
+                } else {
+                    alert('서버 연결 오류');
+                }
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        async function loadParticipants() {
+            try {
+                const res = await fetch(`${API_BASE}/Participants`, {
+                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
+                });
+                if (res.status === 401) return logout();
+                const list = await res.json();
+                const tbody = document.getElementById('participantList');
+                
+                // Filter only REGISTERED applicants for admin management
+                const registered = list.filter(p => p.isRegistered);
+
+                if (registered.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="padding: 30px; text-align: center; color: #999;">신청자가 아직 없습니다.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = registered.map(p => `
+                    <tr>
+                        <td><b>${p.name}</b></td>
+                        <td>${typeLabels[p.type] || '기타'}</td>
+                        <td>${p.generation}기</td>
+                        <td>${p.phoneNumber}</td>
+                        <td style="font-size: 11px; color: #777;">${new Date(p.createdAt).toLocaleDateString()}</td>
+                        <td>
+                            <button onclick="toggleDeposit(${p.id})" style="padding: 4px 8px; background: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; font-size: 11px; margin:0; width:auto;">
+                                ${p.isDepositConfirmed ? '입금완료' : '입금대기'}
+                            </button>
+                        </td>
+                        <td style="text-align: center;">
+                            <button onclick="deleteParticipant(${p.id})" style="padding: 4px 8px; background: #ff4d4d; font-size: 11px; margin:0; width:auto;">삭제</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        async function toggleDeposit(id) {
+            try {
+                const res = await fetch(`${API_BASE}/Participants/${id}/toggle-deposit`, { 
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
+                });
+                if (res.status === 401) return logout();
+                if (res.ok) { loadParticipants(); }
+            } catch (e) { alert('업데이트 실패'); }
+        }
+
+        async function deleteParticipant(id) {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            try {
+                const res = await fetch(`${API_BASE}/Participants/${id}`, { 
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
+                });
+                if (res.status === 401) return logout();
+                if (res.ok) { loadParticipants(); }
+            } catch (e) { alert('삭제 실패'); }
+        }
+
+        async function loadSettings() {
+            try {
+                const res = await fetch(`${API_BASE}/Settings`);
+                const s = await res.json();
+                document.getElementById('title').value = s.title;
+                document.getElementById('subtitle').value = s.subtitle;
+                document.getElementById('eventDateRange').value = s.eventDateRange;
+                document.getElementById('dDayTargetDate').value = s.dDayTargetDate.split('T')[0];
+                document.getElementById('location').value = s.location;
+                document.getElementById('registrationFee').value = s.registrationFee;
+                document.getElementById('maxGeneralCapacity').value = s.maxGeneralCapacity;
+                document.getElementById('maxMilitaryCapacity').value = s.maxMilitaryCapacity;
+                
+                let schedule = [];
+                try { schedule = JSON.parse(s.scheduleDataJson || "[]"); } catch(e) {}
+                renderScheduleEditor(schedule);
+                syncRawJson();
+            } catch (e) { console.error(e); }
+        }
+
+        let currentSchedule = [];
+        function renderScheduleEditor(data) {
+            currentSchedule = data;
+            const container = document.getElementById('scheduleEditor');
+            if (data.length === 0) {
+                container.innerHTML = '<p style="font-size:12px; color:#999; text-align:center;">등록된 일정이 없습니다.</p>';
+                return;
+            }
+            container.innerHTML = data.map((day, dIdx) => `
+                <div style="background:white; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid #eee;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span style="font-weight:800; color:#2D468D;">DAY ${dIdx+1}</span>
+                        <button onclick="removeDay(${dIdx})" style="width:auto; padding:4px 8px; background:#ff4d4d; font-size:11px; margin:0;">삭제</button>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 50px 1fr; gap:10px; margin-bottom:10px;">
+                        <input type="text" value="${day.emoji}" onchange="updateDay(${dIdx}, 'emoji', this.value)" placeholder="emoji">
+                        <input type="text" value="${day.date}" onchange="updateDay(${dIdx}, 'date', this.value)" placeholder="날짜">
+                    </div>
+                    <input type="text" value="${day.summary}" onchange="updateDay(${dIdx}, 'summary', this.value)" placeholder="요약" style="margin-bottom:10px;">
+                    <div style="margin-left:15px; border-left:2px solid #f0f0f0; padding-left:10px;">
+                        ${day.timeline.map((t, tIdx) => `
+                            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                                <input type="text" value="${t.time}" onchange="updateTimeline(${dIdx}, ${tIdx}, 'time', this.value)" style="width:70px; font-size:12px;">
+                                <input type="text" value="${t.title}" onchange="updateTimeline(${dIdx}, ${tIdx}, 'title', this.value)" style="flex:1; font-size:12px;">
+                                <button onclick="removeTimeline(${dIdx}, ${tIdx})" style="width:auto; padding:0 8px; background:#999; font-size:10px; margin:0;">✕</button>
+                            </div>
+                        `).join('')}
+                        <button onclick="addTimeline(${dIdx})" style="background:#8BA0CE; font-size:11px; padding:6px 10px; margin-top:5px; width:auto;">+ 타임라인 추가</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateDay(dIdx, field, val) { currentSchedule[dIdx][field] = val; syncRawJson(); }
+        function updateTimeline(dIdx, tIdx, field, val) { currentSchedule[dIdx].timeline[tIdx][field] = val; currentSchedule[dIdx].timeline[tIdx].desc = ""; syncRawJson(); }
+        function addDay() { currentSchedule.push({ day: currentSchedule.length + 1, emoji: "📅", date: "새 날짜", summary: "요약", timeline: [{ time: "09:00", title: "시작", desc: "" }] }); renderScheduleEditor(currentSchedule); syncRawJson(); }
+        function removeDay(idx) { if(!confirm('삭제하시겠습니까?')) return; currentSchedule.splice(idx, 1); renderScheduleEditor(currentSchedule); syncRawJson(); }
+        function addTimeline(dIdx) { currentSchedule[dIdx].timeline.push({ time: "12:00", title: "활동", desc: "" }); renderScheduleEditor(currentSchedule); syncRawJson(); }
+        function removeTimeline(dIdx, tIdx) { currentSchedule[dIdx].timeline.splice(tIdx, 1); renderScheduleEditor(currentSchedule); syncRawJson(); }
+        function syncRawJson() { document.getElementById('scheduleDataJson').value = JSON.stringify(currentSchedule, null, 2); }
+
+        async function saveSettings() {
+            const payload = {
+                title: document.getElementById('title').value,
+                subtitle: document.getElementById('subtitle').value,
+                eventDateRange: document.getElementById('eventDateRange').value,
+                dDayTargetDate: document.getElementById('dDayTargetDate').value,
+                location: document.getElementById('location').value,
+                registrationFee: parseInt(document.getElementById('registrationFee').value),
+                maxGeneralCapacity: parseInt(document.getElementById('maxGeneralCapacity').value),
+                maxMilitaryCapacity: parseInt(document.getElementById('maxMilitaryCapacity').value),
+                scheduleDataJson: JSON.stringify(currentSchedule)
+            };
+            try {
+                const res = await fetch(`${API_BASE}/Settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${ACCESS_TOKEN}` },
+                    body: JSON.stringify(payload)
+                });
+                if (res.status === 401) return logout();
+                if (res.ok) alert('✅ 저장되었습니다!');
+            } catch (e) { alert('저장 실패'); }
+        }
+
+        checkAuth();
+    </script>
+</body>
+</html>
