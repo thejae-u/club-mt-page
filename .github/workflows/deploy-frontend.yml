@@ -27,20 +27,19 @@ jobs:
 
       - name: Inject API URL Secret
         run: |
-          echo "Checking if js/app.js exists..."
-          ls -l js/app.js
+          echo "Current API_BASE line in app.js:"
+          grep "const API_BASE" js/app.js
           
-          echo "Checking if API_BASE_URL secret is provided..."
           if [ -z "${{ secrets.API_BASE_URL }}" ]; then
-            echo "::error::API_BASE_URL secret is EMPTY or NOT FOUND. Please check Repository Settings > Secrets > Actions."
+            echo "::error::API_BASE_URL secret is NOT SET. Please check Repository Settings > Secrets > Actions."
             exit 1
           fi
           
-          echo "Performing replacement..."
-          # Use a different delimiter in sed just in case the URL contains slashes
-          sed -i "s|API_BASE_URL_PLACEHOLDER|${{ secrets.API_BASE_URL }}|g" js/app.js
+          echo "Replacing API_BASE_URL_PLACEHOLDER with secret value..."
+          # 작은따옴표를 포함하여 통째로 치환하여 더 안전하게 처리합니다.
+          sed -i "s|'API_BASE_URL_PLACEHOLDER'|'${{ secrets.API_BASE_URL }}'|g" js/app.js
           
-          echo "Verifying replacement (content preview, secret value masked)..."
+          echo "Verification (Full Line):"
           grep "const API_BASE" js/app.js | sed 's|https://[^/]*|https://***|g'
 
       - name: Setup Pages

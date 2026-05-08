@@ -1,7 +1,5 @@
 // When hosting separately, you MUST use an absolute URL pointing to your backend.
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                 ? 'http://localhost:5001/api' 
-                 : 'API_BASE_URL_PLACEHOLDER';
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:5001/api' : 'API_BASE_URL_PLACEHOLDER';
 
 // ===== FETCH DATA & UPDATE UI =====
 async function updateDashboard() {
