@@ -48,7 +48,6 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # 현재 디렉토리(루트) 전체를 업로드
           path: '.'
 
       - name: Deploy to GitHub Pages
