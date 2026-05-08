@@ -37,10 +37,15 @@ jobs:
           
           echo "Replacing API_BASE_URL_PLACEHOLDER with secret value..."
           # 작은따옴표를 포함하여 통째로 치환하여 더 안전하게 처리합니다.
+          # js/app.js와 admin.html 둘 다 처리
           sed -i "s|'API_BASE_URL_PLACEHOLDER'|'${{ secrets.API_BASE_URL }}'|g" js/app.js
+          sed -i "s|'API_BASE_URL_PLACEHOLDER'|'${{ secrets.API_BASE_URL }}'|g" admin.html
           
-          echo "Verification (Full Line):"
+          echo "Verification (Full Line) - js/app.js:"
           grep "const API_BASE" js/app.js | sed 's|https://[^/]*|https://***|g'
+          
+          echo "Verification (Full Line) - admin.html:"
+          grep "const API_BASE" admin.html | sed 's|https://[^/]*|https://***|g'
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
