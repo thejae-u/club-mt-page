@@ -25,23 +25,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Inject API URL Secret
-        run: |
-          echo "Current API_BASE line in app.js:"
-          grep "const API_BASE" js/app.js
-          
-          if [ -z "${{ secrets.API_BASE_URL }}" ]; then
-            echo "::error::API_BASE_URL secret is NOT SET. Please check Repository Settings > Secrets > Actions."
-            exit 1
-          fi
-          
-          echo "Replacing API_BASE_URL_PLACEHOLDER with secret value in all .html and .js files..."
-          # 모든 .html 및 .js 파일에서 플레이스홀더를 Secret 값으로 치환
-          find . -type f \( -name "*.html" -o -name "*.js" \) -exec sed -i "s|'API_BASE_URL_PLACEHOLDER'|'${{ secrets.API_BASE_URL }}'|g" {} +
-
-          echo "Verification (Showing matches in all files, secret value masked):"
-          grep -r "const API_BASE" . --include="*.html" --include="*.js" | sed 's|https://[^/]*|https://***|g'
-
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
