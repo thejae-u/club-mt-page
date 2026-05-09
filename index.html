@@ -4,21 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>빅이큐 총동문 MT</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
 <style>
 :root {
-  --blue:#2D468D;--blue-light:#4A65AD;--blue-soft:#E8EDF7;--blue-deep:#1E3070;--blue-pale:#F0F3FA;--blue-mid:#8BA0CE;
+  --blue:#76aed9;--blue-light:#94bfe2;--blue-soft:#EEF4FB;--blue-deep:#2e7ab0;--blue-pale:#EEF5FB;--blue-mid:#b0cfe8;
   --army:#3D7A5A;--army-soft:#E6F2EC;--army-light:#5B9E78;
-  --bg:#FFFFFF;--bg2:#F4F6FB;--bg3:#E8EDF7;--card:#FFFFFF;
-  --text:#0D1526;--text2:#2D3F6B;--text3:#7A8BAD;
-  --border:rgba(45,70,141,0.14);--shadow:0 4px 24px rgba(45,70,141,0.10);--shadow-sm:0 2px 12px rgba(45,70,141,0.08);
+  --bg:#FFFFFF;--bg2:#EEF5FB;--bg3:#cce0f3;--card:#FFFFFF;
+  --text:#0A141A;--text2:#1A4A6B;--text3:#6A9BB5;
+  --border:rgba(118,174,217,0.18);--shadow:0 4px 24px rgba(118,174,217,0.10);--shadow-sm:0 2px 12px rgba(118,174,217,0.08);
 }
 [data-theme="dark"] {
   --bg:#0A0F1E;--bg2:#111829;--bg3:#182038;--card:#111829;
-  --text:#FFFFFF;--text2:#FFFFFF;--text3:#C0CFED;
-  --border:rgba(100,140,220,0.30);--shadow:0 4px 24px rgba(0,0,0,0.4);--shadow-sm:0 2px 12px rgba(0,0,0,0.3);
-  --blue-pale:#111829;--blue-soft:#1A2545;--army-soft:#122A1F;
-  --blue:#6B8FD4;--blue-light:#8AABEC;--blue-deep:#A0BCEE;--blue-mid:#8BA0CE;
+  --text:#FFFFFF;--text2:#FFFFFF;--text3:#FFFFFF;
+  --border:rgba(118,174,217,0.35);--shadow:0 4px 24px rgba(0,0,0,0.4);--shadow-sm:0 2px 12px rgba(0,0,0,0.3);
+  --blue-pale:#1A0808;--blue-soft:#3A1210;--army-soft:#122A1F;
+  --blue:#76aed9;--blue-light:#94bfe2;--blue-deep:#2e7ab0;--blue-mid:#b0cfe8;
   --army:#5BBF8A;--army-light:#7DDBA8;
 }
 [data-theme="dark"] * { color: inherit; }
@@ -26,12 +26,13 @@
 [data-theme="dark"] .text2-override { color: #FFFFFF !important; }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;overflow-x:hidden;}
+body{font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;overflow-x:hidden;}
 
 header{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid var(--border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(255,255,255,0.88);transition:background .3s;}
-[data-theme="dark"] header{background:rgba(10,15,30,0.90);}
+[data-theme="dark"] header{background:rgba(10,15,30,0.92);}
 .header-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:13px 20px;}
 .logo-text{font-size:14px;font-weight:700;color:var(--blue);}
+[data-theme="dark"] .logo-text{color:#FFFFFF;}
 .theme-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;}
 .theme-btn:hover{background:var(--blue-soft);transform:scale(1.08);}
 
@@ -39,22 +40,27 @@ main{max-width:800px;margin:0 auto;padding:76px 20px 60px;}
 
 .hero{text-align:center;padding:36px 0 28px;}
 .hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--blue-soft);color:var(--blue-deep);font-size:12px;font-weight:700;padding:5px 14px;border-radius:100px;margin-bottom:14px;}
-[data-theme="dark"] .hero-badge{color:var(--blue-light);}
-.hero h1{font-size:clamp(24px,6vw,40px);font-weight:800;line-height:1.2;letter-spacing:-1px;margin-bottom:10px;}
+[data-theme="dark"] .hero-badge{color:#FFFFFF;background:rgba(118,174,217,0.20);}
+.hero h1{font-size:clamp(24px,6vw,40px);font-weight:800;line-height:1.2;letter-spacing:-1px;margin-bottom:10px;color:var(--text);}
 .hero h1 span{color:var(--blue);}
 .hero-sub{font-size:14px;color:var(--text3);margin-bottom:24px;}
+[data-theme="dark"] .hero-sub{color:#FFFFFF;}
 
 .dday-block{display:inline-flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--blue);border-radius:16px;padding:12px 28px;margin-bottom:22px;box-shadow:var(--shadow-sm);}
 .dday-label{font-size:13px;color:var(--text3);font-weight:600;}
+[data-theme="dark"] .dday-label{color:#FFFFFF;}
 .dday-num{font-size:34px;font-weight:800;color:var(--blue);letter-spacing:-2px;font-variant-numeric:tabular-nums;}
 .dday-unit{font-size:14px;color:var(--text2);font-weight:600;}
 
 .info-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px;}
-.info-chip{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:7px 14px;font-size:13px;font-weight:500;color:var(--text2);}
+.info-chip{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:7px 14px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;}
+.info-chip:hover{border-color:var(--blue);background:var(--blue-soft);}
+[data-theme="dark"] .info-chip{color:#FFFFFF;}
 
-.btn-apply{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#fff;font-size:16px;font-weight:700;padding:15px 40px;border-radius:14px;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(45,70,141,0.35);transition:all .2s;letter-spacing:-.3px;font-family:inherit;}
+.btn-apply{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#0A141A;font-size:16px;font-weight:700;padding:15px 40px;border-radius:14px;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(118,174,217,0.45);transition:all .2s;letter-spacing:-.3px;font-family:inherit;}
 .btn-apply:hover{background:var(--blue-deep);transform:translateY(-2px);}
 .btn-apply:active{transform:translateY(0);}
+[data-theme="dark"] .btn-apply{background:var(--blue);color:#0A141A;}
 
 section{margin-bottom:26px;}
 section:nth-child(1){animation:fadeIn .5s .05s both;}section:nth-child(2){animation:fadeIn .5s .10s both;}
@@ -63,21 +69,27 @@ section:nth-child(5){animation:fadeIn .5s .25s both;}section:nth-child(6){animat
 section:nth-child(7){animation:fadeIn .5s .35s both;}
 
 .section-title{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+[data-theme="dark"] .section-title{color:#FFFFFF;}
 .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
 .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);transition:border .2s;}
 .card:hover{border-color:var(--blue-mid);}
+[data-theme="dark"] .card{background:var(--bg2);}
 
 .bar-wrap{margin-bottom:12px;}
 .bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:5px;font-weight:500;}
+[data-theme="dark"] .bar-label{color:#FFFFFF;}
 .bar-track{height:10px;background:var(--bg3);border-radius:100px;overflow:hidden;}
 .bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--blue-light),var(--blue));width:0%;}
 .bar-fill.army-bar{background:linear-gradient(90deg,var(--army-light),var(--army));}
 
 .status-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .status-count{font-size:24px;font-weight:800;color:var(--blue);}
+[data-theme="dark"] .status-count{color:#FFFFFF;}
 .btn-detail{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;width:100%;justify-content:center;margin-top:14px;transition:all .2s;font-family:inherit;}
 .btn-detail:hover{background:var(--blue-soft);border-color:var(--blue);color:var(--blue);}
+[data-theme="dark"] .btn-detail{color:#FFFFFF;background:var(--bg3);}
+[data-theme="dark"] .btn-detail:hover{color:#FFFFFF;background:rgba(107,143,212,0.3);}
 
 /* MARQUEE */
 .marquee-outer{overflow:hidden;position:relative;}
@@ -88,55 +100,74 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 .marquee-track:hover{animation-play-state:paused;}
 @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(var(--marquee-end, -50%))}}
 .exp-chip{flex-shrink:0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 16px;font-size:13px;color:var(--text2);line-height:1.5;width:210px;}
+[data-theme="dark"] .exp-chip{color:#FFFFFF;}
 .exp-chip .exp-author{font-size:11px;color:var(--text3);margin-top:6px;font-weight:600;}
+[data-theme="dark"] .exp-chip .exp-author{color:#FFFFFF;}
 
 /* SCHEDULE 한줄 3칸 */
 .schedule-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
 @media(max-width:500px){.schedule-row{grid-template-columns:1fr;}}
 .schedule-day{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;text-align:center;}
 .schedule-day:hover{border-color:var(--blue);background:var(--blue-pale);}
+[data-theme="dark"] .schedule-day{background:var(--bg3);}
+[data-theme="dark"] .schedule-day:hover{background:rgba(107,143,212,0.2);}
 .day-badge{display:inline-block;background:var(--blue-soft);color:var(--blue-deep);font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;margin-bottom:8px;}
-[data-theme="dark"] .day-badge{color:var(--blue-light);}
-.schedule-day h4{font-size:13px;font-weight:700;margin-bottom:4px;}
+[data-theme="dark"] .day-badge{color:#FFFFFF;background:rgba(107,143,212,0.3);}
+.schedule-day h4{font-size:13px;font-weight:700;margin-bottom:4px;color:var(--text);}
 .schedule-day p{font-size:11px;color:var(--text3);line-height:1.5;}
+[data-theme="dark"] .schedule-day p{color:#FFFFFF;}
 .schedule-day .day-emoji{font-size:24px;margin-bottom:6px;}
 .schedule-tap{font-size:11px;color:var(--blue);margin-top:8px;font-weight:600;}
+[data-theme="dark"] .schedule-tap{color:#FFFFFF;}
 
 /* COHORT */
 .cohort-card{display:flex;align-items:center;gap:16px;cursor:pointer;}
 .cohort-icon{width:50px;height:50px;border-radius:14px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
-.cohort-text h3{font-size:15px;font-weight:700;margin-bottom:3px;}
+[data-theme="dark"] .cohort-icon{background:rgba(118,174,217,0.20);}
+.cohort-text h3{font-size:15px;font-weight:700;margin-bottom:3px;color:var(--text);}
 .cohort-text p{font-size:13px;color:var(--text3);}
+[data-theme="dark"] .cohort-text p{color:#FFFFFF;}
 .cohort-arrow{margin-left:auto;width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--blue);flex-shrink:0;}
+[data-theme="dark"] .cohort-arrow{color:#FFFFFF;background:rgba(107,143,212,0.3);}
 
 /* ARMY */
 .army-badge-tag{display:inline-flex;align-items:center;gap:5px;background:var(--army-soft);color:var(--army);font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px;margin-bottom:10px;}
+[data-theme="dark"] .army-badge-tag{color:#FFFFFF;background:rgba(91,191,138,0.2);}
 .army-desc{font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.6;}
+[data-theme="dark"] .army-desc{color:#FFFFFF;}
 
 /* MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.52);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);justify-content:center;align-items:flex-end;}
 .modal-overlay.active{display:flex;}
 .modal-sheet{background:var(--card);border-radius:24px 24px 0 0;width:100%;max-width:800px;max-height:88vh;overflow-y:auto;padding:24px 24px 44px;animation:slideUp .28s cubic-bezier(0.34,1.1,0.64,1);position:relative;scrollbar-width:thin;}
+[data-theme="dark"] .modal-sheet{background:var(--bg2);}
 .modal-sheet::-webkit-scrollbar{width:3px;}
 .modal-sheet::-webkit-scrollbar-thumb{background:var(--border);}
 @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 20px;}
-.modal-title{font-size:20px;font-weight:800;margin-bottom:5px;}
+.modal-title{font-size:20px;font-weight:800;margin-bottom:5px;color:var(--text);}
 .modal-sub{font-size:13px;color:var(--text3);margin-bottom:22px;}
+[data-theme="dark"] .modal-sub{color:#FFFFFF;}
 .modal-close{position:absolute;top:18px;right:20px;width:30px;height:30px;border-radius:50%;background:var(--bg3);border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--text2);}
+[data-theme="dark"] .modal-close{color:#FFFFFF;background:var(--bg3);}
 
 /* APPLY TYPE BUTTONS */
 .type-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
 .type-btn{flex:1;min-width:72px;padding:10px 6px;background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center;transition:all .18s;font-family:inherit;}
 .type-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-soft);}
 .type-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+[data-theme="dark"] .type-btn{color:#FFFFFF;background:var(--bg3);}
+[data-theme="dark"] .type-btn:hover{color:#FFFFFF;background:rgba(107,143,212,0.3);}
 
 /* FORM */
 .form-section{display:none;}
 .form-section.active{display:block;}
 .form-group{margin-bottom:14px;}
 .form-group label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;}
+[data-theme="dark"] .form-group label{color:#FFFFFF;}
 .form-group input,.form-group select,.form-group textarea{width:100%;padding:11px 14px;background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:14px;color:var(--text);transition:border .2s;outline:none;appearance:none;-webkit-appearance:none;}
+[data-theme="dark"] .form-group input,[data-theme="dark"] .form-group select,[data-theme="dark"] .form-group textarea{background:var(--bg3);color:#FFFFFF;border-color:rgba(100,140,220,0.4);}
+[data-theme="dark"] .form-group input::placeholder,[data-theme="dark"] .form-group textarea::placeholder{color:#FFFFFF;}
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 @media(max-width:480px){.form-row{grid-template-columns:1fr;}}
@@ -145,14 +176,16 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 .toggle-row{display:flex;gap:8px;margin-bottom:6px;}
 .toggle-btn{flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .18s;}
 .toggle-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+[data-theme="dark"] .toggle-btn{color:#FFFFFF;background:var(--bg3);}
 .sub-input{display:none;margin-top:6px;}
 .sub-input.show{display:block;}
 
 .army-notice{background:var(--army-soft);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--army);font-weight:600;line-height:1.5;}
-[data-theme="dark"] .army-notice{background:#122A1F;}
+[data-theme="dark"] .army-notice{background:rgba(91,191,138,0.15);color:#7DDBA8;}
 
-.btn-submit{width:100%;padding:15px;background:var(--blue);color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px;transition:all .2s;font-family:inherit;}
+.btn-submit{width:100%;padding:15px;background:var(--blue);color:#0A141A;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px;transition:all .2s;font-family:inherit;}
 .btn-submit:hover{background:var(--blue-deep);}
+[data-theme="dark"] .btn-submit{background:var(--blue);color:#0A141A;}
 
 /* STATUS (기수별 온도계) */
 .cohort-thermo-wrap{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
@@ -167,47 +200,47 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 
 /* 주차 및 이동수단 상세 안내 */
 .transport-note{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:8px;font-size:12px;color:var(--text3);line-height:1.6;}
-[data-theme="dark"] .transport-note{background:var(--bg3);color:#C0CFED;}
+[data-theme="dark"] .transport-note{background:var(--bg3);color:#FFFFFF;}
 .transport-note strong{color:var(--text2);font-weight:700;}
 [data-theme="dark"] .transport-note strong{color:#FFFFFF;}
-
-.stat-row:last-child{border-bottom:none;}
-.stat-left{display:flex;align-items:center;gap:10px;}
-.stat-dot{width:9px;height:9px;border-radius:50%;background:var(--blue);}
-.stat-dot.army-dot{background:var(--army);}
-.stat-name{font-size:14px;font-weight:600;}
-.stat-val{font-size:14px;font-weight:700;color:var(--blue);}
-.stat-val.army-val{color:var(--army);}
 
 /* TIMELINE */
 .tl-item{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
 .tl-time{min-width:48px;font-size:12px;font-weight:700;color:var(--blue);text-align:right;padding-top:2px;}
+[data-theme="dark"] .tl-time{color:#FFFFFF;}
 .tl-dots{display:flex;flex-direction:column;align-items:center;}
 .tl-dot{width:9px;height:9px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:3px;}
 .tl-line{width:2px;flex:1;background:var(--border);min-height:20px;}
-.tl-body h4{font-size:14px;font-weight:700;margin-bottom:2px;}
+.tl-body h4{font-size:14px;font-weight:700;margin-bottom:2px;color:var(--text);}
+[data-theme="dark"] .tl-body h4{color:#FFFFFF;}
 .tl-body p{font-size:12px;color:var(--text3);}
+[data-theme="dark"] .tl-body p{color:#FFFFFF;}
 
 /* COHORT TABLE */
 .cohort-table{width:100%;border-collapse:collapse;font-size:13px;}
 .cohort-table th{background:var(--bg3);color:var(--text2);font-weight:700;padding:9px 12px;text-align:left;}
+[data-theme="dark"] .cohort-table th{color:#FFFFFF;background:var(--bg3);}
 .cohort-table th:first-child{border-radius:8px 0 0 8px;}
 .cohort-table th:last-child{border-radius:0 8px 8px 0;}
-.cohort-table td{padding:10px 12px;border-bottom:1px solid var(--border);}
+.cohort-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);}
+[data-theme="dark"] .cohort-table td{color:#FFFFFF;}
 .cohort-table tr:last-child td{border-bottom:none;}
 
 /* ARMY BENEFIT */
 .benefit-item{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
-.benefit-item h4{font-size:14px;font-weight:700;margin-bottom:4px;}
+[data-theme="dark"] .benefit-item{background:var(--bg3);}
+.benefit-item h4{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text);}
+[data-theme="dark"] .benefit-item h4{color:#FFFFFF;}
 .benefit-item p{font-size:13px;color:var(--text3);line-height:1.6;}
+[data-theme="dark"] .benefit-item p{color:#FFFFFF;}
 .army-alert{background:#FFF4E0;border:1.5px solid #FFAA00;border-radius:12px;padding:13px 16px;margin-top:14px;font-size:13px;color:#7A5000;font-weight:600;line-height:1.6;}
 [data-theme="dark"] .army-alert{background:#2A1C00;border-color:#8B6500;color:#FFB830;}
 
 .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:11px 22px;border-radius:100px;font-size:14px;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;}
+[data-theme="dark"] .toast{background:#FFFFFF;color:#0A0F1E;}
 .toast.show{opacity:1;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 </style>
-    <script src="js/app.js"></script>
 </head>
 <body>
 
@@ -329,14 +362,11 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 
   <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">본인 소속을 선택해주세요</div>
   <div class="type-btns">
-    <button class="type-btn active" onclick="switchType(this,'student')">🎓 재학생</button>
-    <button class="type-btn" onclick="switchType(this,'grad')">👔 졸업생</button>
-    <button class="type-btn" onclick="switchType(this,'leave')">📚 휴학생</button>
+    <button class="type-btn active" onclick="switchType(this,'general')">🙋 일반</button>
     <button class="type-btn" onclick="switchType(this,'army')">🫡 군인</button>
-    <button class="type-btn" onclick="switchType(this,'etc')">👋 기타</button>
   </div>
 
-  <!-- 재학생/휴학생 폼 (form-SL) -->
+  <!-- 일반 폼 (form-SL) -->
   <div class="form-section active" id="form-SL">
     <div class="form-row">
       <div class="form-group"><label>이름 *</label><input type="text" id="nameSL" placeholder="홍길동"></div>
@@ -389,62 +419,6 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
     <div style="display:flex; gap:10px; margin-top:10px;">
       <button class="btn-submit" onclick="doSubmit('SL')" style="flex:2;">🎉 신청 완료하기</button>
       <button id="btnCancelSL" class="btn-submit" onclick="cancelRegistration()" style="flex:1; background:var(--text3); display:none;">신청 취소</button>
-    </div>
-  </div>
-
-  <!-- 졸업생/기타 폼 (form-GE) -->
-  <div class="form-section" id="form-GE">
-    <div class="form-row">
-      <div class="form-group"><label>이름 *</label><input type="text" id="nameGE" placeholder="홍길동"></div>
-      <div class="form-group">
-        <label>기수 *</label>
-        <select id="genGE">
-          <option value="">선택</option>
-          <option value="1">1기</option><option value="2">2기</option><option value="3">3기</option><option value="4">4기</option>
-          <option value="5">5기</option><option value="6">6기</option><option value="7">7기</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group"><label>연락처 (본인 확인용 📱) *</label><input type="tel" id="telGE" placeholder="010-0000-0000 (전체 입력)"></div>
-
-    <div class="form-group">
-      <label>빅이큐 MT 참여 횟수 *</label>
-      <select><option value="">선택</option><option>0번 (처음이에요!)</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option></select>
-    </div>
-    <div class="form-group"><label>기억에 남는 MT 또는 기대되는 점</label><textarea placeholder="자유롭게 남겨주세요 😊"></textarea></div>
-    <div class="form-group">
-      <label>참가 일정</label>
-      <div class="toggle-row">
-        <button class="toggle-btn active" onclick="toggleSchedule(this,'ge-join')">전일정 참여</button>
-        <button class="toggle-btn" onclick="toggleSchedule(this,'ge-join')">중간 합류</button>
-      </div>
-      <div class="sub-input" id="ge-join"><input type="text" placeholder="언제 합류 예정인지 알려주세요"></div>
-    </div>
-    <div class="form-group">
-      <label>이동 수단</label>
-      <div class="toggle-row">
-        <button class="toggle-btn active" onclick="toggleTransport(this)">🚗 자차</button>
-        <button class="toggle-btn" onclick="toggleTransport(this)">🚌 대중교통 / 뚜벅이</button>
-      </div>
-      <div class="transport-note transport-note-car">
-        <strong>🚗 자차 이용 시</strong> — 다른 인원을 태워주실 수 있나요?
-        <div class="carpool-row" style="margin-top:8px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <select class="carpool-available"><option value="">동승 가능 여부 *</option><option value="yes">태워줄 수 있어요 😊</option><option value="no">나 혼자만 이동해요</option></select>
-          <input type="number" class="carpool-num" style="display:none" placeholder="몇 명까지? *" min="1" max="10">
-        </div>
-      </div>
-      <div class="transport-note transport-note-pub" style="display:none">
-        <strong>🚌 대중교통 / 뚜벅이</strong> — 버스, 지하철, 도보 등 모두 포함이에요. 자차 카풀이 필요하면 운영진에게 말씀해주세요!
-      </div>
-    </div>
-    <div class="form-group"><label>출발 지역 *</label><input type="text" placeholder="예: 강남, 홍대, 수원 등"></div>
-    <div class="form-group"><label>음식 알레르기 및 특이사항</label><input type="text" placeholder="없으면 비워두세요"></div>
-    <div class="form-group"><label>기타 (하고 싶은 말)</label><textarea placeholder="운영진에게 하고 싶은 말, 요청사항 등"></textarea></div>
-    <div class="form-group"><label>기대평 한 줄 (메인화면에 표시돼요 🌟)</label><input type="text" id="expGE" placeholder="이번 MT에 대한 기대 한 마디!"></div>
-    <div class="form-group"><label>비밀번호 (수정/취소 시 필요 🔒) *</label><input type="password" id="pwGE" placeholder="미입력 시 휴대폰 번호 뒤 4자리 자동 설정"></div>
-    <div style="display:flex; gap:10px; margin-top:10px;">
-      <button class="btn-submit" onclick="doSubmit('GE')" style="flex:2;">🎉 신청 완료하기</button>
-      <button id="btnCancelGE" class="btn-submit" onclick="cancelRegistration()" style="flex:1; background:var(--text3); display:none;">신청 취소</button>
     </div>
   </div>
 
@@ -523,52 +497,10 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
   <button class="modal-close" onclick="closeModal('status')">✕</button>
   <div class="modal-title">📊 실시간 신청 현황</div>
   <div class="modal-sub" id="modalTotalLabel">총 정원 20명 (군인 우선 4명 포함)</div>
-  <div class="bar-wrap" style="margin-bottom:20px">
-    <div class="bar-label"><span>전체 신청률</span><span id="totalPctLabel" style="font-weight:700;color:var(--blue)">0 / 20명</span></div>
-    <div class="bar-track" style="height:13px"><div class="bar-fill" id="barTotal"></div></div>
+  
+  <div class="cohort-thermo-wrap" id="thermoRows">
+    <!-- All progress rows will be aligned here by app.js -->
   </div>
-  <div id="statRows" style="display:none"></div> <!-- Old style kept hidden for safety -->
-  <div class="cohort-thermo-wrap" id="thermoRows"></div>
-  <div id="statArmy" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
-    <div class="bar-label" style="margin-bottom:6px"><span style="color:var(--army);font-weight:700">🫡 군인 우선 예약</span><span id="armyStatLabel" style="font-weight:700;color:var(--army)">0 / 4명</span></div>
-    <div class="bar-track" style="height:13px"><div class="bar-fill army-bar" id="barStatArmy"></div></div>
-  </div>
-</div>
-</div>
-
-<!-- SCHED1 -->
-<div class="modal-overlay" id="modal-sched1" onclick="closeBg(event,'sched1')">
-<div class="modal-sheet">
-  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('sched1')">✕</button>
-  <div class="modal-title">🌆 DAY 1 — 8월 22일 (금)</div><div class="modal-sub">이동 · 입실 · 환영 파티</div>
-  <div class="tl-item"><div class="tl-time">14:00</div><div class="tl-dots"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><h4>집결 및 출발</h4><p>서울 OO역 앞 집결, 버스 출발</p></div></div>
-  <div class="tl-item"><div class="tl-time">17:00</div><div class="tl-dots"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><h4>리조트 입실</h4><p>방 배정 및 짐 정리</p></div></div>
-  <div class="tl-item"><div class="tl-time">18:30</div><div class="tl-dots"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><h4>저녁 식사 🍽️</h4><p>단체 저녁 식사</p></div></div>
-  <div class="tl-item"><div class="tl-time">20:00</div><div class="tl-dots"><div class="tl-dot"></div></div><div class="tl-body"><h4>환영 파티 🎉</h4><p>기수별 자기소개 · 게임 · 네트워킹</p></div></div>
-</div>
-</div>
-
-<!-- SCHED2 -->
-<div class="modal-overlay" id="modal-sched2" onclick="closeBg(event,'sched2')">
-<div class="modal-sheet">
-  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('sched2')">✕</button>
-  <div class="modal-title">🏕️ DAY 2 — 8월 23일 (토)</div><div class="modal-sub">레크레이션 · 강연 · 바베큐</div>
-  <div class="tl-item"><div class="tl-time">09:00</div><div class="tl-dots"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><h4>기상 & 아침 식사</h4><p>단체 아침 식사</p></div></div>
-  <div class="tl-item"><div class="tl-time">10:30</div><div class="tl-dots"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><h4>레크레이션 🏃</h4><p>팀 대항 게임 · 경품 추첨</p></div></div>
-  <div class="tl-item"><div class="tl-time">13:30</div><div class="tl-dots"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><h4>선배 특강 🎤</h4><p>각 분야 선배 동문 특강</p></div></div>
-  <div class="tl-item"><div class="tl-time">18:00</div><div class="tl-dots"><div class="tl-dot"></div></div><div class="tl-body"><h4>바베큐 파티 🔥</h4><p>야외 바베큐 & 장기자랑</p></div></div>
-</div>
-</div>
-
-<!-- SCHED3 -->
-<div class="modal-overlay" id="modal-sched3" onclick="closeBg(event,'sched3')">
-<div class="modal-sheet">
-  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('sched3')">✕</button>
-  <div class="modal-title">🌊 DAY 3 — 8월 24일 (일)</div><div class="modal-sub">단체 활동 · 폐회식 · 귀가</div>
-  <div class="tl-item"><div class="tl-time">09:00</div><div class="tl-dots"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><h4>기상 & 아침 식사</h4><p>단체 아침 식사</p></div></div>
-  <div class="tl-item"><div class="tl-time">10:30</div><div class="tl-dots"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><h4>단체 야외 활동 🌿</h4><p>수상 스포츠 · 산책 · 자유 시간</p></div></div>
-  <div class="tl-item"><div class="tl-time">13:00</div><div class="tl-dots"><div class="tl-dot"></div><div class="tl-line"></div></div><div class="tl-body"><h4>점심 & 폐회식 🏆</h4><p>기념 촬영 · 시상식</p></div></div>
-  <div class="tl-item"><div class="tl-time">15:00</div><div class="tl-dots"><div class="tl-dot"></div></div><div class="tl-body"><h4>귀가 🚌</h4><p>버스 출발, 서울 귀환</p></div></div>
 </div>
 </div>
 
@@ -576,15 +508,29 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 <div class="modal-overlay" id="modal-cohort" onclick="closeBg(event,'cohort')">
 <div class="modal-sheet">
   <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cohort')">✕</button>
-  <div class="modal-title">👥 기수 / 동기 확인</div><div class="modal-sub">이름으로 검색해보세요</div>
-  <div class="form-group"><input type="text" placeholder="🔍 이름 검색..." oninput="filterCohort(this.value)"></div>
+  <div class="modal-title">👥 기수 / 동기 확인</div><div class="modal-sub">기수별로 확인하거나 이름으로 검색해보세요</div>
+  
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+    <div class="form-group" style="margin-bottom:0;">
+      <select id="cohortGenFilter" onchange="applyCohortFilter()">
+        <option value="all">전체 기수</option>
+        <option value="1">1기</option><option value="2">2기</option><option value="3">3기</option>
+        <option value="4">4기</option><option value="5">5기</option><option value="6">6기</option>
+        <option value="7">7기</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:0;">
+      <input type="text" id="cohortNameFilter" placeholder="🔍 이름 검색..." oninput="applyCohortFilter()">
+    </div>
+  </div>
+
   <table class="cohort-table" id="cohortTable">
-    <thead><tr><th>기수</th><th>이름</th><th>비고</th></tr></thead>
+    <thead><tr><th style="width: 360px; text-align: left;">기수</th><th style="text-align: left;">이름</th></tr></thead>
     <tbody>
       <!-- Data will be populated by app.js -->
     </tbody>
   </table>
-  <p style="font-size:12px;color:var(--text3);margin-top:12px;text-align:center">실제 동문 명단으로 업데이트 예정</p>
+  <p style="font-size:12px;color:var(--text3);margin-top:12px;text-align:center">동문 명단에 없는 경우 관리자에게 문의해주세요</p>
 </div>
 </div>
 
@@ -665,10 +611,6 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 
 <script src="js/app.js"></script>
 <script>
-// ===== DATA (Now handled by app.js) =====
-let curType='student';
-// function switchType(btn, type){ ... remains for UI logic ... }
-
 // ===== THEME =====
 document.getElementById('themeBtn').addEventListener('click',function(){
   const d = document.documentElement.dataset.theme==='dark';
@@ -678,17 +620,18 @@ document.getElementById('themeBtn').addEventListener('click',function(){
 
 // ===== MODAL =====
 function openModal(id){
-  document.getElementById('modal-'+id).classList.add('active');
+  const el = document.getElementById('modal-'+id);
+  if(!el) return;
+  el.classList.add('active');
   document.body.style.overflow='hidden';
-  if(id==='status') buildStatus();
   if(id==='apply' && !window.editingParticipantId) {
     document.getElementById('btnCancelSL').style.display='none';
-    document.getElementById('btnCancelGE').style.display='none';
     document.getElementById('btnCancelAR').style.display='none';
   }
 }
 function closeModal(id){
-  document.getElementById('modal-'+id).classList.remove('active');
+  const el = document.getElementById('modal-'+id);
+  if(el) el.classList.remove('active');
   document.body.style.overflow='';
 }
 function closeBg(e,id){if(e.target===document.getElementById('modal-'+id))closeModal(id);}
@@ -697,48 +640,21 @@ document.addEventListener('keydown',e=>{
 });
 
 // ===== APPLY TYPE =====
-const typeMap={student:'SL',grad:'GE',leave:'SL',army:'AR',etc:'GE'};
+const typeMap={general:'SL', army:'AR'};
 function switchType(btn, type){
-  curType=type;
-  window.curType = type; // Ensure app.js sees it
+  window.curType = type;
   btn.closest('.type-btns').querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   document.querySelectorAll('.form-section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('form-'+typeMap[type]).classList.add('active');
-}
-
-// ===== BARS (Now handled by app.js) =====
-function buildStatus(){
-  const counts = window.currentCounts || { student:0, graduate:0, leaveOfAbsence:0, military:0, etc:0, total: 0 };
-  const s = window.siteSettings || { maxGeneralCapacity: 16, maxMilitaryCapacity: 4 };
-  const MAX_TOTAL = s.maxGeneralCapacity + s.maxMilitaryCapacity;
-  
-  const total = counts.total;
-  const pct = Math.round(total/MAX_TOTAL*100);
-  document.getElementById('totalPctLabel').textContent = `${total} / ${MAX_TOTAL}명 (${pct}%)`;
-  
-  const el = document.getElementById('barTotal');
-  if(el) el.style.width = pct + '%';
-
-  const rows=[
-    {l:'재학생',c:counts.student,a:false},{l:'졸업생',c:counts.graduate,a:false},
-    {l:'휴학생',c:counts.leaveOfAbsence,a:false},{l:'기타',c:counts.etc,a:false},
-    {l:'군인 우선 예약',c:counts.military,a:true},
-  ];
-  document.getElementById('statRows').innerHTML=rows.map(r=>
-    `<div class="stat-row"><div class="stat-left"><div class="stat-dot ${r.a?'army-dot':''}"></div><span class="stat-name">${r.l}</span></div><span class="stat-val ${r.a?'army-val':''}">${r.c}명</span></div>`
-  ).join('');
+  const formEl = document.getElementById('form-'+typeMap[type]);
+  if(formEl) formEl.classList.add('active');
 }
 
 function openApplyArmy(){
   openModal('apply');
   const btns = document.querySelectorAll('.type-btn');
-  btns.forEach(b=>b.classList.remove('active'));
-  btns[3].classList.add('active');
-  document.querySelectorAll('.form-section').forEach(s=>s.classList.remove('active'));
-  document.getElementById('form-AR').classList.add('active');
-  curType='army';
-  window.curType='army';
+  // First button is General, second is Army
+  if(btns.length >= 2) switchType(btns[1], 'army');
 }
 
 function toggleSchedule(btn, subId){
@@ -750,23 +666,20 @@ function toggleSchedule(btn, subId){
   if(sub) sub.classList.toggle('show', isJoin);
 }
 
-function togglePair(btn){
-  btn.closest('.toggle-row').querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
 // ===== COHORT SEARCH =====
-function filterCohort(v){
+function applyCohortFilter(){
+  const gen = document.getElementById('cohortGenFilter').value;
+  const name = document.getElementById('cohortNameFilter').value.toLowerCase();
+  
   document.querySelectorAll('#cohortTable tbody tr').forEach(r=>{
-    r.style.display=r.textContent.toLowerCase().includes(v.toLowerCase())?'':'none';
+    const rGen = r.getAttribute('data-cohort-val');
+    const rName = r.querySelector('.name-cell').textContent.toLowerCase();
+    
+    const genMatch = (gen === 'all' || rGen === gen);
+    const nameMatch = rName.includes(name);
+    
+    r.style.display = (genMatch && nameMatch) ? '' : 'none';
   });
-}
-
-// ===== TOAST =====
-function showToast(msg){
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),2800);
 }
 </script>
 </body>

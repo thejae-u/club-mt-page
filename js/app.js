@@ -1,5 +1,5 @@
 // When hosting separately, you MUST use an absolute URL pointing to your backend.
-const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? 'http://localhost:5001/api' : 'API_BASE_URL_PLACEHOLDER';
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
 
 // ===== FETCH DATA & UPDATE UI =====
 async function updateDashboard() {
@@ -29,13 +29,12 @@ async function updateDashboard() {
     const armyLabelEl = document.getElementById('armyLabel');
     const armyMainLabelEl = document.getElementById('armyMainLabel');
 
-    // Use values from siteSettings if available, else fallback
     const s = window.siteSettings || {};
     const MAX_GEN = s.maxGeneralCapacity || 16;
     const MAX_ARMY = s.maxMilitaryCapacity || 4;
     const MAX_TOTAL = MAX_GEN + MAX_ARMY;
 
-    const currentGen = counts.student + counts.graduate + counts.leaveOfAbsence + counts.etc;
+    const currentGen = counts.general;
     const currentArmy = counts.military;
     const currentTotal = counts.total;
 
@@ -45,26 +44,32 @@ async function updateDashboard() {
     if (armyLabelEl) armyLabelEl.textContent = `${currentArmy}명 / ${MAX_ARMY}명`;
     if (armyMainLabelEl) armyMainLabelEl.textContent = `${currentArmy}명 / ${MAX_ARMY}명`;
     
-    // Update Dynamic Labels
-    const totalCapacityLabel = document.getElementById('totalCapacityLabel');
-    if (totalCapacityLabel) totalCapacityLabel.textContent = ` / ${MAX_TOTAL}명 정원`;
-    
-    const modalTotalLabel = document.getElementById('modalTotalLabel');
-    if (modalTotalLabel) modalTotalLabel.textContent = `총 정원 ${MAX_TOTAL}명 (군인 우선 ${MAX_ARMY}명 포함)`;
+    // Update Progress Bars (Main Page)
+    setBarW('barGen', Math.round((currentGen / MAX_GEN) * 100));
+    setBarW('barArmy', Math.round((currentArmy / MAX_ARMY) * 100));
+    setBarW('barArmyMain', Math.round((currentArmy / MAX_ARMY) * 100));
 
-    const totalPctLabel = document.getElementById('totalPctLabel');
-    if (totalPctLabel) {
-      const totalPct = Math.round((currentTotal / MAX_TOTAL) * 100);
-      totalPctLabel.textContent = `${currentTotal} / ${MAX_TOTAL}명 (${totalPct}%)`;
-      setBarW('barTotal', totalPct);
-    }
-
-    // Update Cohort Thermometer
+    // Update Status Modal
     const thermoContainer = document.getElementById('thermoRows');
-    if (thermoContainer && data.cohortCounts) {
-      let thermoHtml = '';
+    if (thermoContainer) {
       const MAX_GEN_DISPLAY = 7;
       const targetPerCohort = 4;
+      
+      // 1. Total Row
+      const totalPct = Math.round((currentTotal / MAX_TOTAL) * 100);
+      let thermoHtml = `
+        <div class="cohort-thermo-row" style="margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border);">
+          <div class="cohort-thermo-label" style="min-width: 40px; font-weight: 800; color: var(--blue-deep);">전체</div>
+          <div class="thermo-track" style="height: 26px;">
+            <div class="thermo-fill" id="thermo-total" style="width:0%; background: var(--blue);">
+              <span class="thermo-count" style="font-size: 12px;">${currentTotal} / ${MAX_TOTAL}명</span>
+            </div>
+          </div>
+          <div class="cohort-thermo-num" style="min-width: 40px; font-weight: 800; color: var(--blue-deep);">${totalPct}%</div>
+        </div>
+      `;
+
+      // 2. Cohort Rows
       for (let i = 1; i <= MAX_GEN_DISPLAY; i++) {
         const count = data.cohortCounts[i] || 0;
         const cPct = Math.min(Math.round((count / targetPerCohort) * 100), 100);
@@ -81,25 +86,48 @@ async function updateDashboard() {
           </div>
         `;
       }
+
+      // 3. Military Row
+      const armyPct = Math.round((currentArmy / MAX_ARMY) * 100);
+      thermoHtml += `
+        <div class="cohort-thermo-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border);">
+          <div class="cohort-thermo-label" style="min-width: 40px; color: var(--army);">군인</div>
+          <div class="thermo-track">
+            <div class="thermo-fill" id="thermo-army" style="width:0%; background: var(--army);">
+              <span class="thermo-count">${currentArmy} / ${MAX_ARMY}명</span>
+            </div>
+          </div>
+          <div class="cohort-thermo-num" style="min-width: 40px; color: var(--army);">${armyPct}%</div>
+        </div>
+      `;
+
       thermoContainer.innerHTML = thermoHtml;
 
-      // Animate thermometer bars
+      // Animate all bars
       setTimeout(() => {
+        const totalEl = document.getElementById('thermo-total');
+        if (totalEl) totalEl.style.width = `${totalPct}%`;
+        
         for (let i = 1; i <= MAX_GEN_DISPLAY; i++) {
           const count = data.cohortCounts[i] || 0;
           const cPct = Math.min(Math.round((count / targetPerCohort) * 100), 100);
           const el = document.getElementById(`thermo-${i}`);
           if (el) el.style.width = `${cPct}%`;
         }
+        
+        const armyEl = document.getElementById('thermo-army');
+        if (armyEl) armyEl.style.width = `${armyPct}%`;
       }, 100);
     }
-
-    // Update Progress Bars
-    setBarW('barGen', Math.round((currentGen / MAX_GEN) * 100));
-    setBarW('barArmy', Math.round((currentArmy / MAX_ARMY) * 100));
-    setBarW('barArmyMain', Math.round((currentArmy / MAX_ARMY) * 100));
     
-    // Update Army Modal specifically
+    // Update Dynamic Labels
+    const totalCapacityLabel = document.getElementById('totalCapacityLabel');
+    if (totalCapacityLabel) totalCapacityLabel.textContent = ` / ${MAX_TOTAL}명 정원`;
+    
+    const modalTotalLabel = document.getElementById('modalTotalLabel');
+    if (modalTotalLabel) modalTotalLabel.textContent = `총 정원 ${MAX_TOTAL}명 (군인 우선 ${MAX_ARMY}명 포함)`;
+
+    // Update Army Modal Progress
     const barArmyModal = document.getElementById('barArmyModal');
     const armyModalLabel = document.getElementById('armyModalLabel');
     if (barArmyModal) setBarW('barArmyModal', Math.round((currentArmy / MAX_ARMY) * 100));
@@ -174,15 +202,9 @@ async function updateCohortTable() {
     members.sort((a, b) => a.generation - b.generation || a.name.localeCompare(b.name));
 
     tableBody.innerHTML = members.map(p => `
-      <tr data-cohort="${p.generation}기">
+      <tr data-cohort-val="${p.generation}">
         <td>${p.generation}기</td>
-        <td><b>${p.name}</b></td>
-        <td>
-          ${p.isRegistered 
-            ? '<span style="color:#22C55E; font-weight:bold;">✅ 신청완료</span>' 
-            : '<span style="color:var(--text3);">미신청</span>'}
-          ${p.type === 3 ? ' <small>(🫡 군인)</small>' : ''}
-        </td>
+        <td class="name-cell"><b>${p.name}</b>
       </tr>
     `).join('');
   } catch (err) {
@@ -221,11 +243,11 @@ document.addEventListener('change', (e) => {
 
 // Thermo Color Helper
 function thermoColor(pct) {
-  if (pct <= 0) return '#4A90D9';
-  if (pct < 30) return '#5BA8E0';
-  if (pct < 50) return '#F5A623';
-  if (pct < 75) return '#F07A2A';
-  return '#E8392D';
+  if (pct <= 0) return '#EEF4FB';
+  if (pct < 30) return '#94bfe2';
+  if (pct < 50) return '#76aed9';
+  if (pct < 75) return '#b0cfe8';
+  return '#2e7ab0';
 }
 
 // ===== SUBMIT FORM =====
@@ -323,8 +345,8 @@ async function submitApplication(formId) {
 }
 
 function getParticipantType(typeStr) {
-  const map = { student: 0, grad: 1, leave: 2, army: 3, etc: 4 };
-  return map[typeStr] ?? 4;
+  const map = { general: 0, army: 1 };
+  return map[typeStr] ?? 0;
 }
 
 function renderSettings(s) {
@@ -594,13 +616,17 @@ async function openEditFromMyPage() {
     closeModal('mypage');
     
     document.getElementById('btnCancelSL').style.display = 'block';
-    document.getElementById('btnCancelGE').style.display = 'block';
     document.getElementById('btnCancelAR').style.display = 'block';
 
     openModal('apply');
-    const typeStr = {0:'student', 1:'grad', 2:'leave', 3:'army', 4:'etc'}[p.type];
-    const typeBtn = Array.from(document.querySelectorAll('.type-btn')).find(b => b.textContent.includes(typeStr === 'student' ? '재학생' : typeStr === 'grad' ? '졸업생' : typeStr === 'leave' ? '휴학생' : typeStr === 'army' ? '군인' : '기타'));
-    if (typeBtn) switchType(typeBtn, typeStr);
+    
+    // Type 0 is General (SL), Type 1 is Military (AR)
+    const typeStr = p.type === 0 ? 'general' : 'army';
+    const btns = document.querySelectorAll('.type-btn');
+    if (btns.length >= 2) {
+      const targetBtn = p.type === 0 ? btns[0] : btns[1];
+      switchType(targetBtn, typeStr);
+    }
 
     const fId = typeMap[typeStr];
     const formSection = document.getElementById(`form-${fId}`);
@@ -617,11 +643,11 @@ async function openEditFromMyPage() {
       const telInp = document.getElementById(`tel${fId}`);
       if (telInp) telInp.value = detail.phoneNumber;
       
-      const stdIdInp = formSection.querySelector('input[placeholder*="2022"]');
+      const stdIdInp = formSection.querySelector('input[placeholder*="학번"]');
       if (stdIdInp) stdIdInp.value = detail.studentId || "";
       const countSelect = formSection.querySelectorAll('select')[0];
       if (countSelect) countSelect.selectedIndex = detail.participationCount;
-      const memoInp = formSection.querySelector('textarea[placeholder*="자유롭게"]');
+      const memoInp = formSection.querySelector('textarea[placeholder*="기억에 남는"]');
       if (memoInp) memoInp.value = detail.memoryOrExpectation || "";
       const expInp = document.getElementById(`exp${fId}`);
       if (expInp) expInp.value = detail.oneLineExpectation || "";
