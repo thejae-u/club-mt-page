@@ -99,7 +99,8 @@
     <script>
         const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
         let ACCESS_TOKEN = localStorage.getItem('admin_token');
-        let rawData = [];
+        let participants = [];
+        let masterMembers = [];
         let sortConfig = { key: 'name', direction: 'asc' };
 
         if (!ACCESS_TOKEN) {
@@ -120,15 +121,20 @@
 
         async function fetchData() {
             try {
-                const res = await fetch(`${API_BASE}/Participants`, {
-                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
-                });
-                if (res.status === 401) {
+                const [resParticipants, resMembers] = await Promise.all([
+                    fetch(`${API_BASE}/Participants`, { headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` } }),
+                    fetch(`${API_BASE}/Management/members`, { headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` } })
+                ]);
+
+                if (resParticipants.status === 401) {
                     alert('세션이 만료되었습니다.');
                     window.location.href = 'admin.html';
                     return;
                 }
-                rawData = await res.json();
+
+                participants = await resParticipants.json();
+                masterMembers = await resMembers.json();
+
                 updateSummary();
                 renderTables();
             } catch (e) {
@@ -140,14 +146,29 @@
         const typeLabels = ['일반', '군인'];
 
         function renderTables() {
-            const filtered = sortData(getFilteredData(), sortConfig.key, sortConfig.direction);
+            const term = document.getElementById('searchInput').value.toLowerCase();
             
-            const regParticipants = filtered.filter(p => p.isRegistered);
-            const unregParticipants = filtered.filter(p => !p.isRegistered);
+            // Filter and Sort Participants
+            const filteredReg = participants.filter(p => p.isRegistered && (
+                p.name.toLowerCase().includes(term) ||
+                p.generation.toString().includes(term) ||
+                (p.phoneNumber && p.phoneNumber.includes(term)) ||
+                (p.remarks && p.remarks.toLowerCase().includes(term))
+            ));
+            const sortedReg = sortData(filteredReg, sortConfig.key, sortConfig.direction);
+
+            // Calculate Unregistered: masterMembers NOT in participants
+            const unregParticipants = masterMembers.filter(m => 
+                !participants.some(p => p.isRegistered && p.name === m.name && p.generation === m.generation)
+            ).filter(m => 
+                m.name.toLowerCase().includes(term) ||
+                m.generation.toString().includes(term)
+            );
+            const sortedUnreg = sortData(unregParticipants, sortConfig.key, sortConfig.direction);
 
             // Render Registered
             const regTbody = document.getElementById('regTableBody');
-            regTbody.innerHTML = regParticipants.map(p => `
+            regTbody.innerHTML = sortedReg.map(p => `
                 <tr>
                     <td><b>${p.name}</b></td>
                     <td>${p.generation}기</td>
@@ -166,7 +187,7 @@
 
             // Render Unregistered
             const unregTbody = document.getElementById('unregTableBody');
-            unregTbody.innerHTML = unregParticipants.map(p => `
+            unregTbody.innerHTML = sortedUnreg.map(p => `
                 <tr>
                     <td><b>${p.name}</b></td>
                     <td>${p.generation}기</td>
@@ -174,7 +195,7 @@
                 </tr>
             `).join('');
             
-            // Update sort icons for all tables
+            // Update sort icons
             document.querySelectorAll('th').forEach(th => {
                 th.classList.remove('sort-asc', 'sort-desc');
                 if (th.getAttribute('onclick')?.includes(`'${sortConfig.key}'`)) {
@@ -205,26 +226,15 @@
             renderTables();
         }
 
-        function getFilteredData() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            if (!term) return rawData;
-            return rawData.filter(p => 
-                p.name.toLowerCase().includes(term) ||
-                p.generation.toString().includes(term) ||
-                (p.phoneNumber && p.phoneNumber.includes(term)) ||
-                (p.remarks && p.remarks.toLowerCase().includes(term)) ||
-                (p.departureArea && p.departureArea.toLowerCase().includes(term))
-            );
-        }
-
         function filterData() {
             renderTables();
         }
 
         function updateSummary() {
-            document.getElementById('totalCount').textContent = rawData.length;
-            document.getElementById('regCount').textContent = rawData.filter(p => p.isRegistered).length;
-            document.getElementById('depositCount').textContent = rawData.filter(p => p.isDepositConfirmed).length;
+            const regCount = participants.filter(p => p.isRegistered).length;
+            document.getElementById('totalCount').textContent = masterMembers.length;
+            document.getElementById('regCount').textContent = regCount;
+            document.getElementById('depositCount').textContent = participants.filter(p => p.isDepositConfirmed).length;
         }
 
         fetchData();

@@ -260,15 +260,22 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
   <div class="hero-badge">✨ 0th Anniversary</div>
   <h1>제 0회 빅이큐<br><span>총동문 MT</span></h1>
   <p class="hero-sub"></p>
-  <div class="dday-block">
-    <span class="dday-label">D-</span>
-    <span class="dday-num" id="ddayNum">--</span>
-    <span class="dday-unit">일</span>
+  <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:22px;">
+    <div class="dday-block" id="mtDDayBlock" style="margin-bottom:0; display:none;">
+      <span class="dday-label">MT까지 D-</span>
+      <span class="dday-num" id="ddayNum">--</span>
+      <span class="dday-unit">일</span>
+    </div>
+    <div class="dday-block" id="deadlineBlock" style="margin-bottom:0; border-color:#E5484D; display:none;">
+      <span class="dday-label" style="color:#E5484D;">신청마감 D-</span>
+      <span class="dday-num" id="ddayDeadline" style="color:#E5484D;">--</span>
+      <span class="dday-unit" style="color:#E5484D;">일</span>
+    </div>
   </div>
   <div class="info-row">
     <div class="info-chip">📅 2025년 8월 22일 (금) ~ 24일 (일)</div>
-    <div class="info-chip">📍 가평 OO 리조트</div>
-    <div class="info-chip">💳 회비 50,000원</div>
+    <div class="info-chip" onclick="openLocationModal()" title="클릭하여 장소 상세 보기">📍 가평 OO 리조트 <span style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span></div>
+    <div class="info-chip" onclick="openFeeModal()" title="클릭하여 회비 사용 내역 보기">💳 회비 50,000원 <span style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span></div>
   </div>
   <div class="hero-actions" style="display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap;">
     <button class="btn-apply" onclick="openModal('apply')">✍️ 신청하기</button>
@@ -354,6 +361,43 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 
 <!-- ====== MODALS ====== -->
 <div id="dynamicModals"></div>
+
+<!-- LOCATION MODAL -->
+<div class="modal-overlay" id="modal-location" onclick="closeBg(event,'location')">
+<div class="modal-sheet">
+  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('location')">✕</button>
+  <div class="modal-title">📍 장소 안내</div>
+  <div id="location-name" style="font-size:18px; font-weight:800; color:var(--blue-deep); margin-bottom:10px;">장소 이름</div>
+  <div id="location-detail" style="font-size:14px; line-height:1.6; color:var(--text); margin-bottom:24px; white-space:pre-wrap;">장소 상세 설명이 여기에 표시됩니다.</div>
+  
+  <a id="btnOpenMap" href="#" target="_blank" class="btn-submit" style="display:block; text-align:center; text-decoration:none;">네이버 지도에서 보기</a>
+</div>
+</div>
+
+<!-- FEE HISTORY -->
+<div class="modal-overlay" id="modal-fee" onclick="closeBg(event,'fee')">
+<div class="modal-sheet">
+  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('fee')">✕</button>
+  <div class="modal-title">💳 회비 지출 내역</div>
+  <div class="modal-sub">투명한 회비 운영을 위해 지출 내역을 공개합니다.</div>
+  
+  <div class="card" style="margin-bottom:20px; background:var(--blue-soft); border:none;">
+    <div style="display:flex; justify-content:center; align-items:center;">
+      <div style="text-align:center; font-size:14px; color:var(--text3); font-weight:700;">
+        총 지출 합계: <span id="fee-expense" style="color:var(--blue-deep); font-size:18px;">0원</span>
+      </div>
+    </div>
+  </div>
+
+  <table class="cohort-table" id="feeTable">
+    <thead><tr><th>항목</th><th style="text-align:right;">금액</th></tr></thead>
+    <tbody>
+      <!-- Data will be populated by app.js -->
+    </tbody>
+  </table>
+  <p style="font-size:11px; color:var(--text3); margin-top:15px; text-align:center;">실시간으로 업데이트되는 공식 회비 내역입니다.</p>
+</div>
+</div>
 <div class="modal-overlay" id="modal-apply" onclick="closeBg(event,'apply')">
 <div class="modal-sheet">
   <div class="modal-handle"></div>
@@ -656,6 +700,16 @@ function openApplyArmy(){
   const btns = document.querySelectorAll('.type-btn');
   // First button is General, second is Army
   if(btns.length >= 2) switchType(btns[1], 'army');
+}
+
+function openFeeModal(){
+  openModal('fee');
+  if(window.updateFeeTable) window.updateFeeTable();
+}
+
+function openLocationModal(){
+  openModal('location');
+  if(window.updateLocationModal) window.updateLocationModal();
 }
 
 function toggleSchedule(btn, subId){

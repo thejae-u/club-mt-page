@@ -189,8 +189,8 @@ async function updateCohortTable() {
   if (!tableBody) return;
 
   try {
-    const res = await fetch(`${API_BASE}/Participants`);
-    if (!res.ok) throw new Error('Failed to fetch participants');
+    const res = await fetch(`${API_BASE}/Management/members`);
+    if (!res.ok) throw new Error('Failed to fetch members');
     const members = await res.json();
 
     if (members.length === 0) {
@@ -209,6 +209,45 @@ async function updateCohortTable() {
     `).join('');
   } catch (err) {
     console.error('Error updating cohort table:', err);
+  }
+}
+
+async function updateFeeTable() {
+  const tableBody = document.querySelector('#feeTable tbody');
+  const expenseEl = document.getElementById('fee-expense');
+  if (!tableBody) return;
+
+  try {
+    const [resList, resSummary] = await Promise.all([
+      fetch(`${API_BASE}/Fee`),
+      fetch(`${API_BASE}/Fee/summary`)
+    ]);
+
+    if (resList.ok) {
+      const fees = await resList.json();
+      if (fees.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 20px; color: var(--text3);">등록된 지출 내역이 없습니다.</td></tr>';
+      } else {
+        tableBody.innerHTML = fees.map(f => `
+          <tr>
+            <td>
+              <div style="font-weight:600;">${f.description}</div>
+              <div style="font-size:10px; color:var(--text3);">${f.category}</div>
+            </td>
+            <td style="text-align:right; font-weight:700; color:#E5484D">
+              ${Math.abs(f.amount).toLocaleString()}원
+            </td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    if (resSummary.ok) {
+      const summary = await resSummary.json();
+      if (expenseEl) expenseEl.textContent = `${summary.totalExpense.toLocaleString()}원`;
+    }
+  } catch (err) {
+    console.error('Error updating fee table:', err);
   }
 }
 
@@ -373,18 +412,52 @@ function renderSettings(s) {
   const chips = document.querySelectorAll('.info-chip');
   if (chips.length >= 3) {
     chips[0].textContent = `📅 ${s.eventDateRange}`;
-    chips[1].textContent = `📍 ${s.location}`;
-    chips[2].textContent = `💳 회비 ${s.registrationFee.toLocaleString()}원`;
+    
+    // Update Location chip
+    chips[1].innerHTML = `📍 ${s.location} <span style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span>`;
+    chips[1].style.cursor = 'pointer';
+    chips[1].onclick = () => { if (window.openLocationModal) window.openLocationModal(); };
+    chips[1].title = "클릭하여 장소 상세 보기";
+
+    // Make the Fee chip act as a button
+    chips[2].innerHTML = `💳 회비 ${s.registrationFee.toLocaleString()}원 <span style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span>`;
+    chips[2].style.cursor = 'pointer';
+    chips[2].onclick = () => {
+      if (window.openFeeModal) window.openFeeModal();
+    };
+    chips[2].title = "클릭하여 회비 지출 내역 보기";
   }
 
-  // Update D-Day
+  // Update MT D-Day
+  const mtDDayBlock = document.getElementById('mtDDayBlock');
   const ddayNumEl = document.getElementById('ddayNum');
-  if (ddayNumEl) {
-    const target = new Date(s.dDayTargetDate);
-    const now = new Date();
-    now.setHours(0,0,0,0);
-    const diff = Math.ceil((target - now) / 86400000);
-    ddayNumEl.textContent = diff > 0 ? diff : (diff === 0 ? '오늘!' : Math.abs(diff));
+  if (mtDDayBlock && ddayNumEl) {
+    if (s.dDayTargetDate && s.dDayTargetDate !== "0001-01-01T00:00:00") {
+      const target = new Date(s.dDayTargetDate);
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      const diff = Math.ceil((target - now) / 86400000);
+      ddayNumEl.textContent = diff > 0 ? diff : (diff === 0 ? '오늘!' : Math.abs(diff));
+      mtDDayBlock.style.display = 'inline-flex';
+    } else {
+      mtDDayBlock.style.display = 'none';
+    }
+  }
+
+  // Update Deadline D-Day
+  const deadlineBlock = document.getElementById('deadlineBlock');
+  const ddayDeadlineEl = document.getElementById('ddayDeadline');
+  if (deadlineBlock && ddayDeadlineEl) {
+    if (s.registrationDeadline && s.registrationDeadline !== "0001-01-01T00:00:00") {
+      const target = new Date(s.registrationDeadline);
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      const diff = Math.ceil((target - now) / 86400000);
+      ddayDeadlineEl.textContent = diff > 0 ? diff : (diff === 0 ? '오늘!' : Math.abs(diff));
+      deadlineBlock.style.display = 'inline-flex';
+    } else {
+      deadlineBlock.style.display = 'none';
+    }
   }
 
   // Update Army Specifics
@@ -693,6 +766,27 @@ async function cancelRegistration() {
   }
 }
 
+async function updateLocationModal() {
+  const s = window.siteSettings;
+  if (!s) return;
+
+  const nameEl = document.getElementById('location-name');
+  const detailEl = document.getElementById('location-detail');
+  const btnMap = document.getElementById('btnOpenMap');
+
+  if (nameEl) nameEl.textContent = s.location;
+  if (detailEl) detailEl.textContent = s.locationDetail || "상세 정보가 아직 등록되지 않았습니다.";
+  
+  if (btnMap) {
+    if (s.mapLink) {
+      btnMap.href = s.mapLink;
+      btnMap.style.display = 'block';
+    } else {
+      btnMap.style.display = 'none';
+    }
+  }
+}
+
 // Attach to global
 window.doSubmit = submitApplication;
 window.updateDashboard = updateDashboard;
@@ -702,6 +796,8 @@ window.toggleCheck = toggleCheck;
 window.openEditFromMyPage = openEditFromMyPage;
 window.logout = logout;
 window.cancelRegistration = cancelRegistration;
+window.updateFeeTable = updateFeeTable;
+window.updateLocationModal = updateLocationModal;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
