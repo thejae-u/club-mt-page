@@ -6,26 +6,48 @@
     <meta name="referrer" content="no-referrer-when-downgrade">
     <title>동문 MT 미등록 명단</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/admin.js" defer></script>
     <style>
-        :root { --blue: #76aed9; --bg: #EEF5FB; --card: #ffffff; --border: rgba(118,174,217,0.18); --text: #0A141A; }
-        body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; padding: 20px; background: var(--bg); color: var(--text); margin: 0; }
-        .container { max-width: 1400px; margin: 0 auto; }
+        .container { max-width: 100%; margin: 0 auto; padding: 20px; width: 1500px;}
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .header h1 { font-size: 20px; color: #2e7ab0; margin: 0; }
+        .header h1 { font-size: 24px; color: #2e7ab0; margin: 0; }
         .btn-back { text-decoration: none; font-size: 14px; color: #2e7ab0; font-weight: 600; }
         
-        .card { background: white; padding: 0; border-radius: 16px; box-shadow: 0 4px 12px rgba(118,174,217,0.1); overflow: hidden; border: 1px solid var(--border); }
-        .table-wrapper { overflow-x: auto; width: 100%; }
-        table { width: 100%; border-collapse: collapse; min-width: 1200px; font-size: 13px; }
-        th { background: #EEF5FB; padding: 14px 10px; text-align: left; color: #6A9BB5; border-bottom: 2px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
+        .card { background: white; padding: 0; border-radius: 16px; box-shadow: 0 4px 12px rgba(118,174,217,0.1); overflow: hidden; border: 1px solid var(--border); width: 100%;}
+        .table-wrapper { overflow-x: auto; width: 102%; background: #fff; padding-left: 5px;}
+        table { width: 100%; border-collapse: collapse; min-width: 1300px; table-layout: fixed; }
+        th { background: #EEF5FB; padding: 12px 8px; text-align: left; color: #6A9BB5; border-bottom: 2px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+
+        /* Fixed Column Widths (Registered Table) */
+        #regTable th:nth-child(1) { width: 70px; }   /* 이름 */
+        #regTable th:nth-child(2) { width: 45px; }   /* 기수 */
+        #regTable th:nth-child(3) { width: 70px; }   /* 구분 */
+        #regTable th:nth-child(4) { width: 105px; }  /* 연락처 */
+        #regTable th:nth-child(5) { width: 90px; }   /* 학번 */
+        #regTable th:nth-child(6) { width: 45px; }   /* 입금 */
+        #regTable th:nth-child(7) { width: 85px; }   /* 이동수단 */
+        #regTable th:nth-child(8) { width: 65px; }   /* 카풀 */
+        #regTable th:nth-child(9) { width: 90px; }   /* 출발지 */
+        #regTable th:nth-child(10) { width: 70px; }  /* 면허 */
+        #regTable th:nth-child(11) { width: 70px; }  /* 운전가능 */
+        #regTable th:nth-child(12) { width: 90px; }  /* 경력 */
+        #regTable th:nth-child(13) { width: 90px; }  /* 알레르기 */
+        /* th:nth-child(14) - Remarks: Flexible */
+        #regTable th:nth-child(15) { width: 90px; }  /* 등록일 */
+
+        /* Unregistered Table Specific - Very Tight */
+        #unregTable { min-width: 300px; width: 100%; }
+        #unregTable th:nth-child(1) { width: 80%; } /* 이름 */
+        #unregTable th:nth-child(2) { width: 100%; } /* 기수 */
         th:hover { background: #EEF4FB; color: var(--blue); }
         th.sort-asc::after { content: ' ↑'; }
         th.sort-desc::after { content: ' ↓'; }
         
-        td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; }
+        th { text-align: center;}
+        td { text-align: center; padding: 12px 10px; border-bottom: 1px solid #f0f0f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         tr:hover { background: #fafbfc; }
         
-        .badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
         .badge-reg { background: #e6f7ed; color: #22C55E; }
         .badge-wait { background: #fff4e0; color: #F5A623; }
         .badge-army { background: #e0f2fe; color: #0EA5E9; }
@@ -38,6 +60,7 @@
     </style>
 </head>
 <body>
+    <div id="adminContent" style="visibility: hidden;">
     <div class="container">
         <div class="header">
             <h1>📋 세부 신청자 명단 관리</h1>
@@ -69,6 +92,9 @@
                             <th onclick="sortTable('transportation')">이동수단</th>
                             <th onclick="sortTable('carpoolSeats')">카풀</th>
                             <th onclick="sortTable('departureArea')">출발지</th>
+                            <th onclick="sortTable('hasDriverLicense')">면허</th>
+                            <th onclick="sortTable('canDrive')">운전가능</th>
+                            <th onclick="sortTable('drivingExperience')">경력</th>
                             <th onclick="sortTable('allergies')">알레르기</th>
                             <th onclick="sortTable('remarks')">메모/요청</th>
                             <th onclick="sortTable('createdAt')">등록일</th>
@@ -85,9 +111,8 @@
                 <table id="unregTable">
                     <thead>
                         <tr>
-                            <th onclick="sortTable('name')">이름</th>
                             <th onclick="sortTable('generation')">기수</th>
-                            <th onclick="sortTable('type')">구분</th>
+                            <th onclick="sortTable('name')">이름</th>
                         </tr>
                     </thead>
                     <tbody id="unregTableBody"></tbody>
@@ -95,149 +120,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
-        let ACCESS_TOKEN = localStorage.getItem('admin_token');
-        let participants = [];
-        let masterMembers = [];
-        let sortConfig = { key: 'name', direction: 'asc' };
-
-        if (!ACCESS_TOKEN) {
-            alert('로그인이 필요합니다.');
-            window.location.href = 'admin.html';
-        }
-
-        function formatPhone(num) {
-            if (!num) return '-';
-            const clean = num.replace(/\D/g, '');
-            if (clean.length === 11) {
-                return clean.replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
-            } else if (clean.length === 10) {
-                return clean.replace(/(\d{3})(\d{3})(\d{4})/, '$1-$2-$3');
-            }
-            return num;
-        }
-
-        async function fetchData() {
-            try {
-                const [resParticipants, resMembers] = await Promise.all([
-                    fetch(`${API_BASE}/Participants`, { headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` } }),
-                    fetch(`${API_BASE}/Management/members`, { headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` } })
-                ]);
-
-                if (resParticipants.status === 401) {
-                    alert('세션이 만료되었습니다.');
-                    window.location.href = 'admin.html';
-                    return;
-                }
-
-                participants = await resParticipants.json();
-                masterMembers = await resMembers.json();
-
-                updateSummary();
-                renderTables();
-            } catch (e) {
-                console.error(e);
-                alert('데이터를 불러오는 중 오류가 발생했습니다.');
-            }
-        }
-
-        const typeLabels = ['일반', '군인'];
-
-        function renderTables() {
-            const term = document.getElementById('searchInput').value.toLowerCase();
-            
-            // Filter and Sort Participants
-            const filteredReg = participants.filter(p => p.isRegistered && (
-                p.name.toLowerCase().includes(term) ||
-                p.generation.toString().includes(term) ||
-                (p.phoneNumber && p.phoneNumber.includes(term)) ||
-                (p.remarks && p.remarks.toLowerCase().includes(term))
-            ));
-            const sortedReg = sortData(filteredReg, sortConfig.key, sortConfig.direction);
-
-            // Calculate Unregistered: masterMembers NOT in participants
-            const unregParticipants = masterMembers.filter(m => 
-                !participants.some(p => p.isRegistered && p.name === m.name && p.generation === m.generation)
-            ).filter(m => 
-                m.name.toLowerCase().includes(term) ||
-                m.generation.toString().includes(term)
-            );
-            const sortedUnreg = sortData(unregParticipants, sortConfig.key, sortConfig.direction);
-
-            // Render Registered
-            const regTbody = document.getElementById('regTableBody');
-            regTbody.innerHTML = sortedReg.map(p => `
-                <tr>
-                    <td><b>${p.name}</b></td>
-                    <td>${p.generation}기</td>
-                    <td><span class="badge">${typeLabels[p.type] || '기타'}</span></td>
-                    <td>${formatPhone(p.phoneNumber)}</td>
-                    <td>${p.studentId || '-'}</td>
-                    <td style="color: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; font-weight:bold;">${p.isDepositConfirmed ? '완료' : '대기'}</td>
-                    <td>${p.transportation === 'Car' ? '🚗 자차' : '🚌 대중교통'}</td>
-                    <td>${p.isCarpoolAvailable ? `✅ ${p.carpoolSeats}석` : '-'}</td>
-                    <td>${p.departureArea || '-'}</td>
-                    <td style="color: #E8392D;">${p.allergies || '-'}</td>
-                    <td title="${p.remarks || ''}">${p.remarks ? (p.remarks.length > 15 ? p.remarks.substring(0, 15) + '...' : p.remarks) : '-'}</td>
-                    <td style="font-size: 11px; color: #999;">${new Date(p.createdAt).toLocaleDateString()}</td>
-                </tr>
-            `).join('');
-
-            // Render Unregistered
-            const unregTbody = document.getElementById('unregTableBody');
-            unregTbody.innerHTML = sortedUnreg.map(p => `
-                <tr>
-                    <td><b>${p.name}</b></td>
-                    <td>${p.generation}기</td>
-                    <td><span class="badge">${typeLabels[p.type] || '기타'}</span></td>
-                </tr>
-            `).join('');
-            
-            // Update sort icons
-            document.querySelectorAll('th').forEach(th => {
-                th.classList.remove('sort-asc', 'sort-desc');
-                if (th.getAttribute('onclick')?.includes(`'${sortConfig.key}'`)) {
-                    th.classList.add(sortConfig.direction === 'asc' ? 'sort-asc' : 'sort-desc');
-                }
-            });
-        }
-
-        function sortData(data, key, direction) {
-            return [...data].sort((a, b) => {
-                let vA = a[key];
-                let vB = b[key];
-                if (vA === null || vA === undefined) vA = '';
-                if (vB === null || vB === undefined) vB = '';
-                if (vA < vB) return direction === 'asc' ? -1 : 1;
-                if (vA > vB) return direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-        }
-
-        function sortTable(key) {
-            if (sortConfig.key === key) {
-                sortConfig.direction = sortConfig.direction === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortConfig.key = key;
-                sortConfig.direction = 'asc';
-            }
-            renderTables();
-        }
-
-        function filterData() {
-            renderTables();
-        }
-
-        function updateSummary() {
-            const regCount = participants.filter(p => p.isRegistered).length;
-            document.getElementById('totalCount').textContent = masterMembers.length;
-            document.getElementById('regCount').textContent = regCount;
-            document.getElementById('depositCount').textContent = participants.filter(p => p.isDepositConfirmed).length;
-        }
-
-        fetchData();
-    </script>
+    </div> <!-- End of adminContent -->
 </body>
 </html>

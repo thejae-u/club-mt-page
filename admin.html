@@ -6,53 +6,12 @@
     <meta name="referrer" content="no-referrer-when-downgrade">
     <title>동문 MT 관리자</title>
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
-    <style>
-        :root {
-            --blue: #76aed9;
-            --blue-deep: #2e7ab0;
-            --blue-soft: #EEF4FB;
-            --text: #0A141A;
-            --text-light: #6A9BB5;
-            --border: rgba(118, 174, 217, 0.18);
-            --bg: #EEF5FB;
-        }
-        body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; padding: 15px; max-width: 900px; margin: 0 auto; background: var(--bg); color: var(--text); }
-        .card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(118,174,217,0.1); margin-bottom: 20px; border: 1px solid var(--border); }
-        h1 { font-size: 18px; margin-bottom: 20px; color: var(--blue-deep); display: flex; align-items: center; gap: 8px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 6px; color: var(--text-light); }
-        input, textarea, select { width: 100%; padding: 12px; border: 1.5px solid rgba(118,174,217,0.2); border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s; background: #fff; color: var(--text); }
-        input:focus, textarea:focus, select:focus { border-color: var(--blue); }
-        button { width: 100%; padding: 14px; background: var(--blue); color: var(--text); border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 15px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(118,174,217,0.2); }
-        button:hover { background: var(--blue-deep); color: #fff; }
-        .nav { margin-bottom: 15px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
-        .nav a { color: var(--blue-deep); text-decoration: none; font-weight: 600; }
-        
-        /* TABS */
-        .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
-        .tab-btn { flex: 1; padding: 12px; background: white; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--text-light); cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: none; }
-        .tab-btn.active { background: var(--blue-deep); color: white; border-color: var(--blue-deep); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-
-        /* Table Responsive */
-        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -5px; }
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
-        th { background: var(--bg); padding: 12px 10px; text-align: left; font-size: 12px; color: var(--text-light); border-bottom: 2px solid rgba(118,174,217,0.1); }
-        td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
-        
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
-        .badge-income { background: #E6F2EC; color: #3D7A5A; }
-        .badge-expense { background: #FFF0F0; color: #E5484D; }
-
-        @media (max-width: 480px) {
-            body { padding: 10px; }
-            .card { padding: 15px; }
-            h1 { font-size: 16px; }
-        }
-    </style>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/admin.js" defer></script>
 </head>
-<body style="display:none;"> <!-- Hidden until auth check -->
+<body>
+    <div id="adminContent" style="visibility: hidden;">
+
     
     <!-- LOGIN OVERLAY -->
     <div id="loginOverlay" style="display:none; position:fixed; inset:0; z-index:10000; background:#f4f6fb; flex-direction:column; align-items:center; justify-content:center; padding:20px;">
@@ -60,11 +19,11 @@
             <h1 style="text-align:center; justify-content:center;">🔐 관리자 로그인</h1>
             <div class="form-group">
                 <label>아이디</label>
-                <input type="text" id="login-username" value="admin">
+                <input type="text" id="login-username" placeholder="아이디를 입력하세요">
             </div>
             <div class="form-group">
                 <label>비밀번호</label>
-                <input type="password" id="login-password" placeholder="ADMIN_KEY를 입력하세요">
+                <input type="password" id="login-password" placeholder="비밀번호를 입력하세요">
             </div>
             <button onclick="doLogin()">로그인</button>
             <div style="text-align:center; margin-top:15px;"><a href="index.html" style="font-size:12px; color:#999; text-decoration:none;">← 메인으로 돌아가기</a></div>
@@ -90,6 +49,7 @@
         <button class="tab-btn active" onclick="switchTab('settings')">⚙️ 사이트 설정</button>
         <button class="tab-btn" onclick="switchTab('members')">👥 신청/명단 관리</button>
         <button class="tab-btn" onclick="switchTab('fees')">💳 회비 관리</button>
+        <button class="tab-btn" onclick="switchTab('manitto')">🎁 마니또 관리</button>
     </div>
 
     <!-- TAB 1: SETTINGS -->
@@ -130,7 +90,7 @@
                 <label>네이버 지도 링크</label>
                 <input type="text" id="mapLink" placeholder="https://naver.me/...">
             </div>
-            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom:15px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
                 <div class="form-group">
                     <label>일반 신청 정원</label>
                     <input type="number" id="maxGeneralCapacity">
@@ -139,12 +99,12 @@
                     <label>군인 우선 정원</label>
                     <input type="number" id="maxMilitaryCapacity">
                 </div>
-                <div class="form-group">
-                    <label>회비 (원)</label>
-                    <input type="number" id="registrationFee">
-                </div>
             </div>
 
+            <div class="form-group">
+                <label>회비 (원)</label>
+                <input type="number" id="registrationFee">
+            </div>
             <div class="form-group">
                 <label>상세 일정 관리 (Visual Editor)</label>
                 <div id="scheduleEditor" style="background: #f8f9fa; padding: 15px; border-radius: 12px; border: 1.5px dashed #ccc;"></div>
@@ -243,334 +203,146 @@
         </div>
     </div>
 
-    <script>
-        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
-        let ACCESS_TOKEN = localStorage.getItem('admin_token');
-        let currentSettingId = 0;
+    <!-- TAB 4: MANITTO -->
+    <div id="tab-manitto" class="tab-content">
+        <div class="card">
+            <h1>🎁 마니또 매칭 (Manitto Matching)</h1>
+            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
+                MT 신청자 전체(대기자 포함)를 대상으로 마니또를 랜덤 매칭합니다.<br>
+                <b>주의:</b> 매칭을 실행하면 기존의 모든 매칭 데이터가 초기화되고 새로 생성됩니다.
+            </p>
+            <button onclick="matchManitto()" style="background: #E5484D; color:white;">🔥 마니또 랜덤 매칭 실행</button>
+        </div>
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.querySelector(`.tab-btn[onclick="switchTab('${tabId}')"]`).classList.add('active');
-            document.getElementById(`tab-${tabId}`).classList.add('active');
+        <div class="card">
+            <h1>📜 마니또 미션 관리</h1>
+            <div class="form-group">
+                <label>새로운 미션 추가 (한 줄에 하나씩)</label>
+                <textarea id="new-missions" style="height: 100px;" placeholder="예: 대상에게 자연스럽게 물 건네주기&#10;대상과 셀카 찍기"></textarea>
+            </div>
+            <button onclick="addMissions()" style="background: #5B9E78; color:white;">+ 미션 목록 등록하기</button>
             
-            if (tabId === 'fees') loadFees();
-            if (tabId === 'members') loadParticipants();
-            if (tabId === 'settings') loadSettings();
-        }
-
-        function checkAuth() {
-            if (!ACCESS_TOKEN) {
-                document.getElementById('loginOverlay').style.display = 'flex';
-                document.body.style.display = 'block';
-            } else {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.body.style.display = 'block';
-                loadSettings();
-            }
-        }
-
-        async function doLogin() {
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-
-            try {
-                const res = await fetch(`${API_BASE}/Auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-
-                if (res.ok) {
-                    const data = await res.json();
-                    ACCESS_TOKEN = data.token;
-                    localStorage.setItem('admin_token', ACCESS_TOKEN);
-                    document.getElementById('loginOverlay').style.display = 'none';
-                    loadSettings();
-                } else {
-                    alert('로그인 실패: 비밀번호가 올바르지 않습니다.');
-                }
-            } catch (e) {
-                alert('서버 연결 오류');
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem('admin_token');
-            location.reload();
-        }
-
-        // --- FEE MANAGEMENT ---
-        async function loadFees() {
-            try {
-                const [resList, resSummary] = await Promise.all([
-                    fetch(`${API_BASE}/Fee`),
-                    fetch(`${API_BASE}/Fee/summary`)
-                ]);
-                
-                const list = await resList.json();
-                const summary = await resSummary.json();
-                
-                document.getElementById('fee-summary-text').textContent = 
-                    `총 지출 합계: ${summary.totalExpense.toLocaleString()}원`;
-
-                const tbody = document.getElementById('adminFeeList');
-                if (list.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" style="padding: 30px; text-align: center; color: #999;">등록된 지출 내역이 없습니다.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = list.map(f => `
-                    <tr>
-                        <td><b>${f.description}</b></td>
-                        <td><span class="badge badge-expense">${f.category}</span></td>
-                        <td style="text-align: right; color: #E5484D; font-weight:700;">
-                            ${Math.abs(f.amount).toLocaleString()}
-                        </td>
-                        <td style="text-align: center;">
-                            <button onclick="deleteFee(${f.id})" style="width:auto; padding:4px 8px; background:#ff4d4d; color:white; font-size:11px; margin:0;">삭제</button>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (e) { console.error(e); }
-        }
-
-        async function addFee() {
-            const description = document.getElementById('fee-desc').value;
-            const rawAmount = parseInt(document.getElementById('fee-amt').value);
-            const category = document.getElementById('fee-cat').value;
-
-            if (!description || isNaN(rawAmount)) return alert('항목과 금액을 입력해주세요.');
-
-            // Always store as negative for expense
-            const amount = -Math.abs(rawAmount);
-
-            try {
-                const res = await fetch(`${API_BASE}/Fee`, {
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${ACCESS_TOKEN}`
-                    },
-                    body: JSON.stringify({ description, amount, category })
-                });
-
-                if (res.status === 401) return logout();
-                if (res.ok) {
-                    document.getElementById('fee-desc').value = '';
-                    document.getElementById('fee-amt').value = '';
-                    loadFees();
-                }
-            } catch (e) { alert('지출 내역 추가 실패'); }
-        }
-
-        async function deleteFee(id) {
-            if (!confirm('정말 삭제하시겠습니까?')) return;
-            try {
-                const res = await fetch(`${API_BASE}/Fee/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
-                });
-                if (res.status === 401) return logout();
-                loadFees();
-            } catch (e) { alert('삭제 실패'); }
-        }
-
-        // --- PARTICIPANT MANAGEMENT ---
-        const typeLabels = ['일반', '군인'];
-        async function loadParticipants() {
-            try {
-                const res = await fetch(`${API_BASE}/Participants`, {
-                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
-                });
-                if (res.status === 401) return logout();
-                const list = await res.json();
-                const tbody = document.getElementById('participantList');
-                
-                const registered = list.filter(p => p.isRegistered);
-                if (registered.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="padding: 30px; text-align: center; color: #999;">신청자가 없습니다.</td></tr>';
-                    return;
-                }
-
-                tbody.innerHTML = registered.map(p => `
-                    <tr>
-                        <td><b>${p.name}</b></td>
-                        <td>${typeLabels[p.type] || '기타'}</td>
-                        <td>${p.generation}기</td>
-                        <td style="font-size:12px;">${p.phoneNumber || '-'}</td>
-                        <td>
-                            <button onclick="toggleDeposit(${p.id})" style="padding: 4px 8px; background: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; color:white; font-size: 11px; margin:0; width:auto;">
-                                ${p.isDepositConfirmed ? '입금완료' : '입금대기'}
-                            </button>
-                        </td>
-                        <td style="text-align: center;">
-                            <button onclick="deleteParticipant(${p.id})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">삭제</button>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (e) { console.error(e); }
-        }
-
-        async function toggleDeposit(id) {
-            try {
-                const res = await fetch(`${API_BASE}/Participants/${id}/toggle-deposit`, { 
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
-                });
-                if (res.status === 401) return logout();
-                loadParticipants();
-            } catch (e) { alert('업데이트 실패'); }
-        }
-
-        async function deleteParticipant(id) {
-            if (!confirm('정말 삭제하시겠습니까?')) return;
-            try {
-                const res = await fetch(`${API_BASE}/Participants/${id}`, { 
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` }
-                });
-                if (res.status === 401) return logout();
-                loadParticipants();
-            } catch (e) { alert('삭제 실패'); }
-        }
-
-        async function uploadCsv() {
-            const fileInput = document.getElementById('csvFile');
-            if (!fileInput.files.length) return alert('파일을 선택해주세요.');
-
-            if (!confirm('정말 명단을 교체하시겠습니까?')) return;
-
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            loadingOverlay.style.display = 'flex';
-
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
-            try {
-                const res = await fetch(`${API_BASE}/Management/import-csv`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${ACCESS_TOKEN}` },
-                    body: formData
-                });
-
-                if (res.status === 401) return logout();
-                if (res.ok) {
-                    const result = await res.json();
-                    alert(`✅ 성공: ${result.message}`);
-                    switchTab('members');
-                } else {
-                    const err = await res.text();
-                    alert(`❌ 업로드 실패: ${err}`);
-                }
-            } catch (e) { alert('서버 연결 오류'); }
-            finally { loadingOverlay.style.display = 'none'; }
-        }
-
-        // --- SETTINGS MANAGEMENT ---
-        async function loadSettings() {
-            try {
-                const res = await fetch(`${API_BASE}/Settings`);
-                const s = await res.json();
-                currentSettingId = s.id;
-                document.getElementById('title').value = s.title;
-                document.getElementById('subtitle').value = s.subtitle;
-                document.getElementById('eventDateRange').value = s.eventDateRange;
-                document.getElementById('dDayTargetDate').value = s.dDayTargetDate ? s.dDayTargetDate.split('T')[0] : "";
-                document.getElementById('registrationDeadline').value = s.registrationDeadline ? s.registrationDeadline.split('T')[0] : "";
-                document.getElementById('location').value = s.location;
-                document.getElementById('locationDetail').value = s.locationDetail || "";
-                document.getElementById('mapLink').value = s.mapLink || "";
-                document.getElementById('registrationFee').value = s.registrationFee;
-                document.getElementById('maxGeneralCapacity').value = s.maxGeneralCapacity;
-                document.getElementById('maxMilitaryCapacity').value = s.maxMilitaryCapacity;
-                
-                let schedule = [];
-                try { schedule = JSON.parse(s.scheduleDataJson || "[]"); } catch(e) {}
-                renderScheduleEditor(schedule);
-                syncRawJson();
-            } catch (e) { console.error(e); }
-        }
-
-        let currentSchedule = [];
-        function renderScheduleEditor(data) {
-            currentSchedule = data;
-            const container = document.getElementById('scheduleEditor');
-            if (data.length === 0) {
-                container.innerHTML = '<p style="font-size:12px; color:#999; text-align:center;">등록된 일정이 없습니다.</p>';
-                return;
-            }
-            container.innerHTML = data.map((day, dIdx) => `
-                <div style="background:white; padding:15px; border-radius:10px; margin-bottom:15px; border:1px solid #eee;">
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span style="font-weight:800; color:#2D468D;">DAY ${dIdx+1}</span>
-                        <button onclick="removeDay(${dIdx})" style="width:auto; padding:4px 8px; background:#ff4d4d; color:white; font-size:11px; margin:0;">삭제</button>
-                    </div>
-                    <div style="display:grid; grid-template-columns: 50px 1fr; gap:10px; margin-bottom:10px;">
-                        <input type="text" value="${day.emoji}" onchange="updateDay(${dIdx}, 'emoji', this.value)" placeholder="emoji">
-                        <input type="text" value="${day.date}" onchange="updateDay(${dIdx}, 'date', this.value)" placeholder="날짜">
-                    </div>
-                    <input type="text" value="${day.summary}" onchange="updateDay(${dIdx}, 'summary', this.value)" placeholder="요약" style="margin-bottom:10px;">
-                    <div style="margin-left:15px; border-left:2px solid #f0f0f0; padding-left:10px;">
-                        ${day.timeline.map((t, tIdx) => `
-                            <div style="display:flex; gap:5px; margin-bottom:5px;">
-                                <input type="text" value="${t.time}" onchange="updateTimeline(${dIdx}, ${tIdx}, 'time', this.value)" style="width:70px; font-size:12px;">
-                                <input type="text" value="${t.title}" onchange="updateTimeline(${dIdx}, ${tIdx}, 'title', this.value)" style="flex:1; font-size:12px;">
-                                <button onclick="removeTimeline(${dIdx}, ${tIdx})" style="width:auto; padding:0 8px; background:#999; color:white; font-size:10px; margin:0;">✕</button>
-                            </div>
-                        `).join('')}
-                        <button onclick="addTimeline(${dIdx})" style="background:#8BA0CE; color:white; font-size:11px; padding:6px 10px; margin-top:5px; width:auto;">+ 타임라인 추가</button>
-                    </div>
+            <div style="margin-top: 25px;">
+                <h3 style="font-size: 14px; margin-bottom: 10px;">현재 등록된 미션 목록</h3>
+                <div id="missionListContainer" style="background: #f8f9fa; padding: 15px; border-radius: 12px; font-size: 13px; line-height: 1.6; max-height: 200px; overflow-y: auto;">
+                    데이터를 불러오는 중...
                 </div>
-            `).join('');
-        }
+            </div>
+        </div>
 
-        function updateDay(dIdx, field, val) { currentSchedule[dIdx][field] = val; syncRawJson(); }
-        function updateTimeline(dIdx, tIdx, field, val) { currentSchedule[dIdx].timeline[tIdx][field] = val; syncRawJson(); }
-        function addDay() { currentSchedule.push({ day: currentSchedule.length + 1, emoji: "📅", date: "새 날짜", summary: "요약", timeline: [{ time: "09:00", title: "시작", desc: "" }] }); renderScheduleEditor(currentSchedule); syncRawJson(); }
-        function removeDay(idx) { if(!confirm('삭제하시겠습니까?')) return; currentSchedule.splice(idx, 1); renderScheduleEditor(currentSchedule); syncRawJson(); }
-        function addTimeline(dIdx) { currentSchedule[dIdx].timeline.push({ time: "12:00", title: "활동", desc: "" }); renderScheduleEditor(currentSchedule); syncRawJson(); }
-        function removeTimeline(dIdx, tIdx) { currentSchedule[dIdx].timeline.splice(tIdx, 1); renderScheduleEditor(currentSchedule); syncRawJson(); }
-        function syncRawJson() { document.getElementById('scheduleDataJson').value = JSON.stringify(currentSchedule, null, 2); }
+        <div class="card">
+            <h1>📊 마니또 매칭 현황 및 수동 관리</h1>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>작성자 (기수)</th>
+                            <th>대상 (마니또)</th>
+                            <th>부여된 미션</th>
+                            <th>상태</th>
+                            <th style="text-align: center;">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="manittoAssignmentList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-        async function saveSettings() {
-            const payload = {
-                title: document.getElementById('title').value,
-                subtitle: document.getElementById('subtitle').value,
-                eventDateRange: document.getElementById('eventDateRange').value,
-                dDayTargetDate: document.getElementById('dDayTargetDate').value || null,
-                registrationDeadline: document.getElementById('registrationDeadline').value || null,
-                location: document.getElementById('location').value,
-                locationDetail: document.getElementById('locationDetail').value,
-                mapLink: document.getElementById('mapLink').value,
-                registrationFee: parseInt(document.getElementById('registrationFee').value),
-                maxGeneralCapacity: parseInt(document.getElementById('maxGeneralCapacity').value),
-                maxMilitaryCapacity: parseInt(document.getElementById('maxMilitaryCapacity').value),
-                scheduleDataJson: JSON.stringify(currentSchedule)
-            };
-            try {
-                const res = await fetch(`${API_BASE}/Settings`, {
-                    method: 'PUT',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${ACCESS_TOKEN}`
-                    },
-                    body: JSON.stringify(payload)
-                });
-                if (res.status === 401) return logout();
-                if (res.ok) alert('✅ 저장되었습니다!');
-            } catch (e) { alert('저장 실패'); }
-        }
-
-        checkAuth();
-    </script>
+    <!-- EDIT MODAL -->
+    <div id="editModal" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; padding:20px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
+        <div class="card" style="width:100%; max-width:500px; max-height:90vh; overflow-y:auto; position:relative;">
+            <button onclick="closeEditModal()" style="position:absolute; top:15px; right:15px; width:auto; background:none; border:none; font-size:20px; color:#999; cursor:pointer; box-shadow:none; padding:0;">✕</button>
+            <h1 style="justify-content:center;">✏️ 신청 정보 수정</h1>
+            <input type="hidden" id="edit-id">
+            <div class="form-group">
+                <label>이름</label>
+                <input type="text" id="edit-name">
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>기수</label>
+                    <input type="number" id="edit-generation">
+                </div>
+                <div class="form-group">
+                    <label>구분</label>
+                    <select id="edit-type">
+                        <option value="0">재학생</option>
+                        <option value="1">졸업생</option>
+                        <option value="2">휴학생</option>
+                        <option value="3">군인</option>
+                        <option value="4">기타</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>연락처</label>
+                <input type="text" id="edit-phone">
+            </div>
+            <div class="form-group">
+                <label>학번</label>
+                <input type="text" id="edit-studentId">
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>이동수단</label>
+                    <select id="edit-transportation">
+                        <option value="Car">🚗 자차</option>
+                        <option value="Walk">🚌 대중교통</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>카풀 제공</label>
+                    <select id="edit-carpoolAvailable">
+                        <option value="true">✅ 제공함</option>
+                        <option value="false">❌ 제공안함</option>
+                    </select>
+                </div>
+            </div>
+            <div id="edit-carpool-seats-row" class="form-group">
+                <label>카풀 가능 인원 (본인 제외)</label>
+                <input type="number" id="edit-carpoolSeats" min="0" max="10">
+            </div>
+            <div class="form-group">
+                <label>출발지</label>
+                <input type="text" id="edit-departure">
+            </div>
+            <div class="form-group">
+                <label>메모/요청사항</label>
+                <textarea id="edit-remarks" style="height:80px;"></textarea>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>면허 소지</label>
+                    <select id="edit-hasDriverLicense">
+                        <option value="true">✅ 소지</option>
+                        <option value="false">❌ 미소지</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>면허 종류</label>
+                    <input type="text" id="edit-driverLicenseType">
+                </div>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div class="form-group">
+                    <label>실제 운전 가능</label>
+                    <select id="edit-canDrive">
+                        <option value="true">✅ 가능</option>
+                        <option value="false">❌ 불가능</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>운전 경력</label>
+                    <input type="text" id="edit-drivingExperience">
+                </div>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button onclick="saveParticipantEdit()" style="background:var(--blue-deep); color:white; flex:2;">저장하기</button>
+                <button onclick="resetPassword()" style="background:#F5A623; color:white; flex:1; font-size:12px;">비밀번호 초기화</button>
+            </div>
+        </div>
+    </div>
+    </div> <!-- End of adminContent -->
 </body>
 </html>
-�장 실패'); }
-        }
-
-        checkAuth();
-    </script>
-</body>
-</html>
-/html>

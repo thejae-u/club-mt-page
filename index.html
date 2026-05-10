@@ -4,250 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer-when-downgrade">
-<title>동문 MT 신청</title>
+<title>빅이큐 MT</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
-<style>
-:root {
-  --blue:#76aed9;--blue-light:#94bfe2;--blue-soft:#EEF4FB;--blue-deep:#2e7ab0;--blue-pale:#EEF5FB;--blue-mid:#b0cfe8;
-  --army:#3D7A5A;--army-soft:#E6F2EC;--army-light:#5B9E78;
-  --bg:#FFFFFF;--bg2:#EEF5FB;--bg3:#cce0f3;--card:#FFFFFF;
-  --text:#0A141A;--text2:#1A4A6B;--text3:#6A9BB5;
-  --border:rgba(118,174,217,0.18);--shadow:0 4px 24px rgba(118,174,217,0.10);--shadow-sm:0 2px 12px rgba(118,174,217,0.08);
-}
-[data-theme="dark"] {
-  --bg:#0A0F1E;--bg2:#111829;--bg3:#182038;--card:#111829;
-  --text:#FFFFFF;--text2:#FFFFFF;--text3:#FFFFFF;
-  --border:rgba(118,174,217,0.35);--shadow:0 4px 24px rgba(0,0,0,0.4);--shadow-sm:0 2px 12px rgba(0,0,0,0.3);
-  --blue-pale:#1A0808;--blue-soft:#3A1210;--army-soft:#122A1F;
-  --blue:#76aed9;--blue-light:#94bfe2;--blue-deep:#2e7ab0;--blue-mid:#b0cfe8;
-  --army:#5BBF8A;--army-light:#7DDBA8;
-}
-[data-theme="dark"] * { color: inherit; }
-[data-theme="dark"] body { color: #FFFFFF; }
-[data-theme="dark"] .text2-override { color: #FFFFFF !important; }
-*{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;overflow-x:hidden;}
-
-header{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid var(--border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(255,255,255,0.88);transition:background .3s;}
-[data-theme="dark"] header{background:rgba(10,15,30,0.92);}
-.header-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:13px 20px;}
-.logo-text{font-size:14px;font-weight:700;color:var(--blue);}
-[data-theme="dark"] .logo-text{color:#FFFFFF;}
-.theme-btn{width:36px;height:36px;border-radius:50%;border:1.5px solid var(--border);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .2s;}
-.theme-btn:hover{background:var(--blue-soft);transform:scale(1.08);}
-
-main{max-width:800px;margin:0 auto;padding:76px 20px 60px;}
-
-.hero{text-align:center;padding:36px 0 28px;}
-.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--blue-soft);color:var(--blue-deep);font-size:12px;font-weight:700;padding:5px 14px;border-radius:100px;margin-bottom:14px;}
-[data-theme="dark"] .hero-badge{color:#FFFFFF;background:rgba(118,174,217,0.20);}
-.hero h1{font-size:clamp(24px,6vw,40px);font-weight:800;line-height:1.2;letter-spacing:-1px;margin-bottom:10px;color:var(--text);}
-.hero h1 span{color:var(--blue);}
-.hero-sub{font-size:14px;color:var(--text3);margin-bottom:24px;}
-[data-theme="dark"] .hero-sub{color:#FFFFFF;}
-
-.dday-block{display:inline-flex;align-items:center;gap:10px;background:var(--card);border:2px solid var(--blue);border-radius:16px;padding:12px 28px;margin-bottom:22px;box-shadow:var(--shadow-sm);}
-.dday-label{font-size:13px;color:var(--text3);font-weight:600;}
-[data-theme="dark"] .dday-label{color:#FFFFFF;}
-.dday-num{font-size:34px;font-weight:800;color:var(--blue);letter-spacing:-2px;font-variant-numeric:tabular-nums;}
-.dday-unit{font-size:14px;color:var(--text2);font-weight:600;}
-
-.info-row{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:24px;}
-.info-chip{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:100px;padding:7px 14px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;transition:all .2s;}
-.info-chip:hover{border-color:var(--blue);background:var(--blue-soft);}
-[data-theme="dark"] .info-chip{color:#FFFFFF;}
-
-.btn-apply{display:inline-flex;align-items:center;gap:8px;background:var(--blue);color:#0A141A;font-size:16px;font-weight:700;padding:15px 40px;border-radius:14px;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(118,174,217,0.45);transition:all .2s;letter-spacing:-.3px;font-family:inherit;}
-.btn-apply:hover{background:var(--blue-deep);transform:translateY(-2px);}
-.btn-apply:active{transform:translateY(0);}
-[data-theme="dark"] .btn-apply{background:var(--blue);color:#0A141A;}
-
-section{margin-bottom:26px;}
-section:nth-child(1){animation:fadeIn .5s .05s both;}section:nth-child(2){animation:fadeIn .5s .10s both;}
-section:nth-child(3){animation:fadeIn .5s .15s both;}section:nth-child(4){animation:fadeIn .5s .20s both;}
-section:nth-child(5){animation:fadeIn .5s .25s both;}section:nth-child(6){animation:fadeIn .5s .30s both;}
-section:nth-child(7){animation:fadeIn .5s .35s both;}
-
-.section-title{font-size:12px;font-weight:700;color:var(--blue);letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
-[data-theme="dark"] .section-title{color:#FFFFFF;}
-.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
-
-.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);transition:border .2s;}
-.card:hover{border-color:var(--blue-mid);}
-[data-theme="dark"] .card{background:var(--bg2);}
-
-.bar-wrap{margin-bottom:12px;}
-.bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--text3);margin-bottom:5px;font-weight:500;}
-[data-theme="dark"] .bar-label{color:#FFFFFF;}
-.bar-track{height:10px;background:var(--bg3);border-radius:100px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--blue-light),var(--blue));width:0%;}
-.bar-fill.army-bar{background:linear-gradient(90deg,var(--army-light),var(--army));}
-
-.status-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
-.status-count{font-size:24px;font-weight:800;color:var(--blue);}
-[data-theme="dark"] .status-count{color:#FFFFFF;}
-.btn-detail{display:flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;width:100%;justify-content:center;margin-top:14px;transition:all .2s;font-family:inherit;}
-.btn-detail:hover{background:var(--blue-soft);border-color:var(--blue);color:var(--blue);}
-[data-theme="dark"] .btn-detail{color:#FFFFFF;background:var(--bg3);}
-[data-theme="dark"] .btn-detail:hover{color:#FFFFFF;background:rgba(107,143,212,0.3);}
-
-/* MARQUEE */
-.marquee-outer{overflow:hidden;position:relative;}
-.marquee-outer::before,.marquee-outer::after{content:'';position:absolute;top:0;bottom:0;width:40px;z-index:2;pointer-events:none;}
-.marquee-outer::before{left:0;background:linear-gradient(90deg,var(--bg),transparent);}
-.marquee-outer::after{right:0;background:linear-gradient(270deg,var(--bg),transparent);}
-.marquee-track{display:flex;gap:12px;animation:marquee 32s linear infinite;width:max-content;padding-left: 40px;}
-.marquee-track:hover{animation-play-state:paused;}
-@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(var(--marquee-end, -50%))}}
-.exp-chip{flex-shrink:0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 16px;font-size:13px;color:var(--text2);line-height:1.5;width:210px;}
-[data-theme="dark"] .exp-chip{color:#FFFFFF;}
-.exp-chip .exp-author{font-size:11px;color:var(--text3);margin-top:6px;font-weight:600;}
-[data-theme="dark"] .exp-chip .exp-author{color:#FFFFFF;}
-
-/* SCHEDULE 한줄 3칸 */
-.schedule-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-@media(max-width:500px){.schedule-row{grid-template-columns:1fr;}}
-.schedule-day{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;text-align:center;}
-.schedule-day:hover{border-color:var(--blue);background:var(--blue-pale);}
-[data-theme="dark"] .schedule-day{background:var(--bg3);}
-[data-theme="dark"] .schedule-day:hover{background:rgba(107,143,212,0.2);}
-.day-badge{display:inline-block;background:var(--blue-soft);color:var(--blue-deep);font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;margin-bottom:8px;}
-[data-theme="dark"] .day-badge{color:#FFFFFF;background:rgba(107,143,212,0.3);}
-.schedule-day h4{font-size:13px;font-weight:700;margin-bottom:4px;color:var(--text);}
-.schedule-day p{font-size:11px;color:var(--text3);line-height:1.5;}
-[data-theme="dark"] .schedule-day p{color:#FFFFFF;}
-.schedule-day .day-emoji{font-size:24px;margin-bottom:6px;}
-.schedule-tap{font-size:11px;color:var(--blue);margin-top:8px;font-weight:600;}
-[data-theme="dark"] .schedule-tap{color:#FFFFFF;}
-
-/* COHORT */
-.cohort-card{display:flex;align-items:center;gap:16px;cursor:pointer;}
-.cohort-icon{width:50px;height:50px;border-radius:14px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
-[data-theme="dark"] .cohort-icon{background:rgba(118,174,217,0.20);}
-.cohort-text h3{font-size:15px;font-weight:700;margin-bottom:3px;color:var(--text);}
-.cohort-text p{font-size:13px;color:var(--text3);}
-[data-theme="dark"] .cohort-text p{color:#FFFFFF;}
-.cohort-arrow{margin-left:auto;width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--blue);flex-shrink:0;}
-[data-theme="dark"] .cohort-arrow{color:#FFFFFF;background:rgba(107,143,212,0.3);}
-
-/* ARMY */
-.army-badge-tag{display:inline-flex;align-items:center;gap:5px;background:var(--army-soft);color:var(--army);font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px;margin-bottom:10px;}
-[data-theme="dark"] .army-badge-tag{color:#FFFFFF;background:rgba(91,191,138,0.2);}
-.army-desc{font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.6;}
-[data-theme="dark"] .army-desc{color:#FFFFFF;}
-
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.52);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);justify-content:center;align-items:flex-end;}
-.modal-overlay.active{display:flex;}
-.modal-sheet{background:var(--card);border-radius:24px 24px 0 0;width:100%;max-width:800px;max-height:88vh;overflow-y:auto;padding:24px 24px 44px;animation:slideUp .28s cubic-bezier(0.34,1.1,0.64,1);position:relative;scrollbar-width:thin;}
-[data-theme="dark"] .modal-sheet{background:var(--bg2);}
-.modal-sheet::-webkit-scrollbar{width:3px;}
-.modal-sheet::-webkit-scrollbar-thumb{background:var(--border);}
-@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
-.modal-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 20px;}
-.modal-title{font-size:20px;font-weight:800;margin-bottom:5px;color:var(--text);}
-.modal-sub{font-size:13px;color:var(--text3);margin-bottom:22px;}
-[data-theme="dark"] .modal-sub{color:#FFFFFF;}
-.modal-close{position:absolute;top:18px;right:20px;width:30px;height:30px;border-radius:50%;background:var(--bg3);border:none;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--text2);}
-[data-theme="dark"] .modal-close{color:#FFFFFF;background:var(--bg3);}
-
-/* APPLY TYPE BUTTONS */
-.type-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
-.type-btn{flex:1;min-width:72px;padding:10px 6px;background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;text-align:center;transition:all .18s;font-family:inherit;}
-.type-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-soft);}
-.type-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
-[data-theme="dark"] .type-btn{color:#FFFFFF;background:var(--bg3);}
-[data-theme="dark"] .type-btn:hover{color:#FFFFFF;background:rgba(107,143,212,0.3);}
-
-/* FORM */
-.form-section{display:none;}
-.form-section.active{display:block;}
-.form-group{margin-bottom:14px;}
-.form-group label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;}
-[data-theme="dark"] .form-group label{color:#FFFFFF;}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:11px 14px;background:var(--bg2);border:1.5px solid var(--border);border-radius:12px;font-family:inherit;font-size:14px;color:var(--text);transition:border .2s;outline:none;appearance:none;-webkit-appearance:none;}
-[data-theme="dark"] .form-group input,[data-theme="dark"] .form-group select,[data-theme="dark"] .form-group textarea{background:var(--bg3);color:#FFFFFF;border-color:rgba(100,140,220,0.4);}
-[data-theme="dark"] .form-group input::placeholder,[data-theme="dark"] .form-group textarea::placeholder{color:#FFFFFF;}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue);}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-@media(max-width:480px){.form-row{grid-template-columns:1fr;}}
-.form-group textarea{resize:vertical;min-height:72px;}
-
-.toggle-row{display:flex;gap:8px;margin-bottom:6px;}
-.toggle-btn{flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .18s;}
-.toggle-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
-[data-theme="dark"] .toggle-btn{color:#FFFFFF;background:var(--bg3);}
-.sub-input{display:none;margin-top:6px;}
-.sub-input.show{display:block;}
-
-.army-notice{background:var(--army-soft);border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--army);font-weight:600;line-height:1.5;}
-[data-theme="dark"] .army-notice{background:rgba(91,191,138,0.15);color:#7DDBA8;}
-
-.btn-submit{width:100%;padding:15px;background:var(--blue);color:#0A141A;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:10px;transition:all .2s;font-family:inherit;}
-.btn-submit:hover{background:var(--blue-deep);}
-[data-theme="dark"] .btn-submit{background:var(--blue);color:#0A141A;}
-
-/* STATUS (기수별 온도계) */
-.cohort-thermo-wrap{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
-.cohort-thermo-row{display:flex;align-items:center;gap:10px;}
-.cohort-thermo-label{min-width:30px;font-size:12px;font-weight:700;color:var(--blue);text-align:right;}
-[data-theme="dark"] .cohort-thermo-label{color:#FFFFFF;}
-.thermo-track{flex:1;height:22px;background:var(--bg3);border-radius:100px;overflow:hidden;position:relative;}
-.thermo-fill{height:100%;border-radius:100px;transition:width .9s cubic-bezier(0.4,0,0.2,1);display:flex;align-items:center;padding-left:8px;}
-.thermo-count{font-size:11px;font-weight:700;color:#fff;white-space:nowrap;}
-.cohort-thermo-num{min-width:36px;font-size:12px;font-weight:700;color:var(--text2);text-align:left;}
-[data-theme="dark"] .cohort-thermo-num{color:#FFFFFF;}
-
-/* 주차 및 이동수단 상세 안내 */
-.transport-note{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:8px;font-size:12px;color:var(--text3);line-height:1.6;}
-[data-theme="dark"] .transport-note{background:var(--bg3);color:#FFFFFF;}
-.transport-note strong{color:var(--text2);font-weight:700;}
-[data-theme="dark"] .transport-note strong{color:#FFFFFF;}
-
-/* TIMELINE */
-.tl-item{display:flex;gap:12px;margin-bottom:14px;align-items:flex-start;}
-.tl-time{min-width:48px;font-size:12px;font-weight:700;color:var(--blue);text-align:right;padding-top:2px;}
-[data-theme="dark"] .tl-time{color:#FFFFFF;}
-.tl-dots{display:flex;flex-direction:column;align-items:center;}
-.tl-dot{width:9px;height:9px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:3px;}
-.tl-line{width:2px;flex:1;background:var(--border);min-height:20px;}
-.tl-body h4{font-size:14px;font-weight:700;margin-bottom:2px;color:var(--text);}
-[data-theme="dark"] .tl-body h4{color:#FFFFFF;}
-.tl-body p{font-size:12px;color:var(--text3);}
-[data-theme="dark"] .tl-body p{color:#FFFFFF;}
-
-/* COHORT TABLE */
-.cohort-table{width:100%;border-collapse:collapse;font-size:13px;}
-.cohort-table th{background:var(--bg3);color:var(--text2);font-weight:700;padding:9px 12px;text-align:left;}
-[data-theme="dark"] .cohort-table th{color:#FFFFFF;background:var(--bg3);}
-.cohort-table th:first-child{border-radius:8px 0 0 8px;}
-.cohort-table th:last-child{border-radius:0 8px 8px 0;}
-.cohort-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);}
-[data-theme="dark"] .cohort-table td{color:#FFFFFF;}
-.cohort-table tr:last-child td{border-bottom:none;}
-
-/* ARMY BENEFIT */
-.benefit-item{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
-[data-theme="dark"] .benefit-item{background:var(--bg3);}
-.benefit-item h4{font-size:14px;font-weight:700;margin-bottom:4px;color:var(--text);}
-[data-theme="dark"] .benefit-item h4{color:#FFFFFF;}
-.benefit-item p{font-size:13px;color:var(--text3);line-height:1.6;}
-[data-theme="dark"] .benefit-item p{color:#FFFFFF;}
-.army-alert{background:#FFF4E0;border:1.5px solid #FFAA00;border-radius:12px;padding:13px 16px;margin-top:14px;font-size:13px;color:#7A5000;font-weight:600;line-height:1.6;}
-[data-theme="dark"] .army-alert{background:#2A1C00;border-color:#8B6500;color:#FFB830;}
-
-.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:11px 22px;border-radius:100px;font-size:14px;font-weight:600;z-index:999;opacity:0;transition:opacity .3s;white-space:nowrap;pointer-events:none;}
-[data-theme="dark"] .toast{background:#FFFFFF;color:#0A0F1E;}
-.toast.show{opacity:1;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-</style>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <header>
   <div class="header-inner">
-    <span class="logo-text">☀️ 빅이큐 MT 2026</span>
+    <span class="logo-text">☀️ 2026 빅이큐 MT</span>
     <button class="theme-btn" id="themeBtn">🌙</button>
   </div>
 </header>
@@ -274,11 +39,12 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
   </div>
   <div class="info-row">
     <div class="info-chip">📅 2025년 8월 22일 (금) ~ 24일 (일)</div>
-    <div class="info-chip" onclick="openLocationModal()" title="클릭하여 장소 상세 보기">📍 가평 OO 리조트 <span style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span></div>
-    <div class="info-chip" onclick="openFeeModal()" title="클릭하여 회비 사용 내역 보기">💳 회비 50,000원 <span style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span></div>
+    <div class="info-chip" onclick="openLocationModal()" title="클릭하여 장소 상세 보기">📍 OO 리조트 <span style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span></div>
+    <div class="info-chip" onclick="openFeeModal()" title="클릭하여 회비 사용 내역 보기">💳 회비 0원 <span style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span></div>
   </div>
-  <div class="hero-actions" style="display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap;">
-    <button class="btn-apply" onclick="openModal('apply')">✍️ 신청하기</button>
+  <div class="hero-actions" id="heroActions" style="display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap;">
+    <button id="btnApply" class="btn-apply" onclick="openModal('apply')">✍️ 신청하기</button>
+    <button id="btnEditInfo" class="btn-apply" style="display:none;" onclick="openEditFromHome()">✍️ 신청 정보 수정</button>
     <button id="btnLoginOpen" class="btn-apply secondary" onclick="openModal('login')">🔐 로그인/수정</button>
     <button id="btnMyPageOpen" class="btn-apply secondary" style="display:none;" onclick="openMyPage()">👤 마이페이지</button>
   </div>
@@ -309,11 +75,11 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
       </div>
     </div>
     <div class="bar-wrap">
-      <div class="bar-label"><span>🙋 일반 신청</span><span style="font-weight:700;color:var(--blue)" id="genLabel">0명 / 16명</span></div>
+      <div class="bar-label"><span>🙋 일반 신청</span><span style="font-weight:700;color:var(--blue)" id="genLabel">0명 / 0명</span></div>
       <div class="bar-track"><div class="bar-fill" id="barGen"></div></div>
     </div>
     <div class="bar-wrap">
-      <div class="bar-label"><span>🫡 군인 우선 예약</span><span style="font-weight:700;color:var(--army)" id="armyLabel">0명 / 4명</span></div>
+      <div class="bar-label"><span>🫡 군인 우선 예약</span><span style="font-weight:700;color:var(--army)" id="armyLabel">0명 / 0명</span></div>
       <div class="bar-track"><div class="bar-fill army-bar" id="barArmy"></div></div>
     </div>
     <button class="btn-detail" onclick="openModal('status')">📊 자세히 보기 →</button>
@@ -331,7 +97,7 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 <!-- 기수/동기 -->
 <section>
   <div class="section-title">기수 / 동기 확인</div>
-  <div class="card" style="cursor:pointer" onclick="openModal('cohort')">
+  <div class="card" style="cursor:pointer" onclick="openCohortModal()">
     <div class="cohort-card">
       <div class="cohort-icon">👥</div>
       <div class="cohort-text">
@@ -405,11 +171,23 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
   <div class="modal-title">✍️ MT 신청서</div>
   <div class="modal-sub">제 5회 빅이큐 총동문 MT · 8월 22–24일</div>
 
-  <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">본인 소속을 선택해주세요</div>
-  <div class="type-btns">
-    <button class="type-btn active" onclick="switchType(this,'general')">🙋 일반</button>
-    <button class="type-btn" onclick="switchType(this,'army')">🫡 군인</button>
+  <!-- Personalized Header for Edit Mode (hidden by default) -->
+  <div id="editHeader" style="display:none; justify-content:space-between; align-items:center; background:var(--blue-soft); padding:14px; border-radius:14px; margin-bottom:20px; border:1.5px solid var(--blue-mid);">
+    <div id="editHeaderInfo" style="font-weight:800; color:var(--blue-deep); font-size:15px;"></div>
+    <button onclick="cancelRegistration()" style="padding:8px 16px; background:#E5484D; color:white; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(229,72,77,0.25);">신청 취소</button>
   </div>
+
+  <div id="typeSelectionArea">
+    <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">본인 소속을 선택해주세요</div>
+    <div class="type-btns">
+      <button class="type-btn active" onclick="switchType(this,'student')">📗 재학생</button>
+      <button class="type-btn" onclick="switchType(this,'grad')">🎓 졸업생</button>
+      <button class="type-btn" onclick="switchType(this,'leave')">📚 휴학생</button>
+      <button class="type-btn" onclick="switchType(this,'army')">🫡 군인</button>
+      <button class="type-btn" onclick="switchType(this,'etc')">👋 기타</button>
+    </div>
+  </div>
+
 
   <!-- 일반 폼 (form-SL) -->
   <div class="form-section active" id="form-SL">
@@ -424,8 +202,8 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
         </select>
       </div>
     </div>
-    <div class="form-group"><label>연락처 (본인 확인용 📱) *</label><input type="tel" id="telSL" placeholder="010-0000-0000 (전체 입력)"></div>
-    <div class="form-group"><label>학번 *</label><input type="text" placeholder="예: 2022123456"></div>
+    <div class="form-group"><label>연락처 (본인 확인용 📱) *</label><input type="tel" id="telSL" placeholder="01012345678 (숫자만 입력)"></div>
+    <div class="form-group" id="groupStdIdSL"><label>학번 *</label><input type="text" id="stdIdSL" placeholder="예: 2022123456"></div>
     <div class="form-group">
       <label>빅이큐 MT 참여 횟수 *</label>
       <select><option value="">선택</option><option>0번 (처음이에요!)</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option></select>
@@ -458,12 +236,49 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
     </div>
     <div class="form-group"><label>출발 지역 *</label><input type="text" placeholder="예: 강남, 홍대, 수원 등"></div>
     <div class="form-group"><label>음식 알레르기 및 특이사항</label><input type="text" placeholder="없으면 비워두세요"></div>
+    
+    <div class="form-group">
+      <label>운전 면허 소지 여부 *</label>
+      <div class="toggle-row">
+        <button class="toggle-btn" onclick="toggleLicense(this, 'SL')">소지</button>
+        <button class="toggle-btn active" onclick="toggleLicense(this, 'SL')">미소지</button>
+      </div>
+      <div id="license-detail-SL" class="sub-input">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+          <div>
+            <label style="font-size:11px;">면허 종류</label>
+            <select class="license-type"><option value="">선택</option><option>1종 대형</option><option>1종 보통</option><option>2종 보통</option><option>기타</option></select>
+          </div>
+          <div>
+            <label style="font-size:11px;">실제 운전 가능 여부</label>
+            <select class="can-drive"><option value="no">불가능 (장롱)</option><option value="yes">가능</option></select>
+          </div>
+        </div>
+        <input type="text" class="driving-exp" placeholder="운전 경력 (예: 2년, 매일 운전 등)" style="margin-top:8px;">
+      </div>
+    </div>
+
     <div class="form-group"><label>기타 (하고 싶은 말)</label><textarea placeholder="운영진에게 하고 싶은 말, 요청사항 등 자유롭게!"></textarea></div>
-    <div class="form-group"><label>기대평 한 줄 (메인화면에 표시돼요 🌟)</label><input type="text" id="expSL" placeholder="이번 MT에 대한 기대 한 마디!"></div>
-    <div class="form-group"><label>비밀번호 (수정/취소 시 필요 🔒) *</label><input type="password" id="pwSL" placeholder="미입력 시 휴대폰 번호 뒤 4자리 자동 설정"></div>
-    <div style="display:flex; gap:10px; margin-top:10px;">
-      <button class="btn-submit" onclick="doSubmit('SL')" style="flex:2;">🎉 신청 완료하기</button>
-      <button id="btnCancelSL" class="btn-submit" onclick="cancelRegistration()" style="flex:1; background:var(--text3); display:none;">신청 취소</button>
+    <div class="form-group">
+      <label>기대평 한 줄 (메인화면에 표시돼요 🌟)</label>
+      <input type="text" id="expSL" placeholder="이번 MT에 대한 기대 한 마디!">
+    </div>
+    
+    <!-- Password Section -->
+    <div id="pwGroupSL" class="form-group">
+      <label id="pwLabelSL">비밀번호 (수정/취소 시 필요 🔒)</label>
+      <div id="pwEditFieldsSL" style="display:none; flex-direction:column; gap:8px;">
+        <input type="password" id="pwCurrentSL" placeholder="기존 비밀번호 입력 *">
+        <input type="password" id="pwNewSL" placeholder="새 비밀번호 (변경할 경우만 입력)">
+      </div>
+      <input type="password" id="pwSL" placeholder="미입력 시 휴대폰 번호 뒤 4자리 자동 설정">
+    </div>
+
+    <div style="font-size:11px; color:var(--text3); margin-top:20px; text-align:center; opacity:0.8;">
+      개인정보(이름, 전화번호, 학번)는 오직 행사를 위해서만 사용됩니다.
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn-submit" onclick="doSubmit('SL')">🎉 신청 완료하기</button>
     </div>
   </div>
 
@@ -481,7 +296,7 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
         </select>
       </div>
     </div>
-    <div class="form-group"><label>연락처 (본인 확인용 📱) *</label><input type="tel" id="telAR" placeholder="010-0000-0000 (전체 입력)"></div>
+    <div class="form-group"><label>연락처 (본인 확인용 📱) *</label><input type="tel" id="telAR" placeholder="01012345678 (숫자만 입력)"></div>
 
     <div class="form-group">
       <label>빅이큐 MT 참여 횟수 *</label>
@@ -516,20 +331,54 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
     </div>
     <div class="form-group"><label>출발 지역 *</label><input type="text" placeholder="예: 강남, 홍대, 수원 등"></div>
     <div class="form-group"><label>음식 알레르기 및 특이사항</label><input type="text" placeholder="없으면 비워두세요"></div>
+    
     <div class="form-group">
-      <label>군인 우대 신청 여부</label>
-      <select><option value="">선택</option><option>군인 우선 예약 신청</option><option>일반 신청 (우선예약 미사용)</option></select>
+      <label>운전 면허 소지 여부 *</label>
+      <div class="toggle-row">
+        <button class="toggle-btn" onclick="toggleLicense(this, 'AR')">소지</button>
+        <button class="toggle-btn active" onclick="toggleLicense(this, 'AR')">미소지</button>
+      </div>
+      <div id="license-detail-AR" class="sub-input">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+          <div>
+            <label style="font-size:11px;">면허 종류</label>
+            <select class="license-type"><option value="">선택</option><option>1종 보통</option><option>2종 보통</option><option>기타</option></select>
+          </div>
+          <div>
+            <label style="font-size:11px;">실제 운전 가능 여부</label>
+            <select class="can-drive"><option value="no">불가능 (장롱)</option><option value="yes">가능</option></select>
+          </div>
+        </div>
+        <input type="text" class="driving-exp" placeholder="운전 경력 (예: 2년, 매일 운전 등)" style="margin-top:8px;">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>군인 우대 신청 여부 *</label>
+      <select id="priorityAR"><option value="">선택</option><option value="yes">군인 우선 예약 신청</option><option value="no">일반 신청 (우선예약 미사용)</option></select>
     </div>
     <div class="form-group">
-      <label>현재 상태</label>
-      <select><option value="">선택</option><option>휴가 확정</option><option>휴가 신청 중</option><option>휴가 신청 예정</option><option>기타</option></select>
+      <label>현재 상태 *</label>
+      <select id="statusAR"><option value="">선택</option><option>휴가 확정</option><option>휴가 신청 중</option><option>휴가 신청 예정</option><option>기타</option></select>
     </div>
     <div class="form-group"><label>기타 (하고 싶은 말)</label><textarea placeholder="운영진에게 하고 싶은 말, 요청사항 등"></textarea></div>
     <div class="form-group"><label>기대평 한 줄 (메인화면에 표시돼요 🌟)</label><input type="text" id="expAR" placeholder="이번 MT에 대한 기대 한 마디!"></div>
-    <div class="form-group"><label>비밀번호 (수정/취소 시 필요 🔒) *</label><input type="password" id="pwAR" placeholder="미입력 시 휴대폰 번호 뒤 4자리 자동 설정"></div>
-    <div style="display:flex; gap:10px; margin-top:10px;">
-      <button class="btn-submit" onclick="doSubmit('AR')" style="flex:2;">🫡 군인 우선 예약 신청하기</button>
-      <button id="btnCancelAR" class="btn-submit" onclick="cancelRegistration()" style="flex:1; background:var(--text3); display:none;">신청 취소</button>
+    
+    <!-- Password Section -->
+    <div id="pwGroupAR" class="form-group">
+      <label id="pwLabelAR">비밀번호 (수정/취소 시 필요 🔒)</label>
+      <div id="pwEditFieldsAR" style="display:none; flex-direction:column; gap:8px;">
+        <input type="password" id="pwCurrentAR" placeholder="기존 비밀번호 입력 *">
+        <input type="password" id="pwNewAR" placeholder="새 비밀번호 (변경할 경우만 입력)">
+      </div>
+      <input type="password" id="pwAR" placeholder="미입력 시 휴대폰 번호 뒤 4자리 자동 설정">
+    </div>
+
+    <div style="font-size:11px; color:var(--text3); margin-top:20px; text-align:center; opacity:0.8;">
+      개인정보(이름, 전화번호, 학번)는 오직 행사를 위해서만 사용됩니다.
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn-submit" onclick="doSubmit('AR')">🫡 군인 우선 예약 신청하기</button>
     </div>
   </div>
 </div>
@@ -610,12 +459,73 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
   </div>
 
   <div class="section-title">개인 체크리스트</div>
-  <div id="checklist-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+  <div class="form-group" style="display:flex; gap:8px; margin-bottom:12px;">
+    <input type="text" id="checklist-input" placeholder="새 체크리스트 추가..." style="flex:1; margin-bottom:0;">
+    <button onclick="addChecklistItem()" style="padding:0 16px; background:var(--blue); color:#0A141A; border:none; border-radius:12px; font-weight:700; cursor:pointer;">추가</button>
+  </div>
+  <div id="checklist-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
     <!-- Checklist items -->
   </div>
+
+  <div class="section-title">행사 이벤트</div>
+  <button class="btn-submit" onclick="openManittoModal()" style="background:#E5484D; margin-bottom:20px;">🎁 내 마니또 확인하기</button>
   
-  <button class="btn-detail" onclick="openEditFromMyPage()" style="margin-bottom:10px;">✍️ 신청 정보 수정하기</button>
+  <button id="btnMyPageEdit" class="btn-detail" onclick="openEditFromMyPage()" style="margin-bottom:10px;">✍️ 신청 정보 수정하기</button>
+  <button id="btnMyPageCancel" class="btn-detail" onclick="cancelRegistration()" style="margin-bottom:10px; color:#E5484D; border-color:rgba(229,72,77,0.2); display:none;">❌ 신청 취소하기</button>
   <button class="btn-detail" onclick="logout()" style="color:var(--text3); border-color:var(--border);">로그아웃</button>
+</div>
+</div>
+
+<!-- MANITTO MODAL -->
+<div class="modal-overlay" id="modal-manitto" onclick="closeBg(event,'manitto')">
+<div class="modal-sheet" style="max-height: 85vh;">
+  <div class="modal-handle"></div>
+  <button class="modal-close" onclick="closeModal('manitto')">✕</button>
+  <div class="modal-title">🎁 마니또 정보</div>
+  
+  <div class="tabs" style="display:flex; gap:10px; margin-bottom:20px; background:#f4f6fb; padding:5px; border-radius:12px;">
+    <button class="tab-btn active" onclick="switchManittoTab('target')" style="flex:1; border:none; padding:10px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">내 마니또</button>
+    <button class="tab-btn" onclick="switchManittoTab('mission')" style="flex:1; border:none; padding:10px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">미션</button>
+    <button class="tab-btn" onclick="switchManittoTab('report')" style="flex:1; border:none; padding:10px; border-radius:8px; font-weight:700; font-size:13px; cursor:pointer;">제보 게시판</button>
+  </div>
+
+  <!-- Tab Contents -->
+  <div id="manitto-target" class="manitto-tab-content active">
+    <div class="card" style="text-align:center; padding:30px 20px; background:linear-gradient(135deg, #FFF5F5 0%, #FFF0F0 100%); border:1.5px dashed #E5484D;">
+      <div style="font-size:14px; color:#E5484D; font-weight:700; margin-bottom:10px;">당신의 마니또는?</div>
+      <div id="manitto-target-name" style="font-size:28px; font-weight:900; color:#212529;">---</div>
+      <div id="manitto-target-gen" style="font-size:16px; color:#666; margin-top:5px;">---</div>
+    </div>
+  </div>
+
+  <div id="manitto-mission" class="manitto-tab-content" style="display:none;">
+    <div class="card" style="background:#F0F7FF; border:1.5px solid #8BA0CE;">
+      <div style="font-size:13px; color:#2D468D; font-weight:700; margin-bottom:8px;">🕵️ 비밀 미션</div>
+      <div id="manitto-mission-desc" style="font-size:16px; font-weight:700; line-height:1.5; margin-bottom:20px;">불러오는 중...</div>
+      <button id="btnCompleteMission" class="btn-submit" onclick="completeMission()" style="background:#2D468D;">완료 처리하기</button>
+      <div id="mission-complete-badge" style="display:none; text-align:center; color:#22C55E; font-weight:800;">✅ 미션 완료!</div>
+    </div>
+  </div>
+
+  <div id="manitto-report" class="manitto-tab-content" style="display:none;">
+    <div class="form-group" style="display:flex; gap:8px; margin-bottom:15px;">
+      <input type="text" id="report-input" placeholder="목격담을 익명으로 제보하세요..." style="flex:1; margin-bottom:0;">
+      <button onclick="postReport()" style="padding:0 16px; background:#212529; color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer;">제보</button>
+    </div>
+    <div id="report-container" style="display:flex; flex-direction:column; gap:10px; max-height:250px; overflow-y:auto; padding-right:5px;">
+      <!-- Reports -->
+    </div>
+  </div>
+
+  <!-- Guidelines -->
+  <div style="margin-top:25px; padding:15px; background:#f8f9fa; border-radius:14px; font-size:11px; line-height:1.6; color:#666;">
+    <div style="font-weight:800; color:#212529; margin-bottom:8px; font-size:12px;">📣 마니또 안내사항</div>
+    <p><b>1. 비밀 엄수:</b> 사소한 힌트도 금지! 공식 발표 전까지는 절대 비밀로 유지해 주세요.</p>
+    <p><b>2. 선물은 5,000원~7,000원:</b> 금액보다는 정성! 너무 비싼 선물은 부담스러워요.</p>
+    <p><b>3. 미션 수행:</b> 미션을 들키지 않고 수행해 주세요. 완료하지 않으면 실패로 간주됩니다.</p>
+    <p><b>4. 소외되는 사람 없게 하기:</b> 내 마니또가 어색한 사이일수록 더 잘 챙겨주세요!</p>
+    <p><b>5. 선물 전달은 '비밀스럽게':</b> 절대!! 들키지 마세요.</p>
+  </div>
 </div>
 </div>
 
@@ -625,15 +535,11 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
   <div class="modal-handle"></div>
   <button class="modal-close" onclick="closeModal('login')">✕</button>
   <div class="modal-title">🔒 로그인</div>
-  <div class="modal-sub">신청 시 사용한 이름과 연락처를 입력해주세요.</div>
+  <div class="modal-sub">신청 시 사용한 이름을 입력해주세요.</div>
   
   <div class="form-group">
     <label>이름</label>
     <input type="text" id="login-name" placeholder="홍길동">
-  </div>
-  <div class="form-group">
-    <label>연락처</label>
-    <input type="tel" id="login-tel" placeholder="010-0000-0000">
   </div>
   <div class="form-group">
     <label>비밀번호</label>
@@ -655,87 +561,5 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 </div>
 
 <script src="js/app.js"></script>
-<script>
-// ===== THEME =====
-document.getElementById('themeBtn').addEventListener('click',function(){
-  const d = document.documentElement.dataset.theme==='dark';
-  document.documentElement.dataset.theme = d?'light':'dark';
-  this.textContent = d?'🌙':'☀️';
-});
-
-// ===== MODAL =====
-function openModal(id){
-  const el = document.getElementById('modal-'+id);
-  if(!el) return;
-  el.classList.add('active');
-  document.body.style.overflow='hidden';
-  if(id==='apply' && !window.editingParticipantId) {
-    document.getElementById('btnCancelSL').style.display='none';
-    document.getElementById('btnCancelAR').style.display='none';
-  }
-}
-function closeModal(id){
-  const el = document.getElementById('modal-'+id);
-  if(el) el.classList.remove('active');
-  document.body.style.overflow='';
-}
-function closeBg(e,id){if(e.target===document.getElementById('modal-'+id))closeModal(id);}
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape') document.querySelectorAll('.modal-overlay.active').forEach(m=>{m.classList.remove('active');document.body.style.overflow='';});
-});
-
-// ===== APPLY TYPE =====
-const typeMap={general:'SL', army:'AR'};
-function switchType(btn, type){
-  window.curType = type;
-  btn.closest('.type-btns').querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.form-section').forEach(s=>s.classList.remove('active'));
-  const formEl = document.getElementById('form-'+typeMap[type]);
-  if(formEl) formEl.classList.add('active');
-}
-
-function openApplyArmy(){
-  openModal('apply');
-  const btns = document.querySelectorAll('.type-btn');
-  // First button is General, second is Army
-  if(btns.length >= 2) switchType(btns[1], 'army');
-}
-
-function openFeeModal(){
-  openModal('fee');
-  if(window.updateFeeTable) window.updateFeeTable();
-}
-
-function openLocationModal(){
-  openModal('location');
-  if(window.updateLocationModal) window.updateLocationModal();
-}
-
-function toggleSchedule(btn, subId){
-  const row = btn.closest('.toggle-row');
-  row.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  const isJoin = btn.textContent.includes('합류');
-  const sub = document.getElementById(subId);
-  if(sub) sub.classList.toggle('show', isJoin);
-}
-
-// ===== COHORT SEARCH =====
-function applyCohortFilter(){
-  const gen = document.getElementById('cohortGenFilter').value;
-  const name = document.getElementById('cohortNameFilter').value.toLowerCase();
-  
-  document.querySelectorAll('#cohortTable tbody tr').forEach(r=>{
-    const rGen = r.getAttribute('data-cohort-val');
-    const rName = r.querySelector('.name-cell').textContent.toLowerCase();
-    
-    const genMatch = (gen === 'all' || rGen === gen);
-    const nameMatch = rName.includes(name);
-    
-    r.style.display = (genMatch && nameMatch) ? '' : 'none';
-  });
-}
-</script>
 </body>
 </html>
