@@ -22,7 +22,7 @@
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-badge">✨ 0th Anniversary</div>
+  <div class="hero-badge">✨ 5th 총동문 MT</div>
   <h1>제 0회 빅이큐<br><span>총동문 MT</span></h1>
   <p class="hero-sub"></p>
   <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:22px;">
@@ -67,11 +67,7 @@
       <div>
         <div style="font-size:12px;color:var(--text3);margin-bottom:2px">총 신청 인원</div>
         <span class="status-count" id="totalCount">0명</span>
-        <span style="font-size:13px;color:var(--text3)" id="totalCapacityLabel"> / 20명 정원</span>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:12px;color:var(--text3)">마감까지</div>
-        <div style="font-size:18px;font-weight:800;color:var(--blue)" id="remainCount">20명</div>
+        <span style="font-size:13px;color:var(--text3)" id="totalCapacityLabel"> / 0명 정원</span>
       </div>
     </div>
     <div class="bar-wrap">
@@ -94,17 +90,29 @@
   </div>
 </section>
 
-<!-- 기수/동기 -->
+<!-- 기수 / 마니또 -->
 <section>
-  <div class="section-title">기수 / 동기 확인</div>
-  <div class="card" style="cursor:pointer" onclick="openCohortModal()">
-    <div class="cohort-card">
-      <div class="cohort-icon">👥</div>
-      <div class="cohort-text">
-        <h3>내 기수 · 동기 확인하기</h3>
-        <p>이름으로 내 기수와 동기를 찾아보세요</p>
+  <div class="section-title">행사 도구</div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <div class="card" style="cursor:pointer; padding:16px;" onclick="openCohortModal()">
+      <div class="cohort-card">
+        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">👥</div>
+        <div class="cohort-text">
+          <h3 style="font-size:14px;">기수/동기 확인</h3>
+          <p style="font-size:11px;">동문 명단 검색</p>
+        </div>
+        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
       </div>
-      <div class="cohort-arrow">→</div>
+    </div>
+    <div class="card" style="cursor:pointer; padding:16px;" onclick="openManittoModal()">
+      <div class="cohort-card">
+        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">🎁</div>
+        <div class="cohort-text">
+          <h3 style="font-size:14px;">마니또 확인</h3>
+          <p style="font-size:11px;">내 마니또와 미션</p>
+        </div>
+        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+      </div>
     </div>
   </div>
 </section>
@@ -164,14 +172,16 @@
   <p style="font-size:11px; color:var(--text3); margin-top:15px; text-align:center;">실시간으로 업데이트되는 공식 회비 내역입니다.</p>
 </div>
 </div>
+
+<!-- APPLY MODAL (Unified) -->
 <div class="modal-overlay" id="modal-apply" onclick="closeBg(event,'apply')">
-<div class="modal-sheet">
+<div class="modal-sheet" style="max-height: 85vh;">
   <div class="modal-handle"></div>
   <button class="modal-close" onclick="closeModal('apply')">✕</button>
   <div class="modal-title">✍️ MT 신청서</div>
-  <div class="modal-sub">제 5회 빅이큐 총동문 MT · 8월 22–24일</div>
+  <div class="modal-sub" id="apply-subtitle">제 0회 빅이큐 총동문 MT</div>
 
-  <!-- Personalized Header for Edit Mode (hidden by default) -->
+  <!-- Personalized Header for Edit Mode -->
   <div id="editHeader" style="display:none; justify-content:space-between; align-items:center; background:var(--blue-soft); padding:14px; border-radius:14px; margin-bottom:20px; border:1.5px solid var(--blue-mid);">
     <div id="editHeaderInfo" style="font-weight:800; color:var(--blue-deep); font-size:15px;"></div>
     <button onclick="cancelRegistration()" style="padding:8px 16px; background:#E5484D; color:white; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(229,72,77,0.25);">신청 취소</button>
@@ -188,197 +198,36 @@
     </div>
   </div>
 
-
-  <!-- 일반 폼 (form-SL) -->
-  <div class="form-section active" id="form-SL">
+  <div class="form-section active" id="form-unified" style="padding-top: 20px;">
+    <!-- Core Identity Fields -->
     <div class="form-row">
-      <div class="form-group"><label>이름 *</label><input type="text" id="nameSL" placeholder="홍길동"></div>
+      <div class="form-group"><label>이름 *</label><input type="text" id="nameUnified" placeholder="홍길동"></div>
       <div class="form-group">
         <label>기수 *</label>
-        <select id="genSL">
+        <select id="genUnified">
           <option value="">선택</option>
           <option value="1">1기</option><option value="2">2기</option><option value="3">3기</option><option value="4">4기</option>
           <option value="5">5기</option><option value="6">6기</option><option value="7">7기</option>
         </select>
       </div>
     </div>
-    <div class="form-group"><label>연락처 (본인 확인용 📱) *</label><input type="tel" id="telSL" placeholder="01012345678 (숫자만 입력)"></div>
-    <div class="form-group" id="groupStdIdSL"><label>학번 *</label><input type="text" id="stdIdSL" placeholder="예: 2022123456"></div>
-    <div class="form-group">
-      <label>빅이큐 MT 참여 횟수 *</label>
-      <select><option value="">선택</option><option>0번 (처음이에요!)</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option></select>
-    </div>
-    <div class="form-group"><label>기억에 남는 MT 또는 기대되는 점</label><textarea placeholder="자유롭게 남겨주세요 😊"></textarea></div>
-    <div class="form-group">
-      <label>참가 일정</label>
-      <div class="toggle-row">
-        <button class="toggle-btn active" onclick="toggleSchedule(this,'sl-join')">전일정 참여</button>
-        <button class="toggle-btn" onclick="toggleSchedule(this,'sl-join')">중간 합류</button>
-      </div>
-      <div class="sub-input" id="sl-join"><input type="text" placeholder="언제 합류 예정인지 알려주세요 (예: 8/23 오후)"></div>
-    </div>
-    <div class="form-group">
-      <label>이동 수단</label>
-      <div class="toggle-row">
-        <button class="toggle-btn active" onclick="toggleTransport(this)">🚗 자차</button>
-        <button class="toggle-btn" onclick="toggleTransport(this)">🚌 대중교통 / 뚜벅이</button>
-      </div>
-      <div class="transport-note transport-note-car">
-        <strong>🚗 자차 이용 시</strong> — 다른 인원을 태워주실 수 있나요?
-        <div class="carpool-row" style="margin-top:8px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <select class="carpool-available"><option value="">동승 가능 여부 *</option><option value="yes">태워줄 수 있어요 😊</option><option value="no">나 혼자만 이동해요</option></select>
-          <input type="number" class="carpool-num" style="display:none" placeholder="몇 명까지? *" min="1" max="10">
-        </div>
-      </div>
-      <div class="transport-note transport-note-pub" style="display:none">
-        <strong>🚌 대중교통 / 뚜벅이</strong> — 버스, 지하철, 도보 등 모두 포함이에요. 자차 카풀이 필요하면 운영진에게 말씀해주세요!
-      </div>
-    </div>
-    <div class="form-group"><label>출발 지역 *</label><input type="text" placeholder="예: 강남, 홍대, 수원 등"></div>
-    <div class="form-group"><label>음식 알레르기 및 특이사항</label><input type="text" placeholder="없으면 비워두세요"></div>
+    <div class="form-group"><label>연락처 *</label><input type="tel" id="telUnified" placeholder="01012345678 (숫자만 입력)"></div>
     
-    <div class="form-group">
-      <label>운전 면허 소지 여부 *</label>
-      <div class="toggle-row">
-        <button class="toggle-btn" onclick="toggleLicense(this, 'SL')">소지</button>
-        <button class="toggle-btn active" onclick="toggleLicense(this, 'SL')">미소지</button>
-      </div>
-      <div id="license-detail-SL" class="sub-input">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
-          <div>
-            <label style="font-size:11px;">면허 종류</label>
-            <select class="license-type"><option value="">선택</option><option>1종 대형</option><option>1종 보통</option><option>2종 보통</option><option>기타</option></select>
-          </div>
-          <div>
-            <label style="font-size:11px;">실제 운전 가능 여부</label>
-            <select class="can-drive"><option value="no">불가능 (장롱)</option><option value="yes">가능</option></select>
-          </div>
-        </div>
-        <input type="text" class="driving-exp" placeholder="운전 경력 (예: 2년, 매일 운전 등)" style="margin-top:8px;">
-      </div>
-    </div>
+    <!-- Dynamic Survey Container -->
+    <div id="survey-content-unified"></div>
 
-    <div class="form-group"><label>기타 (하고 싶은 말)</label><textarea placeholder="운영진에게 하고 싶은 말, 요청사항 등 자유롭게!"></textarea></div>
-    <div class="form-group">
-      <label>기대평 한 줄 (메인화면에 표시돼요 🌟)</label>
-      <input type="text" id="expSL" placeholder="이번 MT에 대한 기대 한 마디!">
-    </div>
-    
     <!-- Password Section -->
-    <div id="pwGroupSL" class="form-group">
-      <label id="pwLabelSL">비밀번호 (수정/취소 시 필요 🔒)</label>
-      <div id="pwEditFieldsSL" style="display:none; flex-direction:column; gap:8px;">
-        <input type="password" id="pwCurrentSL" placeholder="기존 비밀번호 입력 *">
-        <input type="password" id="pwNewSL" placeholder="새 비밀번호 (변경할 경우만 입력)">
-      </div>
-      <input type="password" id="pwSL" placeholder="미입력 시 휴대폰 번호 뒤 4자리 자동 설정">
+    <div id="pwGroupUnified" class="form-group" style="margin-top: 20px;">
+      <button id="btnChangePwUnified" type="button" class="btn-detail" onclick="openChangePasswordPopup()" style="background: var(--bg2); color: var(--text2); margin-top: 0; display: none;">🔒 비밀번호 변경하기</button>
+      <div id="pwLabelUnified_New"><label>비밀번호 입력(수정/로그인 시 필요, 4자리 이상)</label></div>
+      <input type="password" id="pwUnified" placeholder="미입력 시 휴대폰 번호 뒤 4자리 자동 설정" style="margin-top: 0;">
     </div>
 
     <div style="font-size:11px; color:var(--text3); margin-top:20px; text-align:center; opacity:0.8;">
-      개인정보(이름, 전화번호, 학번)는 오직 행사를 위해서만 사용됩니다.
+      개인정보는 오직 행사를 위해서만 사용됩니다.
     </div>
     <div style="margin-top:10px;">
-      <button class="btn-submit" onclick="doSubmit('SL')">🎉 신청 완료하기</button>
-    </div>
-  </div>
-
-  <!-- 군인 폼 (form-AR) -->
-  <div class="form-section" id="form-AR">
-    <div class="army-notice" id="armyNoticeText">🫡 군인 우선 예약으로 접수됩니다.<br>우선 배정 자리 4석 중 선착순으로 신청 가능합니다.</div>
-    <div class="form-row">
-      <div class="form-group"><label>이름 *</label><input type="text" id="nameAR" placeholder="홍길동"></div>
-      <div class="form-group">
-        <label>기수 *</label>
-        <select id="genAR">
-          <option value="">선택</option>
-          <option value="1">1기</option><option value="2">2기</option><option value="3">3기</option><option value="4">4기</option>
-          <option value="5">5기</option><option value="6">6기</option><option value="7">7기</option>
-        </select>
-      </div>
-    </div>
-    <div class="form-group"><label>연락처 (본인 확인용 📱) *</label><input type="tel" id="telAR" placeholder="01012345678 (숫자만 입력)"></div>
-
-    <div class="form-group">
-      <label>빅이큐 MT 참여 횟수 *</label>
-      <select><option value="">선택</option><option>0번 (처음이에요!)</option><option>1번</option><option>2번</option><option>3번</option><option>4번</option></select>
-    </div>
-    <div class="form-group"><label>기억에 남는 MT 또는 기대되는 점</label><textarea placeholder="자유롭게 남겨주세요 🫡"></textarea></div>
-    <div class="form-group">
-      <label>참가 일정</label>
-      <div class="toggle-row">
-        <button class="toggle-btn active" onclick="toggleSchedule(this,'ar-join')">전일정 참여</button>
-        <button class="toggle-btn" onclick="toggleSchedule(this,'ar-join')">중간 합류</button>
-      </div>
-      <div class="sub-input" id="ar-join"><input type="text" placeholder="언제 합류 예정인지 알려주세요"></div>
-    </div>
-    <div class="form-group">
-      <label>이동 수단</label>
-      <div class="toggle-row">
-        <button class="toggle-btn active" onclick="toggleTransport(this)">🚗 자차</button>
-        <button class="toggle-btn" onclick="toggleTransport(this)">🚌 대중교통 / 뚜벅이</button>
-      </div>
-      <div class="transport-note transport-note-car">
-        <strong>🚗 자차 이용 시</strong> — 다른 인원을 태워주실 수 있나요?
-        <div class="carpool-row" style="margin-top:8px; display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-          <select class="carpool-available"><option value="">동승 가능 여부 *</option><option value="yes">태워줄 수 있어요 😊</option><option value="no">나 혼자만 이동해요</option></select>
-          <input type="number" class="carpool-num" style="display:none" placeholder="몇 명까지? *" min="1" max="10">
-        </div>
-      </div>
-
-      <div class="transport-note transport-note-pub" style="display:none">
-        <strong>🚌 대중교통 / 뚜벅이</strong> — 버스, 지하철, 도보 등 모두 포함이에요. 자차 카풀이 필요하면 운영진에게 말씀해주세요!
-      </div>
-    </div>
-    <div class="form-group"><label>출발 지역 *</label><input type="text" placeholder="예: 강남, 홍대, 수원 등"></div>
-    <div class="form-group"><label>음식 알레르기 및 특이사항</label><input type="text" placeholder="없으면 비워두세요"></div>
-    
-    <div class="form-group">
-      <label>운전 면허 소지 여부 *</label>
-      <div class="toggle-row">
-        <button class="toggle-btn" onclick="toggleLicense(this, 'AR')">소지</button>
-        <button class="toggle-btn active" onclick="toggleLicense(this, 'AR')">미소지</button>
-      </div>
-      <div id="license-detail-AR" class="sub-input">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
-          <div>
-            <label style="font-size:11px;">면허 종류</label>
-            <select class="license-type"><option value="">선택</option><option>1종 보통</option><option>2종 보통</option><option>기타</option></select>
-          </div>
-          <div>
-            <label style="font-size:11px;">실제 운전 가능 여부</label>
-            <select class="can-drive"><option value="no">불가능 (장롱)</option><option value="yes">가능</option></select>
-          </div>
-        </div>
-        <input type="text" class="driving-exp" placeholder="운전 경력 (예: 2년, 매일 운전 등)" style="margin-top:8px;">
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label>군인 우대 신청 여부 *</label>
-      <select id="priorityAR"><option value="">선택</option><option value="yes">군인 우선 예약 신청</option><option value="no">일반 신청 (우선예약 미사용)</option></select>
-    </div>
-    <div class="form-group">
-      <label>현재 상태 *</label>
-      <select id="statusAR"><option value="">선택</option><option>휴가 확정</option><option>휴가 신청 중</option><option>휴가 신청 예정</option><option>기타</option></select>
-    </div>
-    <div class="form-group"><label>기타 (하고 싶은 말)</label><textarea placeholder="운영진에게 하고 싶은 말, 요청사항 등"></textarea></div>
-    <div class="form-group"><label>기대평 한 줄 (메인화면에 표시돼요 🌟)</label><input type="text" id="expAR" placeholder="이번 MT에 대한 기대 한 마디!"></div>
-    
-    <!-- Password Section -->
-    <div id="pwGroupAR" class="form-group">
-      <label id="pwLabelAR">비밀번호 (수정/취소 시 필요 🔒)</label>
-      <div id="pwEditFieldsAR" style="display:none; flex-direction:column; gap:8px;">
-        <input type="password" id="pwCurrentAR" placeholder="기존 비밀번호 입력 *">
-        <input type="password" id="pwNewAR" placeholder="새 비밀번호 (변경할 경우만 입력)">
-      </div>
-      <input type="password" id="pwAR" placeholder="미입력 시 휴대폰 번호 뒤 4자리 자동 설정">
-    </div>
-
-    <div style="font-size:11px; color:var(--text3); margin-top:20px; text-align:center; opacity:0.8;">
-      개인정보(이름, 전화번호, 학번)는 오직 행사를 위해서만 사용됩니다.
-    </div>
-    <div style="margin-top:10px;">
-      <button class="btn-submit" onclick="doSubmit('AR')">🫡 군인 우선 예약 신청하기</button>
+      <button id="btnSubmitUnified" class="btn-submit" onclick="doSubmit('unified')">🎉 신청 완료하기</button>
     </div>
   </div>
 </div>
@@ -387,14 +236,10 @@
 <!-- STATUS -->
 <div class="modal-overlay" id="modal-status" onclick="closeBg(event,'status')">
 <div class="modal-sheet">
-  <div class="modal-handle"></div>
-  <button class="modal-close" onclick="closeModal('status')">✕</button>
+  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('status')">✕</button>
   <div class="modal-title">📊 실시간 신청 현황</div>
-  <div class="modal-sub" id="modalTotalLabel">총 정원 20명 (군인 우선 4명 포함)</div>
-  
-  <div class="cohort-thermo-wrap" id="thermoRows">
-    <!-- All progress rows will be aligned here by app.js -->
-  </div>
+  <div class="modal-sub" id="modalTotalLabel">총 정원 00명 (군인 우선 0명 포함)</div>
+  <div class="cohort-thermo-wrap" id="thermoRows"></div>
 </div>
 </div>
 
@@ -402,10 +247,12 @@
 <div class="modal-overlay" id="modal-cohort" onclick="closeBg(event,'cohort')">
 <div class="modal-sheet">
   <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cohort')">✕</button>
-  <div class="modal-title">👥 기수 / 동기 확인</div><div class="modal-sub">기수별로 확인하거나 이름으로 검색해보세요</div>
+  <div class="modal-title">👥 기수 / 동기 확인</div>
+  <div class="modal-sub">이름으로 검색하거나 기수별로 필터링해보세요</div>
   
-  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+  <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:12px; margin-bottom:20px;">
     <div class="form-group" style="margin-bottom:0;">
+      <label style="font-size:11px; margin-bottom:4px;">기수 선택</label>
       <select id="cohortGenFilter" onchange="applyCohortFilter()">
         <option value="all">전체 기수</option>
         <option value="1">1기</option><option value="2">2기</option><option value="3">3기</option>
@@ -414,17 +261,15 @@
       </select>
     </div>
     <div class="form-group" style="margin-bottom:0;">
-      <input type="text" id="cohortNameFilter" placeholder="🔍 이름 검색..." oninput="applyCohortFilter()">
+      <label style="font-size:11px; margin-bottom:4px;">이름 검색</label>
+      <input type="text" id="cohortNameFilter" placeholder="🔍 검색어 입력..." oninput="applyCohortFilter()">
     </div>
   </div>
 
   <table class="cohort-table" id="cohortTable">
-    <thead><tr><th style="width: 360px; text-align: left;">기수</th><th style="text-align: left;">이름</th></tr></thead>
-    <tbody>
-      <!-- Data will be populated by app.js -->
-    </tbody>
+    <thead><tr><th style="width: 50%;">기수</th><th style="width: 50%;">이름</th></tr></thead>
+    <tbody></tbody>
   </table>
-  <p style="font-size:12px;color:var(--text3);margin-top:12px;text-align:center">동문 명단에 없는 경우 관리자에게 문의해주세요</p>
 </div>
 </div>
 
@@ -445,42 +290,32 @@
 </div>
 </div>
 
-<!-- MY PAGE MODAL -->
+<!-- MY PAGE -->
 <div class="modal-overlay" id="modal-mypage" onclick="closeBg(event,'mypage')">
 <div class="modal-sheet">
-  <div class="modal-handle"></div>
-  <button class="modal-close" onclick="closeModal('mypage')">✕</button>
-  <div class="modal-title">🏠 마이페이지</div>
-  <div class="modal-sub" id="mypage-name-gen">...님 안녕하세요!</div>
-  
-  <div class="card" style="margin-bottom:16px; border-left:4px solid var(--blue);">
-    <div style="font-size:12px; color:var(--text3); margin-bottom:4px;">입금 확인 상태</div>
-    <div id="mypage-deposit-status" style="font-size:18px; font-weight:800;">확인 중...</div>
-  </div>
+  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('mypage')">✕</button>
+  <div class="modal-title">🏠 마이페이지</div><div class="modal-sub" id="mypage-name-gen">...</div>
+  <div class="card" style="margin-bottom:16px; border-left:4px solid var(--blue);"><div style="font-size:12px; color:var(--text3);">입금 확인 상태</div><div id="mypage-deposit-status" style="font-size:18px; font-weight:800;">...</div></div>
+  <div class="section-title">공동 체크리스트</div>
+  <div id="common-checklist-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;"></div>
 
   <div class="section-title">개인 체크리스트</div>
-  <div class="form-group" style="display:flex; gap:8px; margin-bottom:12px;">
-    <input type="text" id="checklist-input" placeholder="새 체크리스트 추가..." style="flex:1; margin-bottom:0;">
-    <button onclick="addChecklistItem()" style="padding:0 16px; background:var(--blue); color:#0A141A; border:none; border-radius:12px; font-weight:700; cursor:pointer;">추가</button>
+  <div class="form-group" style="display:flex; gap:10px; margin-bottom:16px;">
+    <input type="text" id="checklist-input" placeholder="새 할 일 추가..." style="flex:1; margin-bottom:0;">
+    <button onclick="addChecklistItem()" style="padding:0 20px; height:48px; background:var(--blue); color:var(--text); border:none; border-radius:12px; font-weight:700; cursor:pointer; white-space:nowrap;">추가</button>
   </div>
-  <div id="checklist-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
-    <!-- Checklist items -->
-  </div>
-
-  <div class="section-title">행사 이벤트</div>
-  <button class="btn-submit" onclick="openManittoModal()" style="background:#E5484D; margin-bottom:20px;">🎁 내 마니또 확인하기</button>
-  
-  <button id="btnMyPageEdit" class="btn-detail" onclick="openEditFromMyPage()" style="margin-bottom:10px;">✍️ 신청 정보 수정하기</button>
-  <button id="btnMyPageCancel" class="btn-detail" onclick="cancelRegistration()" style="margin-bottom:10px; color:#E5484D; border-color:rgba(229,72,77,0.2); display:none;">❌ 신청 취소하기</button>
-  <button class="btn-detail" onclick="logout()" style="color:var(--text3); border-color:var(--border);">로그아웃</button>
+  <div id="checklist-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;"></div>
+  <button class="btn-submit" onclick="openManittoModal()" style="background:#E5484D; margin-top:20px;">🎁 내 마니또 확인</button>
+  <button id="btnMyPageEdit" class="btn-detail" onclick="openEditFromMyPage()" style="margin-top:10px;">✍️ 정보 수정</button>
+  <button id="btnMyPageCancel" class="btn-detail" onclick="cancelRegistration()" style="margin-top:10px; color:#E5484D; display:none;">❌ 신청 취소</button>
+  <button class="btn-detail" onclick="logout()" style="margin-top:10px;">로그아웃</button>
 </div>
 </div>
 
-<!-- MANITTO MODAL -->
+<!-- MANITTO -->
 <div class="modal-overlay" id="modal-manitto" onclick="closeBg(event,'manitto')">
 <div class="modal-sheet" style="max-height: 85vh;">
-  <div class="modal-handle"></div>
-  <button class="modal-close" onclick="closeModal('manitto')">✕</button>
+  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('manitto')">✕</button>
   <div class="modal-title">🎁 마니또 정보</div>
   
   <div class="tabs" style="display:flex; gap:10px; margin-bottom:20px; background:#f4f6fb; padding:5px; border-radius:12px;">
@@ -502,7 +337,7 @@
     <div class="card" style="background:#F0F7FF; border:1.5px solid #8BA0CE;">
       <div style="font-size:13px; color:#2D468D; font-weight:700; margin-bottom:8px;">🕵️ 비밀 미션</div>
       <div id="manitto-mission-desc" style="font-size:16px; font-weight:700; line-height:1.5; margin-bottom:20px;">불러오는 중...</div>
-      <button id="btnCompleteMission" class="btn-submit" onclick="completeMission()" style="background:#2D468D;">완료 처리하기</button>
+      <button id="btnCompleteMission" class="btn-submit" onclick="completeMission()" style="background:#2D468D; color:white;">완료 처리하기</button>
       <div id="mission-complete-badge" style="display:none; text-align:center; color:#22C55E; font-weight:800;">✅ 미션 완료!</div>
     </div>
   </div>
@@ -529,36 +364,31 @@
 </div>
 </div>
 
-<!-- LOGIN MODAL -->
+<!-- LOGIN -->
 <div class="modal-overlay" id="modal-login" onclick="closeBg(event,'login')">
 <div class="modal-sheet">
-  <div class="modal-handle"></div>
-  <button class="modal-close" onclick="closeModal('login')">✕</button>
+  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('login')">✕</button>
   <div class="modal-title">🔒 로그인</div>
-  <div class="modal-sub">신청 시 사용한 이름을 입력해주세요.</div>
-  
-  <div class="form-group">
-    <label>이름</label>
-    <input type="text" id="login-name" placeholder="홍길동">
-  </div>
-  <div class="form-group">
-    <label>비밀번호</label>
-    <input type="password" id="login-password" placeholder="설정한 비밀번호 (또는 뒤 4자리)">
-  </div>
-  
-  <button class="btn-submit" onclick="doLogin()">로그인하기</button>
+  <div class="form-group"><label>이름</label><input type="text" id="login-name"></div>
+  <div class="form-group"><label>기수</label><select id="login-gen"><option value="">선택</option><option value="1">1기</option><option value="2">2기</option><option value="3">3기</option><option value="4">4기</option><option value="5">5기</option><option value="6">6기</option><option value="7">7기</option></select></div>
+  <div class="form-group"><label>비밀번호</label><input type="password" id="login-password"></div>
+  <button class="btn-submit" onclick="doLogin()">로그인</button>
 </div>
+</div>
+
+<!-- CUSTOM POPUP -->
+<div class="modal-overlay" id="modal-alert" style="z-index: 9999;">
+  <div class="modal-sheet" style="max-width: 400px; padding-bottom: 24px;">
+    <div class="modal-handle"></div><div class="modal-title" id="alert-title">알림</div><div class="modal-sub" id="alert-message"></div>
+    <div id="alert-input-wrap" style="display: none; margin-bottom: 24px;"><input type="password" id="alert-input"><input type="password" id="alert-input-new" style="display: none; margin-top:12px;"></div>
+    <div id="alert-buttons" style="display: flex; gap: 12px;"><button class="btn-submit" id="btn-alert-confirm">확인</button><button class="btn-submit" id="btn-alert-cancel" style="background: var(--bg3); color: var(--text2); display: none;">취소</button></div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- GLOBAL ERROR OVERLAY -->
-<div id="globalError" style="display:none; position:fixed; inset:0; z-index:9999; background:var(--bg); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;">
-  <div style="font-size:60px; margin-bottom:20px;">⚠️</div>
-  <h1 style="font-size:24px; font-weight:800; color:var(--blue); margin-bottom:10px;">서버 연결 오류</h1>
-  <p style="font-size:15px; color:var(--text3); line-height:1.6;">데이터를 불러오는 중 문제가 발생했습니다.<br>잠시 후 다시 시도하거나 관리자에게 문의하세요.</p>
-  <button onclick="location.reload()" style="margin-top:24px; padding:12px 30px; background:var(--blue); color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer;">페이지 새로고침</button>
-</div>
+<!-- ERROR OVERLAY -->
+<div id="globalError" style="display:none; position:fixed; inset:0; z-index:9999; background:var(--bg); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px;"><div style="font-size:60px;">⚠️</div><h1>서버 연결 오류</h1><button onclick="location.reload()" style="margin-top:24px; padding:12px 30px; background:var(--blue); color:white; border-radius:12px;">새로고침</button></div>
 
 <script src="js/app.js"></script>
 </body>

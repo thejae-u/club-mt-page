@@ -50,6 +50,29 @@
         <button class="tab-btn" onclick="switchTab('members')">👥 신청/명단 관리</button>
         <button class="tab-btn" onclick="switchTab('fees')">💳 회비 관리</button>
         <button class="tab-btn" onclick="switchTab('manitto')">🎁 마니또 관리</button>
+        <button class="tab-btn" onclick="switchTab('board')">📝 제보 관리</button>
+    </div>
+
+    <!-- TAB: BOARD MANAGEMENT -->
+    <div id="tab-board" class="tab-content">
+        <div class="card">
+            <h1>📝 제보 게시판 관리</h1>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">마니또 제보 게시판에 올라온 글들을 관리합니다.</p>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">ID</th>
+                            <th style="width: 120px;">작성자</th>
+                            <th>내용</th>
+                            <th style="width: 140px;">작성일</th>
+                            <th style="width: 80px;">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="boardList"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- TAB 1: SETTINGS -->
@@ -104,6 +127,10 @@
             <div class="form-group">
                 <label>회비 (원)</label>
                 <input type="number" id="registrationFee">
+            </div>
+            <div class="form-group">
+                <label>공동 체크리스트 (한 줄에 하나씩)</label>
+                <textarea id="commonChecklist" style="height: 100px;" placeholder="예: 회비 입금하기&#10;개인 세면도구 챙기기"></textarea>
             </div>
             <div class="form-group">
                 <label>상세 일정 관리 (Visual Editor)</label>
@@ -344,5 +371,64 @@
         </div>
     </div>
     </div> <!-- End of adminContent -->
+
+    <!-- CUSTOM POPUP MODAL -->
+    <div id="modal-alert" style="display:none; position:fixed; inset:0; z-index: 99999; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; padding:20px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);">
+        <div class="card" style="width:100%; max-width: 400px; padding: 24px; border-radius: 16px;">
+            <h1 id="alert-title" style="margin-top: 0; margin-bottom: 8px; justify-content: flex-start;">알림</h1>
+            <p id="alert-message" style="margin-bottom: 24px; white-space: pre-wrap; line-height: 1.6; font-size: 14px; color: #444;">메시지 내용</p>
+            <div id="alert-buttons" style="display: flex; gap: 12px;">
+                <button id="btn-alert-confirm" style="margin-top: 0; flex: 1;">확인</button>
+                <button id="btn-alert-cancel" style="margin-top: 0; flex: 1; background: #eee; color: #333; display: none;">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inline Modal Helpers for Admin
+        function openModal(id) {
+            const el = document.getElementById('modal-' + id) || document.getElementById(id);
+            if (el) {
+                el.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        function closeModal(id) {
+            const el = document.getElementById('modal-' + id) || document.getElementById(id);
+            if (el) {
+                el.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+
+        // CUSTOM POPUP SYSTEM
+        function showPopup(title, message, isConfirm = false) {
+            return new Promise((resolve) => {
+                const titleEl = document.getElementById('alert-title');
+                const msgEl = document.getElementById('alert-message');
+                const btnConfirm = document.getElementById('btn-alert-confirm');
+                const btnCancel = document.getElementById('btn-alert-cancel');
+
+                titleEl.textContent = title || '알림';
+                msgEl.textContent = message;
+                
+                btnCancel.style.display = isConfirm ? 'block' : 'none';
+                btnConfirm.textContent = isConfirm ? '확인' : '닫기';
+
+                const cleanup = () => {
+                    btnConfirm.onclick = null;
+                    btnCancel.onclick = null;
+                    closeModal('alert');
+                };
+
+                btnConfirm.onclick = () => { cleanup(); resolve(true); };
+                btnCancel.onclick = () => { cleanup(); resolve(false); };
+
+                openModal('alert');
+            });
+        }
+        window.alert = (msg) => showPopup('알림', msg);
+        window.confirm = (msg) => showPopup('확인', msg, true);
+    </script>
 </body>
 </html>

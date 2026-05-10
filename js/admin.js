@@ -11,6 +11,60 @@ function switchTab(tabId) {
     if (tabId === 'members') loadParticipants();
     if (tabId === 'settings') loadSettings();
     if (tabId === 'manitto') loadManittoTab();
+    if (tabId === 'board') loadBoard();
+}
+
+async function loadBoard() {
+    const tbody = document.getElementById('boardList');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Manitto/reports`, { credentials: 'include' });
+        if (res.status === 401) return logout(true);
+        if (!res.ok) throw new Error();
+
+        const reports = await res.json();
+        if (reports.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px; color: #999;">제보가 없습니다.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = reports.map(r => `
+            <tr>
+                <td style="text-align:left;">${r.id}</td>
+                <td style="text-align:left;">
+                    <b>${r.participantName || '익명'}</b><br>
+                    <span style="font-size:10px; color:#999;">${r.participantGeneration ? r.participantGeneration + '기' : ''}</span>
+                </td>
+                <td style="text-align:left; font-size:13px; line-height:1.4;">${r.content}</td>
+                <td style="text-align:left; font-size:11px; color:#666;">
+                    ${new Date(new Date(r.createdAt).getTime() + (9 * 60 * 60 * 1000)).toLocaleString()}
+                </td>
+                <td style="text-align:left;">
+                    <button onclick="deleteReport(${r.id})" style="padding:5px 10px; background:#E5484D; color:white; font-size:11px; margin-top:0;">삭제</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">데이터 로드 실패</td></tr>';
+    }
+}
+
+async function deleteReport(id) {
+    if (!await confirm('이 제보를 삭제하시겠습니까?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/Manitto/reports/${id}`, { 
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            loadBoard();
+        } else {
+            await alert('삭제 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
 }
 
 async function loadManittoTab() {
@@ -35,7 +89,7 @@ async function checkAuth() {
                 loginOverlay.style.display = 'flex';
                 if (adminContent) adminContent.style.visibility = 'visible';
             } else if (window.location.pathname.includes('admin-detail.html')) {
-                alert('로그인이 필요하거나 세션이 만료되었습니다.');
+                await alert('로그인이 필요하거나 세션이 만료되었습니다.');
                 window.location.href = 'admin.html';
             } else {
                 if (adminContent) adminContent.style.visibility = 'visible';
@@ -63,15 +117,19 @@ async function doLogin() {
         if (res.ok) {
             location.reload();
         } else {
-            alert('로그인 실패: 비밀번호가 올바르지 않습니다.');
+            await alert('로그인 실패: 비밀번호가 올바르지 않습니다.');
         }
     } catch (e) {
-        alert('서버 연결 오류');
+        await alert('서버 연결 오류');
     }
 }
 
-async function logout() {
-    if (!confirm('로그아웃 하시겠습니까?')) return;
+async function logout(isAuto = false) {
+    if (isAuto) {
+        await alert('세션 정보가 만료되어 재로그인이 필요합니다.');
+    } else {
+        if (!await confirm('로그아웃 하시겠습니까?')) return;
+    }
     try {
         await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
     } catch (e) {}
@@ -85,7 +143,7 @@ async function loadMissions() {
 
     try {
         const res = await fetch(`${API_BASE}/Management/manitto/missions`, { credentials: 'include' });
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         if (!res.ok) throw new Error();
 
         const missions = await res.json();
@@ -108,10 +166,10 @@ async function loadMissions() {
 
 async function addMissions() {
     const text = document.getElementById('new-missions').value;
-    if (!text.trim()) return alert('미션 내용을 입력해주세요.');
+    if (!text.trim()) return await alert('미션 내용을 입력해주세요.');
 
     const missionList = text.split('\n').map(m => m.trim()).filter(m => m !== "");
-    if (missionList.length === 0) return alert('유효한 미션이 없습니다.');
+    if (missionList.length === 0) return await alert('유효한 미션이 없습니다.');
 
     try {
         const res = await fetch(`${API_BASE}/Management/manitto/missions`, {
@@ -121,27 +179,27 @@ async function addMissions() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         if (res.ok) {
-            alert('✅ 미션이 성공적으로 등록되었습니다.');
+            await alert('✅ 미션이 성공적으로 등록되었습니다.');
             document.getElementById('new-missions').value = '';
             loadMissions();
         } else {
-            alert('등록 실패');
+            await alert('등록 실패');
         }
-    } catch (e) { alert('서버 오류'); }
+    } catch (e) { await alert('서버 오류'); }
 }
 
 async function deleteMission(id) {
-    if (!confirm('미션을 삭제하시겠습니까?')) return;
+    if (!await confirm('미션을 삭제하시겠습니까?')) return;
     try {
         const res = await fetch(`${API_BASE}/Management/manitto/missions/${id}`, {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         loadMissions();
-    } catch (e) { alert('삭제 실패'); }
+    } catch (e) { await alert('삭제 실패'); }
 }
 
 async function loadAssignments() {
@@ -150,7 +208,7 @@ async function loadAssignments() {
 
     try {
         const res = await fetch(`${API_BASE}/Management/manitto/assignments`, { credentials: 'include' });
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         const list = await res.json();
         
         window.currentAssignments = list; // Store for reference
@@ -176,7 +234,7 @@ async function loadAssignments() {
                     </select>
                 </td>
                 <td>
-                    <span class="badge" style="background:${a.isManittoMissionComplete ? '#22C55E' : '#F5A623'}; color:white;">
+                    <span class="badge" onclick="toggleMissionStatus(${a.id}, ${a.isManittoMissionComplete})" style="background:${a.isManittoMissionComplete ? '#22C55E' : '#F5A623'}; color:white; cursor:pointer; user-select:none;" title="클릭하여 상태 변경">
                         ${a.isManittoMissionComplete ? '성공' : '진행중'}
                     </span>
                 </td>
@@ -188,6 +246,24 @@ async function loadAssignments() {
     } catch (e) { console.error(e); }
 }
 
+async function toggleMissionStatus(id, currentStatus) {
+    try {
+        const res = await fetch(`${API_BASE}/Management/manitto/assignments/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ isComplete: !currentStatus }),
+            credentials: 'include'
+        });
+
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            loadAssignments();
+        } else {
+            await alert('상태 변경 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
 // Helper to store changes locally before saving
 window.assignmentChanges = {};
 
@@ -196,17 +272,27 @@ function updateManittoAssignmentLocal(participantId, field, value) {
         const original = window.currentAssignments.find(a => a.id === participantId);
         window.assignmentChanges[participantId] = {
             targetId: original.manittoTargetId,
-            missionId: original.manittoMissionId
+            isTargetCleared: false,
+            missionId: original.manittoMissionId,
+            isMissionCleared: false
         };
     }
     
-    if (field === 'TargetId') window.assignmentChanges[participantId].targetId = value ? parseInt(value) : null;
-    if (field === 'MissionId') window.assignmentChanges[participantId].missionId = value ? parseInt(value) : null;
+    if (field === 'TargetId') {
+        const val = value ? parseInt(value) : null;
+        window.assignmentChanges[participantId].targetId = val;
+        window.assignmentChanges[participantId].isTargetCleared = (val === null);
+    }
+    if (field === 'MissionId') {
+        const val = value ? parseInt(value) : null;
+        window.assignmentChanges[participantId].missionId = val;
+        window.assignmentChanges[participantId].isMissionCleared = (val === null);
+    }
 }
 
 async function saveSingleAssignment(id) {
     const changes = window.assignmentChanges[id];
-    if (!changes) return alert('변경사항이 없습니다.');
+    if (!changes) return await alert('변경사항이 없습니다.');
 
     try {
         const res = await fetch(`${API_BASE}/Management/manitto/assignments/${id}`, {
@@ -216,19 +302,19 @@ async function saveSingleAssignment(id) {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         if (res.ok) {
-            alert('✅ 저장되었습니다.');
+            await alert('✅ 저장되었습니다.');
             delete window.assignmentChanges[id];
             loadAssignments();
         } else {
-            alert('저장 실패');
+            await alert('저장 실패');
         }
-    } catch (e) { alert('서버 오류'); }
+    } catch (e) { await alert('서버 오류'); }
 }
 
 async function matchManitto() {
-    if (!confirm('정말 마니또 랜덤 매칭을 실행하시겠습니까?\n기존 매칭 정보는 모두 초기화됩니다.')) return;
+    if (!await confirm('정말 마니또 랜덤 매칭을 실행하시겠습니까?\n기존 매칭 정보는 모두 초기화됩니다.')) return;
 
     const loadingOverlay = document.getElementById('loadingOverlay');
     if (loadingOverlay) loadingOverlay.style.display = 'flex';
@@ -239,16 +325,16 @@ async function matchManitto() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         if (res.ok) {
             const result = await res.json();
-            alert(`🎉 성공: ${result.message}`);
+            await alert(`🎉 성공: ${result.message}`);
             loadAssignments();
         } else {
             const err = await res.text();
-            alert(`❌ 매칭 실패: ${err}`);
+            await alert(`❌ 매칭 실패: ${err}`);
         }
-    } catch (e) { alert('서버 연결 오류'); }
+    } catch (e) { await alert('서버 연결 오류'); }
     finally { if (loadingOverlay) loadingOverlay.style.display = 'none'; }
 }
 
@@ -261,7 +347,7 @@ async function loadFees() {
         ]);
         
         if (!resList.ok || !resSummary.ok) {
-            if (resList.status === 401) return checkAuth();
+            if (resList.status === 401) return logout(true);
             return;
         }
 
@@ -299,7 +385,7 @@ async function addFee() {
     const rawAmount = parseInt(document.getElementById('fee-amt').value);
     const category = document.getElementById('fee-cat').value;
 
-    if (!description || isNaN(rawAmount)) return alert('항목과 금액을 입력해주세요.');
+    if (!description || isNaN(rawAmount)) return await alert('항목과 금액을 입력해주세요.');
 
     const amount = -Math.abs(rawAmount);
 
@@ -311,25 +397,25 @@ async function addFee() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         if (res.ok) {
             document.getElementById('fee-desc').value = '';
             document.getElementById('fee-amt').value = '';
             loadFees();
         }
-    } catch (e) { alert('지출 내역 추가 실패'); }
+    } catch (e) { await alert('지출 내역 추가 실패'); }
 }
 
 async function deleteFee(id) {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
+    if (!await confirm('정말 삭제하시겠습니까?')) return;
     try {
         const res = await fetch(`${API_BASE}/Fee/${id}`, {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         loadFees();
-    } catch (e) { alert('삭제 실패'); }
+    } catch (e) { await alert('삭제 실패'); }
 }
 
 // --- PARTICIPANT MANAGEMENT ---
@@ -342,7 +428,7 @@ async function loadParticipants() {
         const MAX_ARMY = settings.maxMilitaryCapacity || 4;
 
         const res = await fetch(`${API_BASE}/Participants`, { credentials: 'include' });
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         const list = await res.json();
         const tbody = document.getElementById('participantList');
         if (!tbody) return;
@@ -457,14 +543,14 @@ async function saveParticipantEdit() {
             closeEditModal();
             loadParticipants();
         } else {
-            alert('수정 실패');
+            await alert('수정 실패');
         }
-    } catch (e) { alert('서버 연결 오류'); }
+    } catch (e) { await alert('서버 연결 오류'); }
 }
 
 async function resetPassword() {
     const id = document.getElementById('edit-id').value;
-    if (!confirm('비밀번호를 휴대폰 번호 뒷 4자리로 초기화하시겠습니까?')) return;
+    if (!await confirm('비밀번호를 휴대폰 번호 뒷 4자리로 초기화하시겠습니까?')) return;
 
     try {
         const res = await fetch(`${API_BASE}/Participants/${id}/reset-password`, {
@@ -473,11 +559,11 @@ async function resetPassword() {
         });
         if (res.ok) {
             const result = await res.json();
-            alert(result.message);
+            await alert(result.message);
         } else {
-            alert('초기화 실패');
+            await alert('초기화 실패');
         }
-    } catch (e) { alert('서버 연결 오류'); }
+    } catch (e) { await alert('서버 연결 오류'); }
 }
 
 async function toggleWaitlist(id) {
@@ -486,14 +572,14 @@ async function toggleWaitlist(id) {
             method: 'POST',
             credentials: 'include'
         });
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         if (res.ok) {
             loadParticipants();
         } else {
             const msg = await res.text();
-            alert(msg);
+            await alert(msg);
         }
-    } catch (e) { alert('업데이트 실패'); }
+    } catch (e) { await alert('업데이트 실패'); }
 }
 
 async function toggleDeposit(id) {
@@ -502,28 +588,28 @@ async function toggleDeposit(id) {
             method: 'POST',
             credentials: 'include'
         });
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         loadParticipants();
-    } catch (e) { alert('업데이트 실패'); }
+    } catch (e) { await alert('업데이트 실패'); }
 }
 
 async function deleteParticipant(id) {
-    if (!confirm('정말 삭제하시겠습니까?')) return;
+    if (!await confirm('정말 삭제하시겠습니까?')) return;
     try {
         const res = await fetch(`${API_BASE}/Participants/${id}`, { 
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         loadParticipants();
-    } catch (e) { alert('삭제 실패'); }
+    } catch (e) { await alert('삭제 실패'); }
 }
 
 async function uploadCsv() {
     const fileInput = document.getElementById('csvFile');
-    if (!fileInput.files || !fileInput.files.length) return alert('파일을 선택해주세요.');
+    if (!fileInput.files || !fileInput.files.length) return await alert('파일을 선택해주세요.');
 
-    if (!confirm('정말 명단을 교체하시겠습니까?')) return;
+    if (!await confirm('정말 명단을 교체하시겠습니까?')) return;
 
     const loadingOverlay = document.getElementById('loadingOverlay');
     if (loadingOverlay) loadingOverlay.style.display = 'flex';
@@ -538,16 +624,16 @@ async function uploadCsv() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         if (res.ok) {
             const result = await res.json();
-            alert(`✅ 성공: ${result.message}`);
+            await alert(`✅ 성공: ${result.message}`);
             switchTab('members');
         } else {
             const err = await res.text();
-            alert(`❌ 업로드 실패: ${err}`);
+            await alert(`❌ 업로드 실패: ${err}`);
         }
-    } catch (e) { alert('서버 연결 오류'); }
+    } catch (e) { await alert('서버 연결 오류'); }
     finally { if (loadingOverlay) loadingOverlay.style.display = 'none'; }
 }
 
@@ -568,6 +654,10 @@ async function loadSettings() {
         document.getElementById('registrationFee').value = s.registrationFee;
         document.getElementById('maxGeneralCapacity').value = s.maxGeneralCapacity;
         document.getElementById('maxMilitaryCapacity').value = s.maxMilitaryCapacity;
+
+        let commonItems = [];
+        try { commonItems = JSON.parse(s.commonChecklistJson || "[]"); } catch(e) {}
+        document.getElementById('commonChecklist').value = commonItems.join('\n');
         
         let schedule = [];
         try { schedule = JSON.parse(s.scheduleDataJson || "[]"); } catch(e) {}
@@ -613,7 +703,7 @@ function renderScheduleEditor(data) {
 function updateDay(dIdx, field, val) { currentSchedule[dIdx][field] = val; syncRawJson(); }
 function updateTimeline(dIdx, tIdx, field, val) { currentSchedule[dIdx].timeline[tIdx][field] = val; syncRawJson(); }
 function addDay() { currentSchedule.push({ day: currentSchedule.length + 1, emoji: "📅", date: "새 날짜", summary: "요약", timeline: [{ time: "09:00", title: "시작", desc: "" }] }); renderScheduleEditor(currentSchedule); syncRawJson(); }
-function removeDay(idx) { if(!confirm('삭제하시겠습니까?')) return; currentSchedule.splice(idx, 1); renderScheduleEditor(currentSchedule); syncRawJson(); }
+async function removeDay(idx) { if(!await confirm('삭제하시겠습니까?')) return; currentSchedule.splice(idx, 1); renderScheduleEditor(currentSchedule); syncRawJson(); }
 function addTimeline(dIdx) { currentSchedule[dIdx].timeline.push({ time: "12:00", title: "활동", desc: "" }); renderScheduleEditor(currentSchedule); syncRawJson(); }
 function removeTimeline(dIdx, tIdx) { currentSchedule[dIdx].timeline.splice(tIdx, 1); renderScheduleEditor(currentSchedule); syncRawJson(); }
 function syncRawJson() { const jsonEl = document.getElementById('scheduleDataJson'); if (jsonEl) jsonEl.value = JSON.stringify(currentSchedule, null, 2); }
@@ -631,6 +721,7 @@ async function saveSettings() {
         registrationFee: parseInt(document.getElementById('registrationFee').value),
         maxGeneralCapacity: parseInt(document.getElementById('maxGeneralCapacity').value),
         maxMilitaryCapacity: parseInt(document.getElementById('maxMilitaryCapacity').value),
+        commonChecklistJson: JSON.stringify(document.getElementById('commonChecklist').value.split('\n').map(l => l.trim()).filter(l => l !== "")),
         scheduleDataJson: JSON.stringify(currentSchedule)
     };
     try {
@@ -640,14 +731,14 @@ async function saveSettings() {
             body: JSON.stringify(payload),
             credentials: 'include'
         });
-        if (res.status === 401) return logout();
+        if (res.status === 401) return logout(true);
         if (res.ok) {
-            alert('✅ 저장되었습니다!');
+            await alert('✅ 저장되었습니다!');
         } else {
             const msg = await res.text();
-            alert(`❌ 저장 실패: ${msg || '알 수 없는 오류'}`);
+            await alert(`❌ 저장 실패: ${msg || '알 수 없는 오류'}`);
         }
-    } catch (e) { alert('저장 중 연결 오류가 발생했습니다.'); }
+    } catch (e) { await alert('저장 중 연결 오류가 발생했습니다.'); }
 }
 
 // --- ADMIN DETAIL FUNCTIONS ---
@@ -674,11 +765,7 @@ async function fetchData() {
             fetch(`${API_BASE}/Management/members`, { credentials: 'include' })
         ]);
 
-        if (resParticipants.status === 401) {
-            alert('로그인이 필요하거나 세션이 만료되었습니다.');
-            window.location.href = 'admin.html';
-            return;
-        }
+        if (resParticipants.status === 401) return logout(true);
 
         participants = await resParticipants.json();
         masterMembers = await resMembers.json();
@@ -688,7 +775,7 @@ async function fetchData() {
     } catch (e) {
         console.error(e);
         // Silently fail if not on detail page
-        if (document.getElementById('regTableBody')) alert('데이터를 불러오는 중 오류가 발생했습니다.');
+        if (document.getElementById('regTableBody')) await alert('데이터를 불러오는 중 오류가 발생했습니다.');
     }
 }
 
