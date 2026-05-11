@@ -967,6 +967,15 @@ function openMBTIModal() {
 function startMBTI() {
   currentMbtiIdx = 0;
   mbtiAnswers = [];
+  currentMbtiResultCode = "";
+  
+  const btnSave = document.getElementById('btnSaveMbti');
+  if (btnSave) {
+    btnSave.textContent = '저장하기';
+    btnSave.style.background = '#22C55E';
+    btnSave.disabled = false;
+  }
+  
   document.getElementById('mbti-start').style.display = 'none';
   document.getElementById('mbti-result').style.display = 'none';
   document.getElementById('mbti-quiz').style.display = 'block';
