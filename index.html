@@ -2,7 +2,7 @@
 <html lang="ko" data-theme="light">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="referrer" content="no-referrer-when-downgrade">
 <title>빅이큐 MT</title>
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
@@ -198,64 +198,65 @@
 
     <div style="display: flex; gap: 10px;">
       <button class="btn-submit" onclick="startMBTI()" style="flex: 1; background: var(--bg2); color: var(--text2);">다시 하기</button>
-      <button class="btn-submit" onclick="closeModal('mbti')" style="flex: 1.5;">확인 완료</button>
+      <button class="btn-submit" onclick="saveMBTIResult()" id="btnSaveMbti" style="flex: 1.5; background: #22C55E; color: white;">저장하기</button>
+      <button class="btn-submit" onclick="closeModal('mbti')" style="flex: 1;">닫기</button>
     </div>
-  </div>
-</div>
-</div>
+    </div>
+    </div>
+    </div>
 
-<!-- LOCATION MODAL -->
-<div class="modal-overlay" id="modal-location" onclick="closeBg(event,'location')">
-<div class="modal-sheet">
-  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('location')">✕</button>
-  <div class="modal-title">📍 장소 안내</div>
-  <div id="location-name" style="font-size:18px; font-weight:800; color:var(--blue-deep); margin-bottom:10px;">장소 이름</div>
-  <div id="location-detail" style="font-size:14px; line-height:1.6; color:var(--text); margin-bottom:24px; white-space:pre-wrap;">장소 상세 설명이 여기에 표시됩니다.</div>
-  
-  <a id="btnOpenMap" href="#" target="_blank" rel="noopener noreferrer" class="btn-submit" style="display:block; text-align:center; text-decoration:none;">네이버 지도에서 보기</a>
-</div>
-</div>
+    <!-- LOCATION MODAL -->
+    <div class="modal-overlay" id="modal-location" onclick="closeBg(event,'location')">
+    <div class="modal-sheet">
+    <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('location')">✕</button>
+    <div class="modal-title">📍 장소 안내</div>
+    <div id="location-name" style="font-size:18px; font-weight:800; color:var(--blue-deep); margin-bottom:10px;">장소 이름</div>
+    <div id="location-detail" style="font-size:14px; line-height:1.6; color:var(--text); margin-bottom:24px; white-space:pre-wrap;">장소 상세 설명이 여기에 표시됩니다.</div>
 
-<!-- FEE HISTORY -->
-<div class="modal-overlay" id="modal-fee" onclick="closeBg(event,'fee')">
-<div class="modal-sheet">
-  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('fee')">✕</button>
-  <div class="modal-title">💳 회비 지출 내역</div>
-  <div class="modal-sub">투명한 회비 운영을 위해 지출 내역을 공개합니다.</div>
-  
-  <div class="card" style="margin-bottom:20px; background:var(--blue-soft); border:none;">
+    <a id="btnOpenMap" href="#" target="_blank" rel="noopener noreferrer" class="btn-submit" style="display:block; text-align:center; text-decoration:none;">네이버 지도에서 보기</a>
+    </div>
+    </div>
+
+    <!-- FEE HISTORY -->
+    <div class="modal-overlay" id="modal-fee" onclick="closeBg(event,'fee')">
+    <div class="modal-sheet">
+    <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('fee')">✕</button>
+    <div class="modal-title">💳 회비 지출 내역</div>
+    <div class="modal-sub">투명한 회비 운영을 위해 지출 내역을 공개합니다.</div>
+
+    <div class="card" style="margin-bottom:20px; background:var(--blue-soft); border:none;">
     <div style="display:flex; justify-content:center; align-items:center;">
       <div style="text-align:center; font-size:14px; color:var(--text3); font-weight:700;">
         총 지출 합계: <span id="fee-expense" style="color:var(--blue-deep); font-size:18px;">0원</span>
       </div>
     </div>
-  </div>
+    </div>
 
-  <table class="cohort-table" id="feeTable">
+    <table class="cohort-table" id="feeTable">
     <thead><tr><th>항목</th><th style="text-align:right;">금액</th></tr></thead>
     <tbody>
       <!-- Data will be populated by app.js -->
     </tbody>
-  </table>
-  <p style="font-size:11px; color:var(--text3); margin-top:15px; text-align:center;">실시간으로 업데이트되는 공식 회비 내역입니다.</p>
-</div>
-</div>
+    </table>
+    <p style="font-size:11px; color:var(--text3); margin-top:15px; text-align:center;">실시간으로 업데이트되는 공식 회비 내역입니다.</p>
+    </div>
+    </div>
 
-<!-- APPLY MODAL (Unified) -->
-<div class="modal-overlay" id="modal-apply" onclick="closeBg(event,'apply')">
-<div class="modal-sheet" style="max-height: 85vh;">
-  <div class="modal-handle"></div>
-  <button class="modal-close" onclick="closeModal('apply')">✕</button>
-  <div class="modal-title">✍️ MT 신청서</div>
-  <div class="modal-sub" id="apply-subtitle">제 0회 빅이큐 총동문 MT</div>
+    <!-- APPLY MODAL (Unified) -->
+    <div class="modal-overlay" id="modal-apply" onclick="closeBg(event,'apply')">
+    <div class="modal-sheet" style="max-height: 85vh;">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('apply')">✕</button>
+    <div class="modal-title">✍️ MT 신청서</div>
+    <div class="modal-sub" id="apply-subtitle">제 0회 빅이큐 총동문 MT</div>
 
-  <!-- Personalized Header for Edit Mode -->
-  <div id="editHeader" style="display:none; justify-content:space-between; align-items:center; background:var(--blue-soft); padding:14px; border-radius:14px; margin-bottom:20px; border:1.5px solid var(--blue-mid);">
+    <!-- Personalized Header for Edit Mode -->
+    <div id="editHeader" style="display:none; justify-content:space-between; align-items:center; background:var(--blue-soft); padding:14px; border-radius:14px; margin-bottom:20px; border:1.5px solid var(--blue-mid);">
     <div id="editHeaderInfo" style="font-weight:800; color:var(--blue-deep); font-size:15px;"></div>
     <button onclick="cancelRegistration()" style="padding:8px 16px; background:#E5484D; color:white; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(229,72,77,0.25);">신청 취소</button>
-  </div>
+    </div>
 
-  <div id="typeSelectionArea">
+    <div id="typeSelectionArea">
     <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">본인 소속을 선택해주세요</div>
     <div class="type-btns">
       <button class="type-btn active" onclick="switchType(this,'student')">📗 재학생</button>
@@ -264,9 +265,9 @@
       <button class="type-btn" onclick="switchType(this,'army')">🫡 군인</button>
       <button class="type-btn" onclick="switchType(this,'etc')">👋 기타</button>
     </div>
-  </div>
+    </div>
 
-  <div class="form-section active" id="form-unified" style="padding-top: 20px;">
+    <div class="form-section active" id="form-unified" style="padding-top: 20px;">
     <!-- Core Identity Fields -->
     <div class="form-row">
       <div class="form-group"><label>이름 *</label><input type="text" id="nameUnified" placeholder="홍길동"></div>
@@ -280,7 +281,7 @@
       </div>
     </div>
     <div class="form-group"><label>연락처 *</label><input type="tel" id="telUnified" placeholder="01012345678 (숫자만 입력)"></div>
-    
+
     <!-- Dynamic Survey Container -->
     <div id="survey-content-unified"></div>
 
@@ -297,28 +298,28 @@
     <div style="margin-top:10px;">
       <button id="btnSubmitUnified" class="btn-submit" onclick="doSubmit('unified')">🎉 신청 완료하기</button>
     </div>
-  </div>
-</div>
-</div>
+    </div>
+    </div>
+    </div>
 
-<!-- STATUS -->
-<div class="modal-overlay" id="modal-status" onclick="closeBg(event,'status')">
-<div class="modal-sheet">
-  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('status')">✕</button>
-  <div class="modal-title">📊 실시간 신청 현황</div>
-  <div class="modal-sub" id="modalTotalLabel">총 정원 00명 (군인 우선 0명 포함)</div>
-  <div class="cohort-thermo-wrap" id="thermoRows"></div>
-</div>
-</div>
+    <!-- STATUS -->
+    <div class="modal-overlay" id="modal-status" onclick="closeBg(event,'status')">
+    <div class="modal-sheet">
+    <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('status')">✕</button>
+    <div class="modal-title">📊 실시간 신청 현황</div>
+    <div class="modal-sub" id="modalTotalLabel">총 정원 00명 (군인 우선 0명 포함)</div>
+    <div class="cohort-thermo-wrap" id="thermoRows"></div>
+    </div>
+    </div>
 
-<!-- COHORT -->
-<div class="modal-overlay" id="modal-cohort" onclick="closeBg(event,'cohort')">
-<div class="modal-sheet">
-  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cohort')">✕</button>
-  <div class="modal-title">👥 기수 / 동기 확인</div>
-  <div class="modal-sub">이름으로 검색하거나 기수별로 필터링해보세요</div>
-  
-  <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:12px; margin-bottom:20px;">
+    <!-- COHORT -->
+    <div class="modal-overlay" id="modal-cohort" onclick="closeBg(event,'cohort')">
+    <div class="modal-sheet">
+    <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cohort')">✕</button>
+    <div class="modal-title">👥 기수 / 동기 확인</div>
+    <div class="modal-sub">이름으로 검색하거나 기수별로 필터링해보세요</div>
+
+    <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:12px; margin-bottom:20px;">
     <div class="form-group" style="margin-bottom:0;">
       <label style="font-size:11px; margin-bottom:4px;">기수 선택</label>
       <select id="cohortGenFilter" onchange="applyCohortFilter()">
@@ -332,54 +333,54 @@
       <label style="font-size:11px; margin-bottom:4px;">이름 검색</label>
       <input type="text" id="cohortNameFilter" placeholder="🔍 검색어 입력..." oninput="applyCohortFilter()">
     </div>
-  </div>
+    </div>
 
-  <table class="cohort-table" id="cohortTable">
+    <table class="cohort-table" id="cohortTable">
     <thead><tr><th style="width: 50%;">기수</th><th style="width: 50%;">이름</th></tr></thead>
     <tbody></tbody>
-  </table>
-</div>
-</div>
+    </table>
+    </div>
+    </div>
 
-<!-- ARMY -->
-<div class="modal-overlay" id="modal-army" onclick="closeBg(event,'army')">
-<div class="modal-sheet">
-  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('army')">✕</button>
-  <div class="modal-title">🫡 군인 우대 혜택 안내</div>
-  <div class="modal-sub">국방을 책임지는 군인 부원들을 위한 특별 혜택</div>
-  <div class="bar-wrap" style="margin-bottom:20px">
+    <!-- ARMY -->
+    <div class="modal-overlay" id="modal-army" onclick="closeBg(event,'army')">
+    <div class="modal-sheet">
+    <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('army')">✕</button>
+    <div class="modal-title">🫡 군인 우대 혜택 안내</div>
+    <div class="modal-sub">국방을 책임지는 군인 부원들을 위한 특별 혜택</div>
+    <div class="bar-wrap" style="margin-bottom:20px">
     <div class="bar-label"><span>군인 우선 예약 현황</span><span id="armyModalLabel" style="font-weight:700;color:var(--army)">0 / 4명</span></div>
     <div class="bar-track" style="height:13px"><div class="bar-fill army-bar" id="barArmyModal"></div></div>
-  </div>
-  <div class="benefit-item"><h4>1. 🎯 우선 예약권</h4><p id="armyBenefitText">선착순 마감과 관계없이 군인 우선 배정 — 별도 4자리가 먼저 배정됩니다.</p></div>
-  <div class="benefit-item"><h4>2. 💸 휴가 취소 시 회비 100% 환불</h4><p>군부대 사정으로 불참하게 될 경우 취소 처리 및 회비 전액 환불해드립니다.</p></div>
-  <div class="army-alert">⚠️ 단! 참석 여부 확정 즉시 소명이에게 공유 필수 !!!!<br>확정 후 미공유 시 환불이 어려울 수 있습니다.</div>
-  <button class="btn-submit" style="margin-top:18px" onclick="closeModal('army');openApplyArmy()">🫡 군인 우선 예약 신청하기</button>
-</div>
-</div>
+    </div>
+    <div class="benefit-item"><h4>1. 🎯 우선 예약권</h4><p id="armyBenefitText">선착순 마감과 관계없이 군인 우선 배정 — 별도 4자리가 먼저 배정됩니다.</p></div>
+    <div class="benefit-item"><h4>2. 💸 휴가 취소 시 회비 100% 환불</h4><p>군부대 사정으로 불참하게 될 경우 취소 처리 및 회비 전액 환불해드립니다.</p></div>
+    <div class="army-alert">⚠️ 단! 참석 여부 확정 즉시 소명이에게 공유 필수 !!!!<br>확정 후 미공유 시 환불이 어려울 수 있습니다.</div>
+    <button class="btn-submit" style="margin-top:18px" onclick="closeModal('army');openApplyArmy()">🫡 군인 우선 예약 신청하기</button>
+    </div>
+    </div>
 
-<!-- MY PAGE -->
-<div class="modal-overlay" id="modal-mypage" onclick="closeBg(event,'mypage')">
-<div class="modal-sheet">
-  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('mypage')">✕</button>
-  <div class="modal-title">🏠 마이페이지</div><div class="modal-sub" id="mypage-name-gen">...</div>
-  <div class="card" style="margin-bottom:16px; border-left:4px solid var(--blue);"><div style="font-size:12px; color:var(--text3);">입금 확인 상태</div><div id="mypage-deposit-status" style="font-size:18px; font-weight:800;">...</div></div>
-  <div class="section-title">공동 체크리스트</div>
-  <div id="common-checklist-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;"></div>
+    <!-- MY PAGE -->
+    <div class="modal-overlay" id="modal-mypage" onclick="closeBg(event,'mypage')">
+    <div class="modal-sheet">
+    <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('mypage')">✕</button>
+    <div class="modal-title">🏠 마이페이지</div><div class="modal-sub" id="mypage-name-gen">...</div>
+    <div class="card" style="margin-bottom:16px; border-left:4px solid var(--blue);"><div style="font-size:12px; color:var(--text3);">입금 확인 상태</div><div id="mypage-deposit-status" style="font-size:18px; font-weight:800;">...</div></div>
+    <div class="section-title">공동 체크리스트</div>
+    <div id="common-checklist-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;"></div>
 
-  <div class="section-title">개인 체크리스트</div>
-  <div class="form-group" style="display:flex; gap:10px; margin-bottom:16px;">
+    <div class="section-title">개인 체크리스트</div>
+    <div class="form-group" style="display:flex; gap:10px; margin-bottom:16px;">
     <input type="text" id="checklist-input" placeholder="새 할 일 추가..." style="flex:1; margin-bottom:0;">
     <button onclick="addChecklistItem()" style="padding:0 20px; height:48px; background:var(--blue); color:var(--text); border:none; border-radius:12px; font-weight:700; cursor:pointer; white-space:nowrap;">추가</button>
-  </div>
-  <div id="checklist-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;"></div>
-  <button class="btn-submit" onclick="openManittoModal()" style="background:#E5484D; margin-top:20px;">🎁 내 마니또 확인</button>
-  <button id="btnMyPageEdit" class="btn-detail" onclick="openEditFromMyPage()" style="margin-top:10px;">✍️ 정보 수정</button>
-  <button id="btnMyPageCancel" class="btn-detail" onclick="cancelRegistration()" style="margin-top:10px; color:#E5484D; display:none;">❌ 신청 취소</button>
-  <button class="btn-detail" onclick="logout()" style="margin-top:10px;">로그아웃</button>
-</div>
-</div>
-
+    </div>
+    <div id="checklist-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;"></div>
+    <button class="btn-submit" onclick="openManittoModal()" style="background:#E5484D; margin-top:20px;">🎁 내 마니또 확인</button>
+    <button class="btn-submit" onclick="viewMBTIFromMyPage()" style="background:var(--blue-deep); margin-top:10px;">🏐 내 V-MBTI 확인</button>
+    <button id="btnMyPageEdit" class="btn-detail" onclick="openEditFromMyPage()" style="margin-top:10px;">✍️ 정보 수정</button>
+    <button id="btnMyPageCancel" class="btn-detail" onclick="cancelRegistration()" style="margin-top:10px; color:#E5484D; display:none;">❌ 신청 취소</button>
+    <button class="btn-detail" onclick="logout()" style="margin-top:10px;">로그아웃</button>
+    </div>
+    </div>
 <!-- MANITTO -->
 <div class="modal-overlay" id="modal-manitto" onclick="closeBg(event,'manitto')">
 <div class="modal-sheet" style="max-height: 85vh;">
@@ -447,7 +448,7 @@
 <!-- CUSTOM POPUP -->
 <div class="modal-overlay" id="modal-alert" style="z-index: 9999;">
   <div class="modal-sheet" style="max-width: 400px; padding-bottom: 24px;">
-    <div class="modal-handle"></div><div class="modal-title" id="alert-title">알림</div><div class="modal-sub" id="alert-message"></div>
+    <div class="modal-handle"></div><div class="modal-title" id="alert-title">알림</div><div class="modal-sub" id="alert-message" style="white-space: pre-wrap; line-height: 1.5;"></div>
     <div id="alert-input-wrap" style="display: none; margin-bottom: 24px;"><input type="password" id="alert-input"><input type="password" id="alert-input-new" style="display: none; margin-top:12px;"></div>
     <div id="alert-buttons" style="display: flex; gap: 12px;"><button class="btn-submit" id="btn-alert-confirm">확인</button><button class="btn-submit" id="btn-alert-cancel" style="background: var(--bg3); color: var(--text2); display: none;">취소</button></div>
   </div>

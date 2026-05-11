@@ -15,7 +15,7 @@ label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; c
 input, textarea, select { width: 100%; padding: 12px; border: 1.5px solid rgba(118,174,217,0.2); border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s; background: #fff; color: var(--text); }
 input:focus, textarea:focus, select:focus { border-color: var(--blue); }
 button { width: 100%; padding: 14px; background: var(--blue); color: var(--text); border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 15px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(118,174,217,0.2); margin-top: 10px; }
-button:hover { background: var(--blue-deep); color: #fff; }
+@media (hover: hover) { button:hover { background: var(--blue-deep); color: #fff; } }
 
 /* Custom Alert Modal Centering for Admin */
 #modal-alert .card {

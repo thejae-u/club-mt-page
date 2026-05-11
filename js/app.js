@@ -953,6 +953,7 @@ const MBTI_QUESTIONS = [
 
 let mbtiAnswers = [];
 let currentMbtiIdx = 0;
+let currentMbtiResultCode = "";
 
 function openMBTIModal() {
   currentMbtiIdx = 0;
@@ -995,43 +996,33 @@ function showMBTIResult() {
   const aCount = mbtiAnswers.filter(a => a === 'A').length;
   const bCount = mbtiAnswers.filter(a => a === 'B').length;
   
-  const q2 = mbtiAnswers[1]; // 공격 PT
   const q3 = mbtiAnswers[2]; // 수비 HS
   
+  let code = "";
+  if (aCount >= 4) code = "EPHA";
+  else if (bCount >= 4) code = "ITSL";
+  else if (q3 === 'A') code = "ETHL";
+  else code = "ITSA";
+
+  showMBTIResultByCode(code);
+}
+
+function showMBTIResultByCode(code) {
   let result = {};
-  
-  if (aCount >= 4) {
-    result = {
-      code: "EPHA",
-      title: "🔥 열정의 불꽃 하이커 (Outside Hitter)",
-      desc: "빅이큐의 에너자이저! 당신이 나타나면 코트 위 공기가 바뀝니다. 실력보다 기세로 상대를 압도하는 타입.",
-      mt: "술자리 게임의 지배자. 다음 날 목이 쉴 확률 200%."
-    };
-  } else if (bCount >= 4) {
-    result = {
-      code: "ITSL",
-      title: "❄️ 냉철한 야전사령관 (Setter)",
-      desc: "차가운 머리와 뜨거운 손끝! 경기의 흐름을 읽고 조율하는 능력이 탁월합니다. 팀원들이 가장 의지하는 뇌섹남/녀 타입.",
-      mt: "회비 정산이나 장보기 리스트를 짜고 있을 확률이 높음."
-    };
-  } else if (q3 === 'A') {
-    result = {
-      code: "ETHL",
-      title: "🕊️ 불사조 수비 요정 (Libero)",
-      desc: "헌신의 아이콘! 보이지 않는 곳에서 팀을 지탱하는 든든한 조력자입니다. 당신의 디그 한 번이 팀원들을 춤추게 합니다.",
-      mt: "남들 놀 때 뒤에서 뒷정리하거나 취한 사람 챙겨주는 천사."
-    };
+  if (code === "EPHA") {
+    result = { code: "EPHA", title: "🔥 열정의 불꽃 하이커 (Outside Hitter)", desc: "빅이큐의 에너자이저! 당신이 나타나면 코트 위 공기가 바뀝니다. 실력보다 기세로 상대를 압도하는 타입.", mt: "술자리 게임의 지배자. 다음 날 목이 쉴 확률 200%." };
+  } else if (code === "ITSL") {
+    result = { code: "ITSL", title: "❄️ 냉철한 야전사령관 (Setter)", desc: "차가운 머리와 뜨거운 손끝! 경기의 흐름을 읽고 조율하는 능력이 탁월합니다. 팀원들이 가장 의지하는 뇌섹남/녀 타입.", mt: "회비 정산이나 장보기 리스트를 짜고 있을 확률이 높음." };
+  } else if (code === "ETHL") {
+    result = { code: "ETHL", title: "🕊️ 불사조 수비 요정 (Libero)", desc: "헌신의 아이콘! 보이지 않는 곳에서 팀을 지탱하는 든든한 조력자입니다. 당신의 디그 한 번이 팀원들을 춤추게 합니다.", mt: "남들 놀 때 뒤에서 뒷정리하거나 취한 사람 챙겨주는 천사." };
   } else {
-    // Mixed and Q3 is B (and potentially Q2 is B)
-    result = {
-      code: "ITSA",
-      title: "🧱 통곡의 벽 (Middle Blocker)",
-      desc: "상대의 수를 미리 읽고 차단하는 지능형 플레이어! 묵묵히 제 자리를 지키며 상대의 공격을 무력화시킵니다.",
-      mt: "묵묵히 고기 굽다가 한마디씩 툭 던지는게 제일 웃긴 스타일."
-    };
+    result = { code: "ITSA", title: "🧱 통곡의 벽 (Middle Blocker)", desc: "상대의 수를 미리 읽고 차단하는 지능형 플레이어! 묵묵히 제 자리를 지키며 상대의 공격을 무력화시킵니다.", mt: "묵묵히 고기 굽다가 한마디씩 툭 던지는게 제일 웃긴 스타일." };
   }
+  
+  currentMbtiResultCode = code;
 
   document.getElementById('mbti-progress').style.width = '100%';
+  document.getElementById('mbti-start').style.display = 'none';
   document.getElementById('mbti-quiz').style.display = 'none';
   document.getElementById('mbti-result').style.display = 'block';
   
@@ -1039,11 +1030,78 @@ function showMBTIResult() {
   document.getElementById('res-title').textContent = result.title;
   document.getElementById('res-desc').textContent = result.desc;
   document.getElementById('res-mt').textContent = result.mt;
+
+  const btnSave = document.getElementById('btnSaveMbti');
+  if (btnSave) {
+    if (window.currentParticipant && window.currentParticipant.mbtiResult === code) {
+      btnSave.textContent = '저장됨';
+      btnSave.style.background = '#999';
+      btnSave.disabled = true;
+    } else {
+      btnSave.textContent = '저장하기';
+      btnSave.style.background = '#22C55E';
+      btnSave.disabled = false;
+    }
+  }
+}
+
+async function saveMBTIResult() {
+  if (!window.currentParticipant) {
+    await alert('로그인 후 결과를 저장할 수 있습니다.');
+    openModal('login');
+    return;
+  }
+  
+  if (!currentMbtiResultCode) return;
+  
+  try {
+    const res = await fetch(`${API_BASE}/Participants/me/mbti`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(currentMbtiResultCode),
+      credentials: 'include'
+    });
+    
+    if (res.status === 401) {
+        await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        logout();
+        return;
+    }
+
+    if (res.ok) {
+      window.currentParticipant.mbtiResult = currentMbtiResultCode;
+      const btnSave = document.getElementById('btnSaveMbti');
+      if (btnSave) {
+        btnSave.textContent = '저장됨';
+        btnSave.style.background = '#999';
+        btnSave.disabled = true;
+      }
+      showToast('✅ MBTI 결과가 저장되었습니다!');
+    } else {
+      showToast('저장 실패');
+    }
+  } catch(e) {
+    showToast('서버 연결 오류');
+  }
+}
+
+async function viewMBTIFromMyPage() {
+  if (window.currentParticipant && window.currentParticipant.mbtiResult) {
+    closeModal('mypage');
+    showMBTIResultByCode(window.currentParticipant.mbtiResult);
+    openModal('mbti');
+  } else {
+    await alert('아직 저장된 V-MBTI 결과가 없습니다.\n테스트를 진행하고 결과를 저장해보세요! 🏐');
+    closeModal('mypage');
+    openMBTIModal();
+  }
 }
 
 window.openMBTIModal = openMBTIModal;
 window.startMBTI = startMBTI;
 window.selectMBTIAnswer = selectMBTIAnswer;
+window.saveMBTIResult = saveMBTIResult;
+window.viewMBTIFromMyPage = viewMBTIFromMyPage;
 window.logout = logout; window.openMyPage = openMyPage; window.addChecklistItem = addChecklistItem; window.removeChecklistItem = removeChecklistItem; window.toggleCheck = toggleCheck; window.toggleCommonCheck = toggleCommonCheck; window.postReport = postReport; window.completeMission = completeMission; window.switchManittoTab = switchManittoTab; window.openManittoModal = openManittoModal; window.cancelRegistration = cancelRegistration;
 
 // Initialize
