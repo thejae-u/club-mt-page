@@ -131,10 +131,78 @@
   </div>
 </section>
 
+<!-- 배구 MBTI -->
+<section>
+  <div class="section-title">재미로 보는 배구 MBTI</div>
+  <div class="card" style="background: linear-gradient(135deg, #f8fbff 0%, #edf2f7 100%); border: 1.5px solid var(--blue-mid); cursor: pointer;" onclick="openMBTIModal()">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="width: 50px; height: 50px; border-radius: 14px; background: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow-sm);">🏐</div>
+      <div style="flex: 1;">
+        <h3 style="font-size: 16px; font-weight: 800; color: var(--blue-deep); margin-bottom: 4px;">나의 배구 포지션 찾기</h3>
+        <p style="font-size: 12px; color: var(--text3); line-height: 1.4;">질문을 통해 나의 배구 스타일과<br>MT 성향을 알아보세요!</p>
+      </div>
+      <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--blue-deep); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px;">→</div>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <!-- ====== MODALS ====== -->
 <div id="dynamicModals"></div>
+
+<!-- V-MBTI MODAL -->
+<div class="modal-overlay" id="modal-mbti" onclick="closeBg(event,'mbti')">
+<div class="modal-sheet" style="max-height: 85vh;">
+  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('mbti')">✕</button>
+  <div class="modal-title" style="text-align: center;">🏐 빅이큐 V-MBTI</div>
+  
+  <div id="mbti-start" style="text-align: center; padding: 20px 0;">
+    <div style="font-size: 64px; margin-bottom: 20px;">🏐</div>
+    <div style="font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text);">나의 배구 포지션은?</div>
+    <p style="font-size: 14px; color: var(--text3); line-height: 1.6; margin-bottom: 30px;">
+      경기 스타일부터 술자리 성향까지!<br>
+      간단한 5가지 질문으로 알아보는<br>
+      빅이큐 전용 배구 MBTI 테스트
+    </p>
+    <button class="btn-submit" onclick="startMBTI()" style="background: var(--blue-deep); color: white;">테스트 시작하기</button>
+  </div>
+
+  <div id="mbti-quiz" style="display: none; padding: 10px 0;">
+    <div style="background: var(--bg2); border-radius: 12px; height: 6px; margin-bottom: 24px; overflow: hidden;">
+      <div id="mbti-progress" style="height: 100%; background: var(--blue); width: 0%; transition: width 0.3s;"></div>
+    </div>
+    <div id="mbti-q-num" style="font-size: 12px; font-weight: 800; color: var(--blue); margin-bottom: 8px;">Q1.</div>
+    <div id="mbti-question" style="font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 24px; line-height: 1.4;"></div>
+    
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <button class="btn-detail" onclick="selectMBTIAnswer('A')" id="mbti-opt-a" style="text-align: left; padding: 20px; font-size: 15px; border-width: 1.5px; white-space: normal; height: auto; justify-content: flex-start;"></button>
+      <button class="btn-detail" onclick="selectMBTIAnswer('B')" id="mbti-opt-b" style="text-align: left; padding: 20px; font-size: 15px; border-width: 1.5px; white-space: normal; height: auto; justify-content: flex-start;"></button>
+    </div>
+  </div>
+
+  <div id="mbti-result" style="display: none; text-align: center; padding: 10px 0;">
+    <div style="font-size: 14px; font-weight: 700; color: var(--text3); margin-bottom: 8px;">당신의 V-MBTI 결과는?</div>
+    <div id="res-mbti-code" style="font-size: 12px; font-weight: 800; color: var(--blue); margin-bottom: 4px; letter-spacing: 2px;">EPHA</div>
+    <div id="res-title" style="font-size: 24px; font-weight: 900; color: var(--text); margin-bottom: 20px;">🔥 열정의 불꽃 하이커</div>
+    
+    <div class="card" style="text-align: left; background: var(--blue-soft); border: none; margin-bottom: 16px;">
+      <div style="font-weight: 800; font-size: 14px; color: var(--blue-deep); margin-bottom: 8px;">🏐 배구 특징</div>
+      <p id="res-desc" style="font-size: 14px; line-height: 1.6; color: var(--text);"></p>
+    </div>
+
+    <div class="card" style="text-align: left; background: #FFF5F5; border: none; margin-bottom: 24px;">
+      <div style="font-weight: 800; font-size: 14px; color: #E5484D; margin-bottom: 8px;">🍺 MT 성향</div>
+      <p id="res-mt" style="font-size: 14px; line-height: 1.6; color: var(--text);"></p>
+    </div>
+
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-submit" onclick="startMBTI()" style="flex: 1; background: var(--bg2); color: var(--text2);">다시 하기</button>
+      <button class="btn-submit" onclick="closeModal('mbti')" style="flex: 1.5;">확인 완료</button>
+    </div>
+  </div>
+</div>
+</div>
 
 <!-- LOCATION MODAL -->
 <div class="modal-overlay" id="modal-location" onclick="closeBg(event,'location')">
@@ -144,7 +212,7 @@
   <div id="location-name" style="font-size:18px; font-weight:800; color:var(--blue-deep); margin-bottom:10px;">장소 이름</div>
   <div id="location-detail" style="font-size:14px; line-height:1.6; color:var(--text); margin-bottom:24px; white-space:pre-wrap;">장소 상세 설명이 여기에 표시됩니다.</div>
   
-  <a id="btnOpenMap" href="#" target="_blank" class="btn-submit" style="display:block; text-align:center; text-decoration:none;">네이버 지도에서 보기</a>
+  <a id="btnOpenMap" href="#" target="_blank" rel="noopener noreferrer" class="btn-submit" style="display:block; text-align:center; text-decoration:none;">네이버 지도에서 보기</a>
 </div>
 </div>
 
@@ -219,8 +287,8 @@
     <!-- Password Section -->
     <div id="pwGroupUnified" class="form-group" style="margin-top: 20px;">
       <button id="btnChangePwUnified" type="button" class="btn-detail" onclick="openChangePasswordPopup()" style="background: var(--bg2); color: var(--text2); margin-top: 0; display: none;">🔒 비밀번호 변경하기</button>
-      <div id="pwLabelUnified_New"><label>비밀번호 입력(수정/로그인 시 필요, 4자리 이상)</label></div>
-      <input type="password" id="pwUnified" placeholder="미입력 시 휴대폰 번호 뒤 4자리 자동 설정" style="margin-top: 0;">
+      <div id="pwLabelUnified_New"><label>비밀번호 입력 * (수정/로그인 시 필요, 4자리 이상)</label></div>
+      <input type="password" id="pwUnified" placeholder="비밀번호 4자리 이상 입력" style="margin-top: 0;" required>
     </div>
 
     <div style="font-size:11px; color:var(--text3); margin-top:20px; text-align:center; opacity:0.8;">

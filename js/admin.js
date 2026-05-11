@@ -1,5 +1,10 @@
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
 
+const escapeHTML = (str) => {
+  if (!str) return '';
+  return String(str).replace(/[&<>'"]/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[match] || match));
+};
+
 function switchTab(tabId) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -33,10 +38,10 @@ async function loadBoard() {
             <tr>
                 <td style="text-align:left;">${r.id}</td>
                 <td style="text-align:left;">
-                    <b>${r.participantName || '익명'}</b><br>
+                    <b>${escapeHTML(r.participantName) || '익명'}</b><br>
                     <span style="font-size:10px; color:#999;">${r.participantGeneration ? r.participantGeneration + '기' : ''}</span>
                 </td>
-                <td style="text-align:left; font-size:13px; line-height:1.4;">${r.content}</td>
+                <td style="text-align:left; font-size:13px; line-height:1.4;">${escapeHTML(r.content)}</td>
                 <td style="text-align:left; font-size:11px; color:#666;">
                     ${new Date(new Date(r.createdAt).getTime() + (9 * 60 * 60 * 1000)).toLocaleString()}
                 </td>
@@ -365,10 +370,11 @@ async function loadFees() {
             return;
         }
 
+        const catMap = { 'Food': '음식/장보기', 'Rent': '숙소/대관', 'Transport': '교통/유류비', 'General': '기타 지출' };
         tbody.innerHTML = list.map(f => `
             <tr>
                 <td><b>${f.description}</b></td>
-                <td><span class="badge badge-expense">${f.category}</span></td>
+                <td><span class="badge badge-expense">${catMap[f.category] || f.category}</span></td>
                 <td style="text-align: right; color: #E5484D; font-weight:700;">
                     ${Math.abs(f.amount).toLocaleString()}
                 </td>
@@ -922,5 +928,58 @@ window.removeTimeline = removeTimeline;
 window.updateDay = updateDay;
 window.updateTimeline = updateTimeline;
 window.sortTable = sortTable;
+window.resetSettings = resetSettings;
+window.resetParticipants = resetParticipants;
+
+// --- DANGER ZONE ---
+async function resetSettings() {
+    if (!await confirm('정말 웹사이트 설정을 모두 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) return;
+    const password = await window.prompt('관리자 비밀번호를 입력해주세요:');
+    if (!password) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/reset-settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
+            credentials: 'include'
+        });
+        if (res.status === 401) {
+            await alert('비밀번호가 일치하지 않거나 권한이 없습니다.');
+            return;
+        }
+        if (res.ok) {
+            await alert('✅ 설정이 안전하게 초기화되었습니다.');
+            loadSettings();
+        } else {
+            await alert('초기화 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+async function resetParticipants() {
+    if (!await confirm('정말 모든 참가 신청 정보와 마니또 기록을 삭제하시겠습니까?\n(동문 명단과 회비 내역은 유지됩니다)')) return;
+    const password = await window.prompt('관리자 비밀번호를 입력해주세요:');
+    if (!password) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/reset-participants`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
+            credentials: 'include'
+        });
+        if (res.status === 401) {
+            await alert('비밀번호가 일치하지 않거나 권한이 없습니다.');
+            return;
+        }
+        if (res.ok) {
+            await alert('✅ 모든 참가 정보가 안전하게 초기화되었습니다.');
+            loadParticipants();
+        } else {
+            await alert('초기화 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
 window.filterData = filterData;
 window.fetchData = fetchData;

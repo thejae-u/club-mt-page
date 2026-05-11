@@ -1,6 +1,11 @@
 // When hosting separately, you MUST use an absolute URL pointing to your backend.
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
 
+const escapeHTML = (str) => {
+  if (!str) return '';
+  return String(str).replace(/[&<>'"]/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[match] || match));
+};
+
 // ===== DYNAMIC SURVEY CONFIGURATION =====
 const SURVEY_CONFIG = [
   {
@@ -16,7 +21,6 @@ const SURVEY_CONFIG = [
     label: "빅이큐 MT 참여 횟수", 
     type: "select", 
     options: ["0번 (처음이에요!)", "1번", "2번", "3번", "4번"],
-    required: true,
     showFor: ['student', 'grad', 'leave', 'army', 'etc']
   },
   { 
@@ -64,7 +68,7 @@ const SURVEY_CONFIG = [
     id: "license",
     label: "운전 면허 소지 여부",
     type: "license",
-    licenseOptions: ["1종 대형", "1종 보통", "2종 보통", "기타"],
+    licenseOptions: ["1종 보통", "2종 보통(자동)", "기타"],
     canDriveOptions: ["불가능 (장롱)", "가능"],
     showFor: ['student', 'grad', 'leave', 'army', 'etc']
   },
@@ -316,7 +320,10 @@ async function updateFeeTable() {
       const tbody = document.querySelector('#feeTable tbody');
       if (tbody) {
         if (fees.length === 0) tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 20px; color: var(--text3);">등록된 지출 내역이 없습니다.</td></tr>';
-        else tbody.innerHTML = fees.map(f => `<tr><td><div style="font-weight:600;">${f.description}</div><div style="font-size:10px; color:var(--text3);">${f.category}</div></td><td style="text-align:right; font-weight:700; color:#E5484D">${Math.abs(f.amount).toLocaleString()}원</td></tr>`).join('');
+        else {
+          const catMap = { 'Food': '음식/장보기', 'Rent': '숙소/대관', 'Transport': '교통/유류비', 'General': '기타 지출' };
+          tbody.innerHTML = fees.map(f => `<tr><td><div style="font-weight:600;">${f.description}</div><div style="font-size:10px; color:var(--text3);">${catMap[f.category] || f.category}</div></td><td style="text-align:right; font-weight:700; color:#E5484D">${Math.abs(f.amount).toLocaleString()}원</td></tr>`).join('');
+        }
       }
     }
     if (resSummary.ok) {
@@ -678,7 +685,7 @@ async function loadReports() {
         const res = await fetch(`${API_BASE}/Manitto/reports`); if (!res.ok) return;
         const list = await res.json();
         if (list.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:#999; font-size:13px;">아직 올라온 제보가 없습니다.</div>'; return; }
-        container.innerHTML = list.map(r => { const kstDate = new Date(new Date(r.createdAt).getTime() + (9 * 60 * 60 * 1000)); return `<div class="card" style="padding:12px; background:#fff; border:1px solid #eee;"><div style="font-size:14px; line-height:1.5;">${r.content}</div><div style="font-size:10px; color:#999; margin-top:8px;">${kstDate.toLocaleString()}</div></div>`; }).join('');
+        container.innerHTML = list.map(r => { const kstDate = new Date(new Date(r.createdAt).getTime() + (9 * 60 * 60 * 1000)); return `<div class="card" style="padding:12px; background:#fff; border:1px solid #eee;"><div style="font-size:14px; line-height:1.5;">${escapeHTML(r.content)}</div><div style="font-size:10px; color:#999; margin-top:8px;">${kstDate.toLocaleString()}</div></div>`; }).join('');
     } catch (e) { console.error(e); }
 }
 
@@ -715,6 +722,11 @@ async function submitApplication(formId) {
 
   const passwordInp = document.getElementById('pwUnified');
   let finalPassword = passwordInp ? passwordInp.value : "";
+  
+  if (!window.editingParticipantId && !finalPassword) {
+      return showToast('비밀번호를 입력해주세요.');
+  }
+
   let currentPassword = "";
 
   if (window.editingParticipantId) {
@@ -904,6 +916,134 @@ async function openChangePasswordPopup() {
 // Global Exports
 window.alert = (msg) => showPopup('알림', msg, 'alert'); window.confirm = (msg) => showPopup('확인', msg, 'confirm'); window.prompt = (msg) => showPopup('확인', msg, 'prompt');
 window.openModal = openModal; window.closeModal = closeModal; window.closeBg = closeBg; window.switchType = switchType; window.openApplyArmy = openApplyArmy; window.openFeeModal = openFeeModal; window.openLocationModal = openLocationModal; window.openCohortModal = openCohortModal; window.toggleSchedule = toggleSchedule; window.applyCohortFilter = applyCohortFilter; window.openEditFromHome = openEditFromHome; window.showPopup = showPopup; window.setSurveyData = setSurveyData; window.openChangePasswordPopup = openChangePasswordPopup; window.submitApplication = submitApplication; window.doSubmit = submitApplication; window.toggleTransport = toggleTransport; window.toggleLicense = toggleLicense; window.goToCohort = goToCohort;
+
+// ===== V-MBTI LOGIC =====
+const MBTI_QUESTIONS = [
+  {
+    q: "경기 중 연속 실점으로 분위기가 가라앉았을 때?",
+    a: "파이팅!!! 소리 지르며 분위기를 띄운다.",
+    b: "조용히 다음 플레이를 어떻게 할지 복기한다.",
+    trait: "EI"
+  },
+  {
+    q: "공격 상황에서 당신이 더 선호하는 플레이는?",
+    a: "블로킹 사이를 뚫는 강력한 스파이크!",
+    b: "빈틈을 노리는 정교한 페인트나 연타!",
+    trait: "PT"
+  },
+  {
+    q: "수비할 때 당신의 스타일은?",
+    a: "일단 몸부터 날리고 보는 허슬 플레이!",
+    b: "길목을 지키고 서서 정확하게 받아내는 위치 선정!",
+    trait: "HS"
+  },
+  {
+    q: "팀원에게 피드백을 줄 때 당신은?",
+    a: "\"괜찮아! 할 수 있어!\" 격려부터 한다.",
+    b: "\"방금은 자세가 낮았어.\" 팩트부터 말한다.",
+    trait: "AL"
+  },
+  {
+    q: "엠티 술자리에서 당신의 모습은?",
+    a: "게임 주도! 텐션 폭발! 분위기 메이커",
+    b: "구석에서 소소하게 딥토크 하는 상담가",
+    trait: "Overall"
+  }
+];
+
+let mbtiAnswers = [];
+let currentMbtiIdx = 0;
+
+function openMBTIModal() {
+  currentMbtiIdx = 0;
+  mbtiAnswers = [];
+  document.getElementById('mbti-start').style.display = 'block';
+  document.getElementById('mbti-quiz').style.display = 'none';
+  document.getElementById('mbti-result').style.display = 'none';
+  openModal('mbti');
+}
+
+function startMBTI() {
+  currentMbtiIdx = 0;
+  mbtiAnswers = [];
+  document.getElementById('mbti-start').style.display = 'none';
+  document.getElementById('mbti-result').style.display = 'none';
+  document.getElementById('mbti-quiz').style.display = 'block';
+  renderMBTIQuestion();
+}
+
+function renderMBTIQuestion() {
+  const q = MBTI_QUESTIONS[currentMbtiIdx];
+  document.getElementById('mbti-q-num').textContent = `Q${currentMbtiIdx + 1}.`;
+  document.getElementById('mbti-question').textContent = q.q;
+  document.getElementById('mbti-opt-a').textContent = `A. ${q.a}`;
+  document.getElementById('mbti-opt-b').textContent = `B. ${q.b}`;
+  document.getElementById('mbti-progress').style.width = `${((currentMbtiIdx) / MBTI_QUESTIONS.length) * 100}%`;
+}
+
+function selectMBTIAnswer(ans) {
+  mbtiAnswers.push(ans);
+  if (currentMbtiIdx < MBTI_QUESTIONS.length - 1) {
+    currentMbtiIdx++;
+    renderMBTIQuestion();
+  } else {
+    showMBTIResult();
+  }
+}
+
+function showMBTIResult() {
+  const aCount = mbtiAnswers.filter(a => a === 'A').length;
+  const bCount = mbtiAnswers.filter(a => a === 'B').length;
+  
+  const q2 = mbtiAnswers[1]; // 공격 PT
+  const q3 = mbtiAnswers[2]; // 수비 HS
+  
+  let result = {};
+  
+  if (aCount >= 4) {
+    result = {
+      code: "EPHA",
+      title: "🔥 열정의 불꽃 하이커 (Outside Hitter)",
+      desc: "빅이큐의 에너자이저! 당신이 나타나면 코트 위 공기가 바뀝니다. 실력보다 기세로 상대를 압도하는 타입.",
+      mt: "술자리 게임의 지배자. 다음 날 목이 쉴 확률 200%."
+    };
+  } else if (bCount >= 4) {
+    result = {
+      code: "ITSL",
+      title: "❄️ 냉철한 야전사령관 (Setter)",
+      desc: "차가운 머리와 뜨거운 손끝! 경기의 흐름을 읽고 조율하는 능력이 탁월합니다. 팀원들이 가장 의지하는 뇌섹남/녀 타입.",
+      mt: "회비 정산이나 장보기 리스트를 짜고 있을 확률이 높음."
+    };
+  } else if (q3 === 'A') {
+    result = {
+      code: "ETHL",
+      title: "🕊️ 불사조 수비 요정 (Libero)",
+      desc: "헌신의 아이콘! 보이지 않는 곳에서 팀을 지탱하는 든든한 조력자입니다. 당신의 디그 한 번이 팀원들을 춤추게 합니다.",
+      mt: "남들 놀 때 뒤에서 뒷정리하거나 취한 사람 챙겨주는 천사."
+    };
+  } else {
+    // Mixed and Q3 is B (and potentially Q2 is B)
+    result = {
+      code: "ITSA",
+      title: "🧱 통곡의 벽 (Middle Blocker)",
+      desc: "상대의 수를 미리 읽고 차단하는 지능형 플레이어! 묵묵히 제 자리를 지키며 상대의 공격을 무력화시킵니다.",
+      mt: "묵묵히 고기 굽다가 한마디씩 툭 던지는게 제일 웃긴 스타일."
+    };
+  }
+
+  document.getElementById('mbti-progress').style.width = '100%';
+  document.getElementById('mbti-quiz').style.display = 'none';
+  document.getElementById('mbti-result').style.display = 'block';
+  
+  document.getElementById('res-mbti-code').textContent = result.code;
+  document.getElementById('res-title').textContent = result.title;
+  document.getElementById('res-desc').textContent = result.desc;
+  document.getElementById('res-mt').textContent = result.mt;
+}
+
+window.openMBTIModal = openMBTIModal;
+window.startMBTI = startMBTI;
+window.selectMBTIAnswer = selectMBTIAnswer;
 window.logout = logout; window.openMyPage = openMyPage; window.addChecklistItem = addChecklistItem; window.removeChecklistItem = removeChecklistItem; window.toggleCheck = toggleCheck; window.toggleCommonCheck = toggleCommonCheck; window.postReport = postReport; window.completeMission = completeMission; window.switchManittoTab = switchManittoTab; window.openManittoModal = openManittoModal; window.cancelRegistration = cancelRegistration;
 
 // Initialize

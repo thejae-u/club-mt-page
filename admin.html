@@ -144,6 +144,17 @@
             </div>
             <button onclick="saveSettings()">설정 저장하기</button>
         </div>
+
+        <div class="card" style="margin-top: 24px; border: 2px solid #E5484D; background: #FFF5F5;">
+            <h2 style="color: #E5484D; margin-top: 0; font-size: 16px;">🔥 위험 구역 (Danger Zone)</h2>
+            <p style="font-size: 12px; color: #666; margin-bottom: 16px;">
+                이곳의 작업은 되돌릴 수 없으며, 모든 데이터를 영구적으로 삭제합니다. 작업 전 반드시 백업을 확인하세요.
+            </p>
+            <div style="display: flex; gap: 12px; flex-direction: column;">
+                <button onclick="resetSettings()" style="background: #E5484D; color: white;">설정 초기화 (기본값 복구)</button>
+                <button onclick="resetParticipants()" style="background: #E5484D; color: white;">모든 참가 정보 및 마니또 기록 삭제</button>
+            </div>
+        </div>
     </div>
 
     <!-- TAB 2: MEMBERS & APPLICANTS -->
@@ -377,6 +388,7 @@
         <div class="card" style="width:100%; max-width: 400px; padding: 24px; border-radius: 16px;">
             <h1 id="alert-title" style="margin-top: 0; margin-bottom: 8px; justify-content: flex-start;">알림</h1>
             <p id="alert-message" style="margin-bottom: 24px; white-space: pre-wrap; line-height: 1.6; font-size: 14px; color: #444;">메시지 내용</p>
+            <input type="password" id="alert-input" style="width: 100%; padding: 12px; margin-bottom: 24px; border: 1.5px solid #ddd; border-radius: 12px; font-size: 15px; outline: none; display:none;" placeholder="비밀번호 입력">
             <div id="alert-buttons" style="display: flex; gap: 12px;">
                 <button id="btn-alert-confirm" style="margin-top: 0; flex: 1;">확인</button>
                 <button id="btn-alert-cancel" style="margin-top: 0; flex: 1; background: #eee; color: #333; display: none;">취소</button>
@@ -402,33 +414,47 @@
         }
 
         // CUSTOM POPUP SYSTEM
-        function showPopup(title, message, isConfirm = false) {
+        function showPopup(title, message, type = 'alert') {
             return new Promise((resolve) => {
                 const titleEl = document.getElementById('alert-title');
                 const msgEl = document.getElementById('alert-message');
+                const inputEl = document.getElementById('alert-input');
                 const btnConfirm = document.getElementById('btn-alert-confirm');
                 const btnCancel = document.getElementById('btn-alert-cancel');
 
                 titleEl.textContent = title || '알림';
                 msgEl.textContent = message;
                 
+                const isConfirm = type === 'confirm' || type === 'prompt';
                 btnCancel.style.display = isConfirm ? 'block' : 'none';
                 btnConfirm.textContent = isConfirm ? '확인' : '닫기';
+
+                if (type === 'prompt') {
+                    inputEl.style.display = 'block';
+                    inputEl.value = '';
+                    setTimeout(() => inputEl.focus(), 100);
+                } else {
+                    inputEl.style.display = 'none';
+                }
 
                 const cleanup = () => {
                     btnConfirm.onclick = null;
                     btnCancel.onclick = null;
+                    inputEl.onkeypress = null;
                     closeModal('alert');
                 };
 
-                btnConfirm.onclick = () => { cleanup(); resolve(true); };
-                btnCancel.onclick = () => { cleanup(); resolve(false); };
+                btnConfirm.onclick = () => { let val = type === 'prompt' ? inputEl.value : true; cleanup(); resolve(val); };
+                btnCancel.onclick = () => { cleanup(); resolve(type === 'prompt' ? null : false); };
+                
+                inputEl.onkeypress = (e) => { if (e.key === 'Enter') btnConfirm.click(); };
 
                 openModal('alert');
             });
         }
-        window.alert = (msg) => showPopup('알림', msg);
-        window.confirm = (msg) => showPopup('확인', msg, true);
+        window.alert = (msg) => showPopup('알림', msg, 'alert');
+        window.confirm = (msg) => showPopup('확인', msg, 'confirm');
+        window.prompt = (msg) => showPopup('확인', msg, 'prompt');
     </script>
 </body>
 </html>
