@@ -699,7 +699,7 @@ async function postReport() {
 
     const inp = document.getElementById('report-input'); const content = inp.value.trim(); if (!content) return;
     try { 
-        const res = await fetch(`${API_BASE}/Manitto/reports`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(content), credentials: 'include' }); 
+        const clientRequestId = Date.now().toString() + "-" + Math.random().toString(36).substring(2, 9); const res = await fetch(`${API_BASE}/Manitto/reports`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content, clientRequestId }), credentials: 'include' }); 
         if (res.status === 401) {
             await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
             logout();
