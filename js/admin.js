@@ -93,9 +93,9 @@ async function checkAuth() {
             if (loginOverlay) {
                 loginOverlay.style.display = 'flex';
                 if (adminContent) adminContent.style.visibility = 'visible';
-            } else if (window.location.pathname.includes('admin-detail.html')) {
+            } else if (window.location.pathname.includes('manager-detail')) {
                 await alert('로그인이 필요하거나 세션이 만료되었습니다.');
-                window.location.href = 'admin.html';
+                window.location.href = 'manager-hq';
             } else {
                 if (adminContent) adminContent.style.visibility = 'visible';
             }
@@ -138,7 +138,7 @@ async function logout(isAuto = false) {
     try {
         await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
     } catch (e) {}
-    location.href = 'admin.html';
+    location.href = 'manager-hq';
 }
 
 // --- MANITTO MANAGEMENT ---
