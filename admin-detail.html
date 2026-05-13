@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="no-referrer-when-downgrade">
     <title>동문 MT 미등록 명단</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
     <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" rel="stylesheet">
     <link rel="stylesheet" href="css/admin.css">
     <script src="js/admin.js" defer></script>
@@ -15,37 +16,62 @@
         .btn-back { text-decoration: none; font-size: 14px; color: #2e7ab0; font-weight: 600; }
         
         .card { background: white; padding: 0; border-radius: 16px; box-shadow: 0 4px 12px rgba(118,174,217,0.1); overflow: hidden; border: 1px solid var(--border); width: 100%;}
-        .table-wrapper { overflow-x: auto; width: 102%; background: #fff; padding-left: 5px;}
-        table { width: 100%; border-collapse: collapse; min-width: 1300px; table-layout: fixed; }
-        th { background: #EEF5FB; padding: 12px 8px; text-align: left; color: #6A9BB5; border-bottom: 2px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+        .table-wrapper { overflow-x: auto; width: 101%; background: #fff; padding-left: 5px; padding-right: 5px;}
+        table { width: 100%; border-collapse: collapse; min-width: 1400px; table-layout: auto; }
+        th { background: #EEF5FB; padding: 12px 8px; text-align: left; color: #6A9BB5; border-bottom: 2px solid var(--border); cursor: pointer; user-select: none; font-size: 12px; }
 
-        /* Fixed Column Widths (Registered Table) */
-        #regTable th:nth-child(1) { width: 70px; }   /* 이름 */
-        #regTable th:nth-child(2) { width: 45px; }   /* 기수 */
-        #regTable th:nth-child(3) { width: 70px; }   /* 구분 */
-        #regTable th:nth-child(4) { width: 105px; }  /* 연락처 */
-        #regTable th:nth-child(5) { width: 90px; }   /* 학번 */
-        #regTable th:nth-child(6) { width: 45px; }   /* 입금 */
-        #regTable th:nth-child(7) { width: 85px; }   /* 이동수단 */
-        #regTable th:nth-child(8) { width: 65px; }   /* 카풀 */
-        #regTable th:nth-child(9) { width: 90px; }   /* 출발지 */
-        #regTable th:nth-child(10) { width: 70px; }  /* 면허 */
-        #regTable th:nth-child(11) { width: 70px; }  /* 운전가능 */
-        #regTable th:nth-child(12) { width: 90px; }  /* 경력 */
-        #regTable th:nth-child(13) { width: 90px; }  /* 알레르기 */
-        /* th:nth-child(14) - Remarks: Flexible */
-        #regTable th:nth-child(15) { width: 90px; }  /* 등록일 */
+        /* Column Widths (Registered Table) */
+        #regTable th:nth-child(1) { width: 75px; }   /* 이름 */
+        #regTable th:nth-child(2) { width: 50px; }   /* 기수 */
+        #regTable th:nth-child(3) { width: 75px; }   /* 구분 */
+        #regTable th:nth-child(4) { width: 115px; }  /* 연락처 */
+        #regTable th:nth-child(5) { width: 100px; }  /* 학번 */
+        #regTable th:nth-child(6) { width: 50px; }   /* 입금 */
+        #regTable th:nth-child(7) { width: 90px; }   /* 이동수단 */
+        #regTable th:nth-child(8) { width: 70px; }   /* 카풀 */
+        #regTable th:nth-child(9) { width: 100px; }  /* 출발지 */
+        #regTable th:nth-child(10) { width: 75px; }  /* 면허 */
+        #regTable th:nth-child(11) { width: 75px; }  /* 운전가능 */
+        #regTable th:nth-child(12) { width: 100px; } /* 경력 */
+        #regTable th:nth-child(13) { width: 120px; } /* 알레르기 (Wider & Wrap) */
+        #regTable th:nth-child(14) { min-width: 150px; } /* 메모/요청 (Flexible & Wrap) */
+        #regTable th:nth-child(15) { width: 100px; } /* 등록일 */
 
-        /* Unregistered Table Specific - Very Tight */
-        #unregTable { min-width: 300px; width: 100%; }
-        #unregTable th:nth-child(1) { width: 80%; } /* 이름 */
-        #unregTable th:nth-child(2) { width: 100%; } /* 기수 */
+        /* Unregistered Table Specific */
+        #unregTable { min-width: 400px; width: 100%; table-layout: fixed; border-top: 2px solid #ddd; }
+        #unregTable th:nth-child(1) { width: 40%; border-right: 1px solid var(--border); } /* 기수 */
+        #unregTable th:nth-child(2) { width: 60%; } /* 이름 */
+        
+        #unregTable td:nth-child(1) { border-right: 1px solid #f0f0f0; }
+        
         th:hover { background: #EEF4FB; color: var(--blue); }
         th.sort-asc::after { content: ' ↑'; }
         th.sort-desc::after { content: ' ↓'; }
         
-        th { text-align: center;}
-        td { text-align: center; padding: 12px 10px; border-bottom: 1px solid #f0f0f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        th { text-align: center; white-space: nowrap; font-weight: 800; }
+        td { padding: 12px 10px; border-bottom: 1px solid #f0f0f0; font-size: 13px; line-height: 1.4; vertical-align: middle; }
+        
+        /* Registered Table: Default to center, but specific columns wrap and left-align */
+        #regTable td { text-align: center; white-space: nowrap; }
+        #regTable td:nth-child(13), 
+        #regTable td:nth-child(14) { 
+            white-space: normal !important; 
+            text-align: left !important; 
+            word-break: break-all;
+            min-width: 150px;
+        }
+
+        /* Unregistered Table: Force center alignment and consistent font */
+        #unregTable td {
+            text-align: center !important;
+            white-space: nowrap !important;
+            font-size: 14px;
+        }
+        #unregTable td b {
+            font-weight: 700;
+            color: #2D468D;
+        }
+
         tr:hover { background: #fafbfc; }
         
         .badge-reg { background: #e6f7ed; color: #22C55E; }

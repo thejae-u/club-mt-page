@@ -115,6 +115,7 @@ window.cachedMembers = null;
 window.currentChecklist = [];
 window.currentCommonStatus = {};
 window.curType = 'student';
+window.pendingAction = null; 
 
 // ===== DASHBOARD & UI =====
 async function updateDashboard() {
@@ -434,13 +435,45 @@ function showToast(msg) {
 
 // ===== AUTH & MY PAGE =====
 async function doLogin() {
-  const name = document.getElementById('login-name').value; const gen = document.getElementById('login-gen').value; const password = document.getElementById('login-password').value;
+  const name = document.getElementById('login-name').value; 
+  const gen = document.getElementById('login-gen').value; 
+  const password = document.getElementById('login-password').value;
   if (!name || !gen || !password) return showToast('정보를 모두 입력해주세요.');
+  
   try {
-    const res = await fetch(`${API_BASE}/Participants/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name, generation: parseInt(gen), password }), credentials: 'include' });
-    if (res.ok) { const data = await res.json(); localStorage.setItem('participantName', data.name); window.editingPassword = password; showToast(`${data.name}님, 환영합니다!`); closeModal('login'); updateAuthUI(); openMyPage(); }
+    const res = await fetch(`${API_BASE}/Participants/login`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ name, generation: parseInt(gen), password }), 
+        credentials: 'include' 
+    });
+
+    if (res.ok) { 
+        const data = await res.json(); 
+        localStorage.setItem('participantName', data.name); 
+        window.editingPassword = password; 
+        showToast(`${data.name}님, 환영합니다!`); 
+        closeModal('login'); 
+        updateAuthUI(); 
+        
+        // Populate currentParticipant immediately after login
+        const meRes = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+        if (meRes.ok) {
+            window.currentParticipant = await meRes.json();
+        }
+
+        if (window.pendingAction) {
+            const action = window.pendingAction;
+            window.pendingAction = null;
+            action();
+        } else {
+            openMyPage(); 
+        }
+    }
     else showToast(`❌ 로그인 실패: ${await res.text()}`);
-  } catch (err) { showToast('서버 연결 오류가 발생했습니다.'); }
+  } catch (err) { 
+    showToast('서버 연결 오류가 발생했습니다.'); 
+  }
 }
 
 function updateAuthUI() {
@@ -648,7 +681,13 @@ async function cancelRegistration() {
 
 // ===== MANITTO =====
 async function openManittoModal() {
-  const name = localStorage.getItem('participantName'); if (!name) { await alert('마니또 확인은 신청 및 로그인 후에 이용 가능합니다. 🎁'); openModal('login'); return; }
+  const name = localStorage.getItem('participantName'); 
+  if (!name) { 
+      window.pendingAction = openManittoModal;
+      await alert('마니또 확인은 신청 및 로그인 후에 이용 가능합니다. 🎁'); 
+      openModal('login'); 
+      return; 
+  }
   try {
     const res = await fetch(`${API_BASE}/Manitto/me`, { credentials: 'include' }); 
     if (res.status === 401) {
@@ -689,7 +728,18 @@ async function loadReports() {
     } catch (e) { console.error(e); }
 }
 
+let lastReportTimestamp = 0;
+let isPostingReport = false;
+
 async function postReport() {
+    if (isPostingReport) return;
+
+    const now = Date.now();
+    if (now - lastReportTimestamp < 5000) {
+        showToast('제보는 연속으로 할 수 없습니다. 잠시만 기다려주세요.');
+        return;
+    }
+
     const name = localStorage.getItem('participantName');
     if (!name) {
         await alert('제보는 신청 및 로그인 후에 이용 가능합니다. 🕵️');
@@ -697,16 +747,52 @@ async function postReport() {
         return;
     }
 
-    const inp = document.getElementById('report-input'); const content = inp.value.trim(); if (!content) return;
+    const inp = document.getElementById('report-input'); 
+    const content = inp.value.trim(); 
+    if (!content) return;
+
+    const btn = document.querySelector('#manitto-report button');
+    const originalText = btn ? btn.textContent : '제보';
+
     try { 
-        const clientRequestId = Date.now().toString() + "-" + Math.random().toString(36).substring(2, 9); const res = await fetch(`${API_BASE}/Manitto/reports`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content, clientRequestId }), credentials: 'include' }); 
+        isPostingReport = true;
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = '...';
+        }
+
+        const clientRequestId = Date.now().toString() + "-" + Math.random().toString(36).substring(2, 9); 
+        const res = await fetch(`${API_BASE}/Manitto/reports`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify({ content, clientRequestId }), 
+            credentials: 'include' 
+        }); 
+
         if (res.status === 401) {
             await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
             logout();
             return;
         }
-        if (res.ok) { inp.value = ''; loadReports(); showToast('🚀 제보가 완료되었습니다!'); } else showToast('제보 실패'); 
-    } catch (e) { showToast('서버 오류'); }
+
+        if (res.ok) { 
+            inp.value = ''; 
+            lastReportTimestamp = Date.now();
+            await loadReports(); 
+            showToast('🚀 제보가 완료되었습니다!'); 
+        } else {
+            const errorText = await res.text();
+            showToast(`제보 실패: ${errorText}`); 
+        }
+    } catch (e) { 
+        showToast('서버 오류'); 
+    } finally {
+        isPostingReport = false;
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
 }
 
 // ===== SUBMIT FORM =====
@@ -856,7 +942,12 @@ async function updateLocationModal() {
 
 async function openCohortModal() {
   const name = localStorage.getItem('participantName');
-  if (!name) { await alert('동기/기수 확인은 신청 및 로그인 후에 이용 가능합니다. ✍️'); openModal('login'); return; }
+  if (!name) { 
+      window.pendingAction = openCohortModal;
+      await alert('동기/기수 확인은 신청 및 로그인 후에 이용 가능합니다. ✍️'); 
+      openModal('login'); 
+      return; 
+  }
   openModal('cohort'); updateCohortTable();
 }
 
@@ -1056,7 +1147,8 @@ function showMBTIResultByCode(code) {
 
 async function saveMBTIResult() {
   if (!window.currentParticipant) {
-    await alert('로그인 후 결과를 저장할 수 있습니다.');
+    window.pendingAction = saveMBTIResult;
+    await alert('로그인 후 결과를 저장할 수 있습니다. 🏐');
     openModal('login');
     return;
   }

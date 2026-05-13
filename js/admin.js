@@ -826,7 +826,7 @@ function renderTables() {
                 <td>${p.canDrive ? '✅ 가능' : '❌ 불가능'}</td>
                 <td>${p.drivingExperience || '-'}</td>
                 <td style="color: #E8392D;">${p.allergies || '-'}</td>
-                <td title="${p.remarks || ''}">${p.remarks ? (p.remarks.length > 15 ? p.remarks.substring(0, 15) + '...' : p.remarks) : '-'}</td>
+                <td title="${p.remarks || ''}">${p.remarks || '-'}</td>
                 <td style="font-size: 11px; color: #999;">${new Date(p.createdAt).toLocaleDateString()}</td>
             </tr>
         `).join('');
