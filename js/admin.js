@@ -16,6 +16,7 @@ function switchTab(tabId) {
     if (tabId === 'members') loadParticipants();
     if (tabId === 'settings') loadSettings();
     if (tabId === 'manitto') loadManittoTab();
+    if (tabId === 'cooking') loadCookingTab();
     if (tabId === 'board') loadBoard();
     if (tabId === 'modifications') loadModifications();
     if (tabId === 'accounts') loadAdmins();
@@ -676,6 +677,143 @@ async function matchManitto() {
     finally { if (loadingOverlay) loadingOverlay.style.display = 'none'; }
 }
 
+// --- COOKING BATTLE MANAGEMENT ---
+async function loadCookingTab() {
+    await fetchData(); // To get all participants
+    const apps = await loadCookingApplications();
+    await updateCookingUI();
+    
+    // Fill Chef Selects
+    const bSel = document.getElementById('blackChefId');
+    const wSel = document.getElementById('whiteChefId');
+    const options = apps.map(a => `<option value="${a.participantId}">${a.name} (${a.generation}기)</option>`).join('');
+    if (bSel && wSel) {
+        const noneOpt = '<option value="0">선택 안함</option>';
+        bSel.innerHTML = noneOpt + options;
+        wSel.innerHTML = noneOpt + options;
+    }
+
+    // Fill Excluded List
+    const exList = document.getElementById('cookingExcludedList');
+    if (exList) {
+        exList.innerHTML = participants.map(p => `
+            <label style="display:flex; align-items:center; gap:4px; font-size:11px; background:white; padding:4px 8px; border-radius:4px; border:1px solid #eee;">
+                <input type="checkbox" name="cookingExcluded" value="${p.id}"> ${p.name}
+            </label>
+        `).join('');
+    }
+}
+
+async function loadCookingApplications() {
+    const tbody = document.getElementById('cookingAppList');
+    if (!tbody) return [];
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/applications`, { credentials: 'include' });
+        if (res.status === 401) { logout(true); return []; }
+        const apps = await res.json();
+        
+        if (apps.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#999;">지원자가 없습니다.</td></tr>';
+            return [];
+        }
+
+        tbody.innerHTML = apps.map(a => `
+            <tr>
+                <td>${escapeHTML(a.name)} (${a.generation}기)</td>
+                <td style="font-size:12px;">${escapeHTML(a.experience || '')}</td>
+                <td style="font-size:12px;">${escapeHTML(a.signatureDish || '')}</td>
+                <td style="font-size:11px; color:#999;">${new Date(a.createdAt).toLocaleDateString()}</td>
+            </tr>
+        `).join('');
+        return apps;
+    } catch (e) { return []; }
+}
+
+async function updateCookingUI() {
+    try {
+        const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        if (res.ok) {
+            const s = await res.json();
+            window.currentSettings = s;
+            const btnShow = document.getElementById('btnShowCooking');
+            const btnHide = document.getElementById('btnHideCooking');
+            const btnStartVote = document.getElementById('btnStartCookingVote');
+            const btnStopVote = document.getElementById('btnStopCookingVote');
+
+            if (btnShow && btnHide) {
+                btnShow.style.opacity = s.isCookingBattlePublic ? '1' : '0.4';
+                btnHide.style.opacity = s.isCookingBattlePublic ? '0.4' : '1';
+            }
+            if (btnStartVote && btnStopVote) {
+                btnStartVote.style.opacity = s.isCookingBattleVotingActive ? '1' : '0.4';
+                btnStopVote.style.opacity = s.isCookingBattleVotingActive ? '0.4' : '1';
+            }
+        }
+    } catch (e) {}
+}
+
+async function setCookingVisibility(val) {
+    if (!window.currentSettings) return;
+    window.currentSettings.isCookingBattlePublic = val;
+    await saveSettings();
+    updateCookingUI();
+}
+
+async function setCookingVoteStatus(val) {
+    if (!window.currentSettings) return;
+    window.currentSettings.isCookingBattleVotingActive = val;
+    await saveSettings();
+    updateCookingUI();
+}
+
+async function assignCookingTeams() {
+    const blackChefId = parseInt(document.getElementById('blackChefId').value);
+    const whiteChefId = parseInt(document.getElementById('whiteChefId').value);
+    const excludedIds = Array.from(document.querySelectorAll('input[name="cookingExcluded"]:checked')).map(cb => parseInt(cb.value));
+
+    if (!await confirm('팀 배정을 진행하시겠습니까? 기존 배정 정보는 삭제됩니다.')) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/assign-teams`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ blackChefId, whiteChefId, excludedParticipantIds: excludedIds }),
+            credentials: 'include'
+        });
+        if (res.ok) {
+            await alert('✅ 팀 배정이 완료되었습니다.');
+        } else {
+            alert('배정 실패');
+        }
+    } catch (e) { alert('서버 오류'); }
+}
+
+async function resetCookingBattle() {
+    if (!await confirm('정말 요리 배틀 데이터를 초기화하시겠습니까? (배정, 응원, 투표, 한줄평 모두 삭제)')) return;
+    const password = await window.prompt('관리자 비밀번호를 입력해주세요:');
+    if (!password) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/reset`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
+            credentials: 'include' 
+        });
+        if (res.status === 401) {
+            await alert('비밀번호가 일치하지 않거나 권한이 없습니다.');
+            return;
+        }
+        if (res.ok) {
+            await alert('✅ 초기화 완료');
+            loadCookingTab();
+        } else {
+            await alert('초기화 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
 // --- FEE MANAGEMENT ---
 async function loadFees() {
     try {
@@ -982,6 +1120,7 @@ async function loadSettings() {
         const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
         if (!res.ok) return;
         const s = await res.json();
+        window.currentSettings = s;
         document.getElementById('title').value = s.title;
         document.getElementById('subtitle').value = s.subtitle;
         document.getElementById('eventDateRange').value = s.eventDateRange;
@@ -995,6 +1134,8 @@ async function loadSettings() {
         document.getElementById('maxMilitaryCapacity').value = s.maxMilitaryCapacity;
         const mmc = document.getElementById('manittoMissionCount');
         if (mmc) mmc.value = s.manittoMissionCount || 3;
+        const mc = document.getElementById('maxCheerPerPerson');
+        if (mc) mc.value = s.maxCheerPerPerson || 10;
 
         let commonItems = [];
         try { commonItems = JSON.parse(s.commonChecklistJson || "[]"); } catch(e) {}
@@ -1063,6 +1204,9 @@ async function saveSettings() {
         maxGeneralCapacity: parseInt(document.getElementById('maxGeneralCapacity').value),
         maxMilitaryCapacity: parseInt(document.getElementById('maxMilitaryCapacity').value),
         manittoMissionCount: parseInt(document.getElementById('manittoMissionCount')?.value || "3"),
+        isCookingBattlePublic: window.currentSettings?.isCookingBattlePublic || false,
+        isCookingBattleVotingActive: window.currentSettings?.isCookingBattleVotingActive || false,
+        maxCheerPerPerson: parseInt(document.getElementById('maxCheerPerPerson')?.value || "10"),
         commonChecklistJson: JSON.stringify(document.getElementById('commonChecklist').value.split('\n').map(l => l.trim()).filter(l => l !== "")),
         scheduleDataJson: JSON.stringify(currentSchedule)
     };
@@ -1349,6 +1493,10 @@ window.sortTable = sortTable;
 window.resetSettings = resetSettings;
 window.resetParticipants = resetParticipants;
 window.resetManitto = resetManitto;
+window.setCookingVisibility = setCookingVisibility;
+window.setCookingVoteStatus = setCookingVoteStatus;
+window.assignCookingTeams = assignCookingTeams;
+window.resetCookingBattle = resetCookingBattle;
 
 // --- DANGER ZONE ---
 async function resetSettings() {

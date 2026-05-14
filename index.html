@@ -115,6 +115,16 @@
         <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
       </div>
     </div>
+    <div class="card" style="cursor:pointer; padding:16px; grid-column: span 2;" onclick="openCookingBattleModal()">
+      <div class="cohort-card">
+        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">🍳</div>
+        <div class="cohort-text">
+          <h3 style="font-size:14px;">요리 배틀</h3>
+          <p style="font-size:11px;">셰프 지원 및 팀 확인</p>
+        </div>
+        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -151,6 +161,129 @@
 
 <!-- ====== MODALS ====== -->
 <div id="dynamicModals"></div>
+
+<!-- COOKING BATTLE MODAL -->
+<div class="modal-overlay" id="modal-cooking" onclick="closeBg(event,'cooking')">
+<div class="modal-sheet" style="max-height: 90vh;">
+  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cooking')">✕</button>
+  <div class="modal-title" style="text-align: center;">🍳 요리 배틀</div>
+
+  <!-- TOP ACTIONS -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px;">
+    <button class="btn-submit" onclick="openModal('cook-apply')" id="btnCookApply" style="background: var(--blue-deep); color: white; margin-top: 0; font-size: 14px;">👨‍🍳 오더 셰프 지원</button>
+    <button class="btn-submit" onclick="openMyTeamModal()" id="btnMyTeam" style="background: var(--bg3); color: var(--text2); margin-top: 0; font-size: 14px; opacity: 0.5;" disabled>🏃 나의 팀 확인하기</button>
+  </div>
+
+  <!-- NOTICES -->
+  <div style="background: var(--bg2); padding: 15px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border);">
+    <h4 style="font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 4px;">📢 요리 배틀 안내</h4>
+    <p style="font-size: 12px; color: var(--text3); line-height: 1.5;">흑팀 vs 백팀의 자존심 대결! 셰프의 지시에 따라 팀원들과 최고의 요리를 완성해 보세요.</p>
+  </div>
+
+  <!-- TEAMS (Always Visible) -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+    <!-- BLACK TEAM -->
+    <div class="card" style="padding: 12px; border: 2px solid #333;">
+      <div style="font-size: 12px; font-weight: 800; color: white; background: #333; display: inline-block; padding: 2px 8px; border-radius: 4px; margin-bottom: 12px;">흑팀</div>
+      <div id="black-chef-info" style="margin-bottom: 12px; min-height: 60px;">
+        <div style="font-size: 11px; color: #666;">오더 셰프</div>
+        <div id="black-chef-name" style="font-size: 15px; font-weight: 800;">-</div>
+        <div id="black-chef-desc" style="font-size: 11px; color: #999; margin-top: 4px; line-height: 1.4;">지원자 중 선발 예정</div>
+      </div>
+      <div style="display: flex; align-items: stretch; justify-content: center; gap: 12px;">
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+          <div class="heart-btn-wrap" id="btn-cheer-black" style="position: relative; width: 70px; height: 70px; cursor: not-allowed; opacity: 0.5; pointer-events: none;" onclick="cheerTeam('Black')">
+            <div style="position: absolute; width: 100%; height: 100%; font-size: 60px; line-height: 70px; text-align: center; color: #eee;">♥</div>
+            <div id="black-cheer-bar" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; overflow: hidden; transition: height 0.5s;">
+              <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 70px; font-size: 60px; line-height: 70px; text-align: center; color: #E5484D;">♥</div>
+            </div>
+          </div>
+          <div style="text-align: center; font-size: 12px; font-weight: 800; color: #333;">응원하기 <span id="black-percent">0</span>%</div>
+        </div>
+        <button class="btn-detail vote-btn" id="btn-vote-black" onclick="voteTeam('Black')" style="flex: 1; aspect-ratio: 1; font-size: 16px; font-weight: 800; background: #333; color: white; border: none; border-radius: 12px; opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; justify-content: center;" disabled>투표하기</button>
+      </div>
+      <div style="margin-top: 16px; border-top: 1px dashed #ccc; padding-top: 12px;">
+        <h4 style="font-size: 12px; font-weight: 800; margin-bottom: 8px;">💬 흑팀 한줄평</h4>
+        <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+          <input type="text" id="cook-comment-black" placeholder="팀 공개 후 작성 가능합니다." style="flex: 1; height: 30px; font-size: 11px; padding: 0 8px; margin-bottom: 0;" disabled>
+          <button id="btn-comment-black" onclick="postCookComment('Black')" style="width: 44px; height: 30px; background: #333; color: white; border-radius: 6px; border: none; font-size: 11px; font-weight: 800; opacity: 0.5; cursor: not-allowed;" disabled>등록</button>
+        </div>
+        <div id="cook-comment-list-black" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
+      </div>
+    </div>
+    <!-- WHITE TEAM -->
+    <div class="card" style="padding: 12px; border: 2px solid #ddd;">
+      <div style="font-size: 12px; font-weight: 800; color: #666; background: #f0f0f0; display: inline-block; padding: 2px 8px; border-radius: 4px; margin-bottom: 12px;">백팀</div>
+      <div id="white-chef-info" style="margin-bottom: 12px; min-height: 60px;">
+        <div style="font-size: 11px; color: #666;">오더 셰프</div>
+        <div id="white-chef-name" style="font-size: 15px; font-weight: 800;">-</div>
+        <div id="white-chef-desc" style="font-size: 11px; color: #999; margin-top: 4px; line-height: 1.4;">지원자 중 선발 예정</div>
+      </div>
+      <div style="display: flex; align-items: stretch; justify-content: center; gap: 12px;">
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+          <div class="heart-btn-wrap" id="btn-cheer-white" style="position: relative; width: 70px; height: 70px; cursor: not-allowed; opacity: 0.5; pointer-events: none;" onclick="cheerTeam('White')">
+            <div style="position: absolute; width: 100%; height: 100%; font-size: 60px; line-height: 70px; text-align: center; color: #eee;">♥</div>
+            <div id="white-cheer-bar" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; overflow: hidden; transition: height 0.5s;">
+              <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 70px; font-size: 60px; line-height: 70px; text-align: center; color: #E5484D;">♥</div>
+            </div>
+          </div>
+          <div style="text-align: center; font-size: 12px; font-weight: 800; color: #333;">응원하기 <span id="white-percent">0</span>%</div>
+        </div>
+        <button class="btn-detail vote-btn" id="btn-vote-white" onclick="voteTeam('White')" style="flex: 1; aspect-ratio: 1; font-size: 16px; font-weight: 800; background: #f0f0f0; color: #333; border: 1px solid #ddd; border-radius: 12px; opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; justify-content: center;" disabled>투표하기</button>
+      </div>
+      <div style="margin-top: 16px; border-top: 1px dashed #ccc; padding-top: 12px;">
+        <h4 style="font-size: 12px; font-weight: 800; margin-bottom: 8px;">💬 백팀 한줄평</h4>
+        <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+          <input type="text" id="cook-comment-white" placeholder="팀 공개 후 작성 가능합니다." style="flex: 1; height: 30px; font-size: 11px; padding: 0 8px; margin-bottom: 0;" disabled>
+          <button id="btn-comment-white" onclick="postCookComment('White')" style="width: 44px; height: 30px; background: #fff; color: #333; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; font-weight: 800; opacity: 0.5; cursor: not-allowed;" disabled>등록</button>
+        </div>
+        <div id="cook-comment-list-white" style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;"></div>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+</div>
+
+<!-- COOKING APPLY MODAL -->
+<div class="modal-overlay" id="modal-cook-apply" onclick="closeBg(event,'cook-apply')">
+<div class="modal-sheet">
+  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cook-apply')">✕</button>
+  <div class="modal-title">👨‍🍳 오더 셰프 지원</div>
+  <div id="cooking-apply-form">
+    <p style="font-size: 13px; color: var(--text3); line-height: 1.6; margin-bottom: 20px;">
+      팀원들을 이끌어 최고의 요리를 완성해 주실 분을 찾습니다!<br>지원 내용은 관리자만 볼 수 있습니다.
+    </p>
+    <div class="form-group"><label>경력 혹은 포부</label><input type="text" id="cook-exp" placeholder="예: 자취 5년차, 웍질 가능"></div>
+    <div class="form-group"><label>자신있는 요리</label><input type="text" id="cook-dish" placeholder="예: 김치찌개, 파스타"></div>
+    <button class="btn-submit" onclick="applyForChef()" style="background: var(--blue-deep); color: white; margin-top: 10px;">셰프 지원 완료하기</button>
+  </div>
+  <div id="cooking-apply-done" style="display: none; text-align: center; padding: 20px 0;">
+    <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+    <div style="font-size: 16px; font-weight: 800; color: var(--blue-deep); margin-bottom: 8px;">지원이 완료되었습니다!</div>
+    <p style="font-size: 13px; color: var(--text3);">관리자가 선발 후 팀 구성 시 공개됩니다.</p>
+    <button class="btn-submit" onclick="closeModal('cook-apply')" style="margin-top: 24px; background: var(--bg3); color: var(--text2);">닫기</button>
+  </div>
+</div>
+</div>
+
+<!-- MY TEAM MODAL -->
+<div class="modal-overlay" id="modal-cook-team" onclick="closeBg(event,'cook-team')">
+<div class="modal-sheet">
+  <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cook-team')">✕</button>
+  <div class="modal-title">🏃 나의 팀 정보</div>
+  <div class="card" style="text-align: center; padding: 32px 20px; background: var(--bg2); border: none;">
+    <div id="my-cooking-role-large" style="font-size: 18px; font-weight: 800; color: var(--text); line-height: 1.6;"></div>
+  </div>
+  <div style="background: #FFF9DB; padding: 15px; border-radius: 12px; margin-top: 20px; border: 1px solid #FFE066;">
+    <h4 style="font-size: 13px; font-weight: 800; color: #856404; margin-bottom: 4px;">📢 팀 구성 안내</h4>
+    <p style="font-size: 12px; color: #856404; line-height: 1.6;">아바타와 보조 셰프는 현장 상황에 따라 유동적으로 운영될 수 있습니다. 즐거운 대결 되세요!</p>
+  </div>
+  <button class="btn-submit" onclick="closeModal('cook-team')" style="margin-top: 24px;">확인</button>
+</div>
+</div>
 
 <!-- V-MBTI MODAL -->
 <div class="modal-overlay" id="modal-mbti" onclick="closeBg(event,'mbti')">

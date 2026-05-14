@@ -1270,11 +1270,251 @@ async function viewMBTIFromMyPage() {
   }
 }
 
+async function openCookingBattleModal() {
+  const name = localStorage.getItem('participantName'); 
+  if (!name) { 
+      window.pendingAction = openCookingBattleModal;
+      await alert('MT 참가 신청 후 이용 가능합니다'); 
+      openModal('login'); 
+      return; 
+  }
+  
+  openModal('cooking');
+  await refreshCookingStatus();
+  await refreshCookingComments();
+}
+
+async function refreshCookingStatus() {
+  try {
+    const res = await fetch(`${API_BASE}/CookingBattle/status`, { credentials: 'include' });
+    if (res.status === 401) return logout();
+    if (!res.ok) return;
+    const data = await res.json();
+
+    if (data.myApplication) {
+      document.getElementById('cooking-apply-form').style.display = 'none';
+      document.getElementById('cooking-apply-done').style.display = 'block';
+    }
+
+    // My Team Button
+    const btnMyTeam = document.getElementById('btnMyTeam');
+    if (btnMyTeam) {
+        const isAssigned = window.myCookingData.teamsAssigned;
+        btnMyTeam.disabled = !isAssigned;
+        btnMyTeam.style.opacity = isAssigned ? '1' : '0.5';
+        btnMyTeam.style.background = isAssigned ? 'var(--blue-deep)' : 'var(--bg3)';
+        btnMyTeam.style.color = isAssigned ? 'white' : 'var(--text2)';
+        btnMyTeam.style.cursor = isAssigned ? 'pointer' : 'not-allowed';
+    }
+
+    // Team Profiles
+    if (data.teams) {
+      data.teams.forEach(t => {
+        const prefix = t.team.toLowerCase();
+        const nameEl = document.getElementById(`${prefix}-chef-name`);
+        const descEl = document.getElementById(`${prefix}-chef-desc`);
+        if (t.chef) {
+          nameEl.textContent = `${t.chef.name} (${t.chef.generation}기)`;
+          descEl.textContent = t.chef.experience || '';
+        } else {
+          nameEl.textContent = '-';
+          descEl.textContent = '지원자 중 선발 예정';
+        }
+      });
+    }
+
+    // My Role Data (for modal)
+    window.myCookingData = { 
+        assignment: data.myAssignment, 
+        isPublic: data.isPublic,
+        teamsAssigned: data.teams && data.teams.some(t => t.chef)
+    };
+
+    // Stats
+    document.getElementById('black-percent').textContent = Math.round(data.cheerStats.blackPercent);
+    document.getElementById('white-percent').textContent = Math.round(data.cheerStats.whitePercent);
+    document.getElementById('black-cheer-bar').style.height = `${data.cheerStats.blackPercent}%`;
+    document.getElementById('white-cheer-bar').style.height = `${data.cheerStats.whitePercent}%`;
+
+    // Cheer Buttons and Comment Inputs
+    const canCheer = data.isPublic && data.teams && data.teams.some(t => t.chef);
+    document.querySelectorAll('.heart-btn-wrap').forEach(btn => {
+      btn.style.opacity = canCheer ? '1' : '0.5';
+      btn.style.cursor = canCheer ? 'pointer' : 'not-allowed';
+      btn.style.pointerEvents = canCheer ? 'auto' : 'none';
+    });
+
+    // Comment Inputs
+    ['black', 'white'].forEach(team => {
+      const input = document.getElementById(`cook-comment-${team}`);
+      const btn = document.getElementById(`btn-comment-${team}`);
+      if (input && btn) {
+        input.disabled = !canCheer;
+        input.placeholder = canCheer ? '한줄평 남기기...' : '팀 배정 후 작성 가능합니다.';
+        btn.disabled = !canCheer;
+        btn.style.opacity = canCheer ? '1' : '0.5';
+        btn.style.cursor = canCheer ? 'pointer' : 'not-allowed';
+      }
+    });
+
+    // Voting
+    document.querySelectorAll('.vote-btn').forEach(btn => {
+      btn.style.display = 'block';
+      btn.disabled = !data.isVotingActive;
+      btn.style.opacity = data.isVotingActive ? '1' : '0.5';
+      btn.style.cursor = data.isVotingActive ? 'pointer' : 'not-allowed';
+    });
+  } catch (e) { console.error(e); }
+}
+
+async function openMyTeamModal() {
+  if (!window.myCookingData || !window.myCookingData.isPublic) return;
+  
+  const roleEl = document.getElementById('my-cooking-role-large');
+  const name = localStorage.getItem('participantName');
+
+  if (!window.myCookingData.teamsAssigned) {
+      roleEl.innerHTML = `${name}님은<br><span style="color:var(--text3); font-size:24px;">팀 배정 대기 중</span>입니다.`;
+  } else if (window.myCookingData.assignment && window.myCookingData.assignment.role !== 0) {
+    const teamStr = window.myCookingData.assignment.team === 1 ? '흑팀' : window.myCookingData.assignment.team === 2 ? '백팀' : '';
+    let roleStr = '';
+    switch(window.myCookingData.assignment.role) {
+        case 1: roleStr = '오더 셰프'; break;
+        case 2: roleStr = '아바타'; break;
+        case 3: roleStr = '보조 셰프'; break;
+        case 4: roleStr = '관객'; break;
+        default: roleStr = '팀 배정 대기 중'; break;
+    }
+    if (window.myCookingData.assignment.role === 4) {
+        roleEl.innerHTML = `${name}님은<br><span style="color:var(--text3); font-size:24px;">관객</span>입니다.`;
+    } else {
+        roleEl.innerHTML = `${name}님은<br><span style="color:var(--blue); font-size:24px;">${teamStr} ${roleStr}</span>입니다!`;
+    }
+  } else {
+    // Teams are assigned, but this user has no assignment or Role=0 (None)
+    roleEl.innerHTML = `${name}님은<br><span style="color:var(--text3); font-size:24px;">관객</span>입니다.`;
+  }
+
+  openModal('cook-team');
+}
+
+async function applyForChef() {
+  const exp = document.getElementById('cook-exp').value.trim();
+  const dish = document.getElementById('cook-dish').value.trim();
+  if (!exp || !dish) return alert('포부와 자신있는 요리를 입력해주세요.');
+
+  try {
+    const res = await fetch(`${API_BASE}/CookingBattle/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ experience: exp, signatureDish: dish }),
+      credentials: 'include'
+    });
+    if (res.ok) {
+      showToast('✅ 셰프 지원 완료!');
+      refreshCookingStatus();
+    } else {
+      const msg = await res.text();
+      alert(msg || '지원 실패');
+    }
+  } catch (e) { alert('서버 오류'); }
+}
+
+async function cheerTeam(team) {
+  try {
+    const res = await fetch(`${API_BASE}/CookingBattle/cheer/${team}`, { method: 'POST', credentials: 'include' });
+    if (res.ok) {
+      showToast('❤️ 응원이 전달되었습니다!');
+      refreshCookingStatus();
+    } else if (res.status === 429) {
+      alert('응원하기 횟수가 소진되었습니다.');
+    } else {
+      let msg = '응원 실패';
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        msg = data.message || msg;
+      } catch {
+        msg = text || msg;
+      }
+      alert(msg);
+    }
+  } catch (e) { alert('서버 오류'); }
+}
+
+async function voteTeam(team) {
+  if (!await confirm(`${team === 'Black' ? '흑팀' : '백팀'}에 투표하시겠습니까? 한번 투표하면 변경할 수 없습니다.`)) return;
+  try {
+    const res = await fetch(`${API_BASE}/CookingBattle/vote/${team}`, { method: 'POST', credentials: 'include' });
+    if (res.ok) {
+      alert('🗳️ 투표가 완료되었습니다!');
+      refreshCookingStatus();
+    } else {
+      let msg = '투표 실패';
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        msg = data.message || msg;
+      } catch {
+        msg = text || msg;
+      }
+      alert(msg);
+    }
+  } catch (e) { alert('서버 오류'); }
+}
+
+async function refreshCookingComments() {
+  const fetchComments = async (team) => {
+    try {
+      const res = await fetch(`${API_BASE}/CookingBattle/comments/${team}`);
+      if (!res.ok) return;
+      const comments = await res.json();
+      const list = document.getElementById(`cook-comment-list-${team.toLowerCase()}`);
+      if (list) {
+        list.innerHTML = comments.map(c => `
+          <div style="font-size: 11px; padding: 6px 10px; background: ${team === 'Black' ? '#f4f4f4' : '#fafafa'}; border-radius: 6px; line-height: 1.4;">
+            ${escapeHTML(c.content)}
+          </div>
+        `).join('') || '<div style="text-align:center; color:#999; font-size:11px; padding:10px;">첫 한줄평을 남겨보세요!</div>';
+      }
+    } catch (e) {}
+  };
+
+  await fetchComments('Black');
+  await fetchComments('White');
+}
+
+async function postCookComment(team) {
+  const input = document.getElementById(`cook-comment-${team.toLowerCase()}`);
+  if (!input) return;
+  const content = input.value.trim();
+  if (!content) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/CookingBattle/comments/${team}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+      credentials: 'include'
+    });
+    if (res.ok) {
+      input.value = '';
+      refreshCookingComments();
+    }
+  } catch (e) {}
+}
+
 window.openMBTIModal = openMBTIModal;
 window.startMBTI = startMBTI;
 window.selectMBTIAnswer = selectMBTIAnswer;
 window.saveMBTIResult = saveMBTIResult;
 window.viewMBTIFromMyPage = viewMBTIFromMyPage;
+window.openCookingBattleModal = openCookingBattleModal;
+window.openMyTeamModal = openMyTeamModal;
+window.applyForChef = applyForChef;
+window.cheerTeam = cheerTeam;
+window.voteTeam = voteTeam;
+window.postCookComment = postCookComment;
 window.logout = logout; window.openMyPage = openMyPage; window.addChecklistItem = addChecklistItem; window.removeChecklistItem = removeChecklistItem; window.toggleCheck = toggleCheck; window.toggleCommonCheck = toggleCommonCheck; window.postReport = postReport; window.completeMission = completeMission; window.switchManittoTab = switchManittoTab; window.openManittoModal = openManittoModal; window.cancelRegistration = cancelRegistration;
 
 // Initialize

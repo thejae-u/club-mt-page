@@ -51,9 +51,81 @@
         <button class="tab-btn" onclick="switchTab('members')">👥 신청/명단 관리</button>
         <button class="tab-btn" onclick="switchTab('fees')">💳 회비 관리</button>
         <button class="tab-btn" onclick="switchTab('manitto')">🎁 마니또 관리</button>
+        <button class="tab-btn" onclick="switchTab('cooking')">🍳 요리 배틀 관리</button>
         <button class="tab-btn" onclick="switchTab('board')">📝 제보 관리</button>
         <button class="tab-btn" onclick="switchTab('modifications')">🛠️ 수정 요청</button>
         <button class="tab-btn" onclick="switchTab('accounts')">🔐 계정 관리</button>
+    </div>
+
+    <!-- TAB: COOKING BATTLE MANAGEMENT -->
+    <div id="tab-cooking" class="tab-content">
+        <div class="card">
+            <h1>🍳 요리 배틀 팀 배정 및 관리</h1>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">
+                오더 셰프를 지정하고 나머지 인원을 랜덤하게 배정합니다.<br>
+                <b>주의:</b> 배정 시 기존 팀 데이터가 초기화됩니다. (5명씩 2팀, 나머지 관객)
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div class="form-group">
+                    <label>⚫ 흑팀 오더 셰프 (ID)</label>
+                    <select id="blackChefId"></select>
+                </div>
+                <div class="form-group">
+                    <label>⚪ 백팀 오더 셰프 (ID)</label>
+                    <select id="whiteChefId"></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>🚫 랜덤 배정 제외 인원 (선택)</label>
+                <div id="cookingExcludedList" style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 100px; overflow-y: auto; background: #f8f9fa; padding: 10px; border-radius: 8px;">
+                    <!-- Checkboxes here -->
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="assignCookingTeams()" style="background: #E5484D; color:white; flex: 1.5;">🔥 팀 배정 실행</button>
+                <button onclick="resetCookingBattle()" style="background: #999; color:white; flex: 1;">♻️ 전체 초기화</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h1>🍳 요리 배틀 설정 및 공개</h1>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div class="form-group">
+                    <label>인당 응원 횟수 제한</label>
+                    <input type="number" id="maxCheerPerPerson" value="10" min="1">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <div style="display: flex; flex: 1; gap: 8px;">
+                    <button id="btnShowCooking" onclick="setCookingVisibility(true)" style="background: #2D468D; color:white; flex: 1;">📢 요리 배틀 공개</button>
+                    <button id="btnHideCooking" onclick="setCookingVisibility(false)" style="background: #999; color:white; flex: 1;">🔒 숨김</button>
+                </div>
+                <div style="display: flex; flex: 1; gap: 8px;">
+                    <button id="btnStartCookingVote" onclick="setCookingVoteStatus(true)" style="background: #E5484D; color:white; flex: 1;">🗳️ 투표 시작</button>
+                    <button id="btnStopCookingVote" onclick="setCookingVoteStatus(false)" style="background: #999; color:white; flex: 1;">⏹️ 투표 종료</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h1>👨‍🍳 오더 셰프 지원자 목록</h1>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>이름(기수)</th>
+                            <th>경력/포부</th>
+                            <th>자신있는 요리</th>
+                            <th>지원일</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cookingAppList"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <!-- TAB: BOARD MANAGEMENT -->
@@ -334,13 +406,12 @@
             <div style="display: flex; gap: 10px;">
                 <button onclick="matchManitto()" style="background: #E5484D; color:white; flex: 1.5;">🔥 마니또 랜덤 매칭 실행</button>
                 <div style="display: flex; flex: 2; gap: 8px;">
-                    <button id="btnShowManitto" onclick="setManittoVisibility(true)" style="background: #2D468D; color:white; flex: 1;">📢 공개</button>
-                    <button id="btnHideManitto" onclick="setManittoVisibility(false)" style="background: #999; color:white; flex: 1;">🔒 숨기기</button>
+                    <button id="btnShowManitto" onclick="setManittoVisibility(true)" style="background: #2D468D; color:white; flex: 1;">📢 공 개</button>
+                    <button id="btnHideManitto" onclick="setManittoVisibility(false)" style="background: #999; color:white; flex: 1;">🔒 숨기 기</button>
                 </div>
             </div>
-        </div>
 
-        <div class="card">
+            <div class="card">
             <h1>📜 마니또 미션 관리</h1>
             <div class="form-group">
                 <label>새로운 미션 추가 (한 줄에 하나씩)</label>
