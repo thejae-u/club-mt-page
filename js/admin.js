@@ -17,6 +17,8 @@ function switchTab(tabId) {
     if (tabId === 'settings') loadSettings();
     if (tabId === 'manitto') loadManittoTab();
     if (tabId === 'board') loadBoard();
+    if (tabId === 'modifications') loadModifications();
+    if (tabId === 'accounts') loadAdmins();
 }
 
 async function loadBoard() {
@@ -68,6 +70,184 @@ async function deleteReport(id) {
             loadBoard();
         } else {
             await alert('삭제 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+// --- MODIFICATION MANAGEMENT (TODO) ---
+async function loadModifications() {
+    const tbody = document.getElementById('modificationList');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Modification`, { credentials: 'include' });
+        if (res.status === 401) return logout(true);
+        if (!res.ok) throw new Error();
+
+        const tasks = await res.json();
+        if (tasks.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px; color: #999;">등록된 수정 요청이 없습니다.</td></tr>';
+            return;
+        }
+
+        const statusMap = {
+            'Pending': { label: '대기중', color: '#999' },
+            'InProgress': { label: '진행중', color: '#F5A623' },
+            'Completed': { label: '완료', color: '#22C55E' }
+        };
+
+        tbody.innerHTML = tasks.map(t => `
+            <tr>
+                <td>
+                    <select onchange="updateModificationStatus(${t.id}, this.value)" style="font-size:11px; padding:2px; border-radius:4px; border:1.5px solid ${statusMap[t.status]?.color || '#ddd'};">
+                        <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>⏳ 대기</option>
+                        <option value="InProgress" ${t.status === 'InProgress' ? 'selected' : ''}>⚙️ 진행</option>
+                        <option value="Completed" ${t.status === 'Completed' ? 'selected' : ''}>✅ 완료</option>
+                    </select>
+                </td>
+                <td style="text-align:left;">
+                    <div style="font-weight:700; font-size:14px; ${t.status === 'Completed' ? 'text-decoration:line-through; color:#999;' : ''}">${escapeHTML(t.title)}</div>
+                    <div style="font-size:12px; color:#666; margin-top:4px; white-space:pre-wrap;">${escapeHTML(t.description)}</div>
+                </td>
+                <td><span style="font-size:12px;">${escapeHTML(t.requestedBy)}</span></td>
+                <td><span style="font-size:11px; color:#999;">${new Date(t.createdAt).toLocaleDateString()}</span></td>
+                <td>
+                    <button onclick="deleteModification(${t.id})" style="padding:4px 8px; background:#ff4d4d; color:white; font-size:11px; margin:0; width:auto;">삭제</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        console.error(e);
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">데이터 로드 실패</td></tr>';
+    }
+}
+
+async function addModification() {
+    const title = document.getElementById('mod-title').value;
+    const description = document.getElementById('mod-desc').value;
+
+    if (!title.trim()) return await alert('제목을 입력해주세요.');
+
+    try {
+        const res = await fetch(`${API_BASE}/Modification`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, description }),
+            credentials: 'include'
+        });
+
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            document.getElementById('mod-title').value = '';
+            document.getElementById('mod-desc').value = '';
+            loadModifications();
+        } else {
+            await alert('등록 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+async function updateModificationStatus(id, status) {
+    try {
+        const res = await fetch(`${API_BASE}/Modification/${id}/status`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(status),
+            credentials: 'include'
+        });
+
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            loadModifications();
+        } else {
+            await alert('상태 변경 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+async function deleteModification(id) {
+    if (!await confirm('이 요청을 삭제하시겠습니까?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/Modification/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            loadModifications();
+        } else {
+            await alert('삭제 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+// --- ADMIN ACCOUNT MANAGEMENT ---
+async function loadAdmins() {
+    const tbody = document.getElementById('adminAccountList');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/admins`, { credentials: 'include' });
+        if (res.status === 401) return logout(true);
+        if (!res.ok) throw new Error();
+
+        const admins = await res.json();
+        tbody.innerHTML = admins.map(a => `
+            <tr>
+                <td>${a.id}</td>
+                <td style="text-align:left;"><b>${escapeHTML(a.username)}</b></td>
+                <td><span style="font-size:12px; color:#999;">${new Date(a.createdAt).toLocaleDateString()}</span></td>
+                <td>
+                    <button onclick="deleteAdminAccount(${a.id}, '${a.username}')" style="padding:4px 8px; background:#ff4d4d; color:white; font-size:11px; margin:0; width:auto;">삭제</button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:red;">데이터 로드 실패</td></tr>';
+    }
+}
+
+async function addAdminAccount() {
+    const username = document.getElementById('new-admin-username').value;
+    const password = document.getElementById('new-admin-password').value;
+
+    if (!username || !password) return await alert('아이디와 비밀번호를 모두 입력해주세요.');
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/admins`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password }),
+            credentials: 'include'
+        });
+
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            await alert('✅ 새로운 관리자 계정이 생성되었습니다.');
+            document.getElementById('new-admin-username').value = '';
+            document.getElementById('new-admin-password').value = '';
+            loadAdmins();
+        } else {
+            const err = await res.text();
+            await alert(`❌ 생성 실패: ${err}`);
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+async function deleteAdminAccount(id, username) {
+    if (!await confirm(`정말 '${username}' 관리자 계정을 삭제하시겠습니까?`)) return;
+    try {
+        const res = await fetch(`${API_BASE}/Management/admins/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            await alert('✅ 삭제되었습니다.');
+            loadAdmins();
+        } else {
+            const err = await res.text();
+            await alert(`❌ 삭제 실패: ${err}`);
         }
     } catch (e) { await alert('서버 오류'); }
 }
@@ -747,6 +927,77 @@ async function saveSettings() {
     } catch (e) { await alert('저장 중 연결 오류가 발생했습니다.'); }
 }
 
+async function exportSettings() {
+    try {
+        const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        if (!res.ok) {
+            if (res.status === 401) return logout(true);
+            throw new Error();
+        }
+        
+        const settings = await res.json();
+        
+        // Remove DB-specific fields if necessary, or keep them for full backup
+        delete settings.id; 
+        
+        const dataStr = JSON.stringify(settings, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        const date = new Date().toISOString().split('T')[0];
+        link.href = url;
+        link.download = `clubmt_settings_backup_${date}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        await alert('설정 내보내기 실패');
+    }
+}
+
+async function importSettings(input) {
+    if (!input.files || !input.files[0]) return;
+    
+    if (!await confirm('파일의 설정 내용으로 현재 설정을 덮어씌우시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+        input.value = '';
+        return;
+    }
+
+    const file = input.files[0];
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+        try {
+            const settings = JSON.parse(e.target.result);
+            
+            const res = await fetch(`${API_BASE}/Settings`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings),
+                credentials: 'include'
+            });
+
+            if (res.status === 401) return logout(true);
+            
+            if (res.ok) {
+                await alert('✅ 설정을 성공적으로 불러왔습니다.');
+                loadSettings(); // UI 갱신
+            } else {
+                const msg = await res.text();
+                await alert(`❌ 불러오기 실패: ${msg || '형식이 올바르지 않습니다.'}`);
+            }
+        } catch (err) {
+            await alert('❌ JSON 파일 파싱 실패: 파일 형식을 확인해주세요.');
+        } finally {
+            input.value = '';
+        }
+    };
+    
+    reader.readAsText(file);
+}
+
 // --- ADMIN DETAIL FUNCTIONS ---
 function formatPhone(num) {
     if (!num) return '-';
@@ -916,6 +1167,8 @@ window.saveParticipantEdit = saveParticipantEdit;
 window.resetPassword = resetPassword;
 window.uploadCsv = uploadCsv;
 window.saveSettings = saveSettings;
+window.exportSettings = exportSettings;
+window.importSettings = importSettings;
 window.addDay = addDay;
 window.removeDay = removeDay;
 window.addMissions = addMissions;
@@ -923,6 +1176,11 @@ window.deleteMission = deleteMission;
 window.matchManitto = matchManitto;
 window.updateManittoAssignmentLocal = updateManittoAssignmentLocal;
 window.saveSingleAssignment = saveSingleAssignment;
+window.addModification = addModification;
+window.deleteModification = deleteModification;
+window.updateModificationStatus = updateModificationStatus;
+window.addAdminAccount = addAdminAccount;
+window.deleteAdminAccount = deleteAdminAccount;
 window.addTimeline = addTimeline;
 window.removeTimeline = removeTimeline;
 window.updateDay = updateDay;

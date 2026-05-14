@@ -52,6 +52,8 @@
         <button class="tab-btn" onclick="switchTab('fees')">💳 회비 관리</button>
         <button class="tab-btn" onclick="switchTab('manitto')">🎁 마니또 관리</button>
         <button class="tab-btn" onclick="switchTab('board')">📝 제보 관리</button>
+        <button class="tab-btn" onclick="switchTab('modifications')">🛠️ 수정 요청</button>
+        <button class="tab-btn" onclick="switchTab('accounts')">🔐 계정 관리</button>
     </div>
 
     <!-- TAB: BOARD MANAGEMENT -->
@@ -71,6 +73,75 @@
                         </tr>
                     </thead>
                     <tbody id="boardList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: MODIFICATION MANAGEMENT -->
+    <div id="tab-modifications" class="tab-content">
+        <div class="card">
+            <h1>🛠️ 수정 요청 게시판 (Todo)</h1>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">페이지 수정이나 기능 개선 요청 사항을 적는 게시판입니다.</p>
+            
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1.5px dashed #ddd;">
+                <h3 style="margin-top: 0; font-size: 14px; margin-bottom: 10px;">🆕 새로운 요청 추가</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <input type="text" id="mod-title" placeholder="수정 항목 제목 (예: 메인 이미지 변경)">
+                    <textarea id="mod-desc" placeholder="상세 내용 (예: 메인 페이지 로고를 작년 것으로 교체해주세요)" style="height: 60px;"></textarea>
+                    <button onclick="addModification()" style="background: #2D468D; color:white; margin:0; padding: 10px;">요청 등록하기</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">상태</th>
+                            <th>요청 내용</th>
+                            <th style="width: 100px;">요청자</th>
+                            <th style="width: 120px;">등록일</th>
+                            <th style="width: 100px;">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modificationList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: ACCOUNT MANAGEMENT -->
+    <div id="tab-accounts" class="tab-content">
+        <div class="card">
+            <h1>🔐 관리자 계정 관리</h1>
+            <p style="font-size: 12px; color: #666; margin-bottom: 20px;">시스템에 접근할 수 있는 관리자 계정을 추가하거나 삭제합니다.</p>
+            
+            <div style="background: #f4f6fb; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e0e4ef;">
+                <h3 style="margin-top: 0; font-size: 14px; margin-bottom: 10px;">🆕 새로운 관리자 추가</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:11px;">아이디</label>
+                        <input type="text" id="new-admin-username" placeholder="아이디">
+                    </div>
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label style="font-size:11px;">비밀번호</label>
+                        <input type="password" id="new-admin-password" placeholder="비밀번호">
+                    </div>
+                    <button onclick="addAdminAccount()" style="background: #2D468D; color:white; margin:0; padding: 10px 20px;">추가하기</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">ID</th>
+                            <th>아이디(Username)</th>
+                            <th style="width: 150px;">생성일</th>
+                            <th style="width: 80px;">작업</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminAccountList"></tbody>
                 </table>
             </div>
         </div>
@@ -143,7 +214,12 @@
                     <textarea id="scheduleDataJson" style="height: 100px; font-family: monospace; font-size: 11px; margin-top: 5px;"></textarea>
                 </details>
             </div>
-            <button onclick="saveSettings()">설정 저장하기</button>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button onclick="saveSettings()" style="flex: 2;">설정 저장하기</button>
+                <button onclick="exportSettings()" style="background: #5B9E78; color: white; flex: 1;">📥 설정 내보내기</button>
+                <button onclick="document.getElementById('importFile').click()" style="background: #2D468D; color: white; flex: 1;">📤 설정 불러오기</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importSettings(this)">
+            </div>
         </div>
 
         <div class="card" style="margin-top: 24px; border: 2px solid #E5484D; background: #FFF5F5;">
