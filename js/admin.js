@@ -264,9 +264,16 @@ async function checkAuth() {
     try {
         const res = await fetch(`${API_BASE}/Auth/status`, { credentials: 'include' });
         if (res.ok) {
+            const data = await res.json();
             if (loginOverlay) loginOverlay.style.display = 'none';
             if (adminContent) adminContent.style.visibility = 'visible';
             
+            // Show/Hide Account Management tab based on username
+            const accountTabBtn = document.querySelector('.tab-btn[onclick*="switchTab(\'accounts\')"]');
+            if (accountTabBtn) {
+                accountTabBtn.style.display = (data.username === 'admin') ? 'inline-block' : 'none';
+            }
+
             if (document.getElementById('tab-settings')) loadSettings();
             if (window.fetchData) fetchData(); // For admin-detail
         } else {
