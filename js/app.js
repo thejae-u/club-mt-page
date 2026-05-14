@@ -23,13 +23,6 @@ const SURVEY_CONFIG = [
     options: ["0번 (처음이에요!)", "1번", "2번", "3번", "4번"],
     showFor: ['student', 'grad', 'leave', 'army', 'etc']
   },
-  { 
-    id: "memory", 
-    label: "기억에 남는 MT 또는 기대되는 점", 
-    type: "textarea", 
-    placeholder: "자유롭게 남겨주세요 😊",
-    showFor: ['student', 'grad', 'leave', 'army', 'etc']
-  },
   {
     id: "schedule",
     label: "참가 일정",
@@ -46,7 +39,7 @@ const SURVEY_CONFIG = [
     carpoolLabel: "🚗 자차 이용 시 — 다른 인원을 태워주실 수 있나요?",
     carpoolOptions: ["태워줄 수 있어요 😊", "나 혼자만 이동해요"],
     carpoolPlaceholder: "본인 포함 가능 인원 *",
-    publicNote: "<strong>🚌 대중교통 / 뚜벅이</strong> — 버스, 지하철, 도보 등 모두 포함이에요. 자차 카풀이 필요하면 운영진에게 말씀해주세요!",
+    publicNote: "<strong>🚌 대중교통 / 뚜벅이</strong> — 버스, 지하철, 도보 등 모두 포함이에요.",
     showFor: ['student', 'grad', 'leave', 'army', 'etc']
   },
   {
@@ -216,10 +209,17 @@ function renderStatusModal(data, s) {
       </div>
     `;
 
+    // Find minimum count among cohorts to show "Cheer up!" label
+    const countsOnly = [];
+    for (let i = 1; i <= 7; i++) countsOnly.push(data.cohortCounts[i] || 0);
+    const minCount = Math.min(...countsOnly);
+
     for (let i = 1; i <= 7; i++) {
       const count = data.cohortCounts[i] || 0;
       const cPct = Math.min(100, Math.round((count / 4) * 100)); // Still base 4 for individual cohorts? Or dynamic?
       const color = thermoColor(cPct);
+      const isLowest = count === minCount;
+      
       thermoHtml += `
         <div class="cohort-thermo-row" style="margin-bottom: 8px;">
           <div class="cohort-thermo-label" style="min-width: 45px;">${i}기</div>
@@ -228,6 +228,7 @@ function renderStatusModal(data, s) {
           </div>
           <div class="cohort-thermo-num" style="min-width: 45px; display:flex; align-items:center; gap:8px;">
             ${count}명
+            ${isLowest ? '<span style="font-size:10px; color:#E5484D; font-weight:800; white-space:nowrap; background:#FFF0F0; padding:2px 6px; border-radius:4px; border:1px solid rgba(229,72,77,0.2);">분발하세요!</span>' : ''}
           </div>
         </div>
       `;
@@ -289,8 +290,14 @@ function renderExpectations(expectations) {
     const allExp = []; for (let i = 0; i < repeatCount; i++) allExp.push(...expectations);
     marqueeTrack.innerHTML = allExp.map(e => `<div class="exp-chip">${e.text}<div class="exp-author">— ${e.author}</div></div>`).join('');
     marqueeTrack.style.animation = 'none'; marqueeTrack.offsetHeight; 
-    marqueeTrack.style.animation = `marquee ${expectations.length < 3 ? '40s' : '32s'} linear infinite`;
-    marqueeTrack.style.setProperty('--marquee-end', `-${100 / repeatCount * (repeatCount / 2)}%`);
+    
+    // Maintain constant speed: Duration proportional to ACTUAL track length
+    const speedFactor = 10.0; // Seconds for one chip to pass
+    const moveCount = allExp.length / 2; // Moving half the track (50%)
+    const totalDuration = moveCount * speedFactor;
+    
+    marqueeTrack.style.animation = `marquee ${totalDuration}s linear infinite`;
+    marqueeTrack.style.setProperty('--marquee-end', `-50%`);
 }
 
 async function updateCohortTable() {
@@ -684,7 +691,7 @@ async function openManittoModal() {
   const name = localStorage.getItem('participantName'); 
   if (!name) { 
       window.pendingAction = openManittoModal;
-      await alert('마니또 확인은 신청 및 로그인 후에 이용 가능합니다. 🎁'); 
+      await alert('MT 참가 신청 후 확인 가능합니다'); 
       openModal('login'); 
       return; 
   }
@@ -696,12 +703,43 @@ async function openManittoModal() {
         return;
     }
     if (!res.ok) { showToast('신청 데이터가 없거나 로드에 실패했습니다.'); return; }
-    const data = await res.json(); if (data.message) { await alert(data.message); return; }
-    document.getElementById('manitto-target-name').textContent = data.targetName; document.getElementById('manitto-target-gen').textContent = `${data.targetGeneration}기`;
-    document.getElementById('manitto-mission-desc').textContent = data.missionDescription;
-    const btnC = document.getElementById('btnCompleteMission'); const bC = document.getElementById('mission-complete-badge');
-    if (data.isComplete) { if (btnC) btnC.style.display = 'none'; if (bC) bC.style.display = 'block'; }
-    else { if (btnC) btnC.style.display = 'block'; if (bC) bC.style.display = 'none'; }
+    const data = await res.json(); 
+    if (data.message) { await alert(data.message); return; }
+    
+    document.getElementById('manitto-target-name').textContent = data.targetName; 
+    document.getElementById('manitto-target-gen').textContent = `${data.targetGeneration}기`;
+    
+    const missionContainer = document.getElementById('manitto-mission-container');
+    if (missionContainer) {
+        if (data.missions && data.missions.length > 0) {
+            missionContainer.innerHTML = data.missions.map(m => `
+                <div class="mission-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#f8f9fa; border-radius:12px; margin-bottom:8px; border:1px solid ${m.isComplete ? '#22C55E' : '#eee'};">
+                    <div style="flex:1; font-size:14px; line-height:1.4; ${m.isComplete ? 'text-decoration:line-through; color:#999;' : ''}">
+                        ${escapeHTML(m.description)}
+                    </div>
+                    ${m.isComplete ? 
+                        '<span style="color:#22C55E; font-weight:800; font-size:12px; margin-left:10px;">✅ 완료</span>' : 
+                        `<button onclick="completeMission(${m.missionId})" style="width:auto; padding:6px 12px; background:var(--blue-deep); color:white; font-size:12px; margin:0 0 0 10px; border-radius:8px;">완료하기</button>`
+                    }
+                </div>
+            `).join('');
+        } else {
+            missionContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#999;">배정된 미션이 없습니다.</div>';
+        }
+    } else {
+        // Fallback for old HTML structure
+        document.getElementById('manitto-mission-desc').textContent = data.missions && data.missions.length > 0 ? data.missions[0].description : "미션 없음";
+        const btnC = document.getElementById('btnCompleteMission'); 
+        const bC = document.getElementById('mission-complete-badge');
+        if (data.missions && data.missions.length > 0 && data.missions[0].isComplete) { 
+            if (btnC) btnC.style.display = 'none'; 
+            if (bC) bC.style.display = 'block'; 
+        } else { 
+            if (btnC) btnC.style.display = 'block'; 
+            if (bC) bC.style.display = 'none'; 
+        }
+    }
+    
     openModal('manitto'); switchManittoTab('target');
   } catch (err) { console.error(err); showToast('데이터를 불러오지 못했습니다.'); }
 }
@@ -713,9 +751,17 @@ function switchManittoTab(tabId) {
     if (tabId === 'report') loadReports();
 }
 
-async function completeMission() {
+async function completeMission(missionId) {
+    // If missionId is not provided (legacy call), we might need to handle it
+    const id = missionId || 0; 
     if (!await confirm('미션을 완료하셨습니까?\n한 번 완료하면 취소할 수 없습니다.')) return;
-    try { const res = await fetch(`${API_BASE}/Manitto/me/complete-mission`, { method: 'POST', credentials: 'include' }); if (res.ok) { showToast('✅ 미션 완료! 고생하셨습니다.'); document.getElementById('btnCompleteMission').style.display = 'none'; document.getElementById('mission-complete-badge').style.display = 'block'; } else showToast('완료 처리 실패'); } catch (e) { showToast('서버 연결 오류'); }
+    try { 
+        const res = await fetch(`${API_BASE}/Manitto/me/complete-mission/${id}`, { method: 'POST', credentials: 'include' }); 
+        if (res.ok) { 
+            showToast('✅ 미션 완료! 고생하셨습니다.'); 
+            openManittoModal(); // Refresh UI
+        } else showToast('완료 처리 실패'); 
+    } catch (e) { showToast('서버 연결 오류'); }
 }
 
 async function loadReports() {
@@ -797,20 +843,46 @@ async function postReport() {
 
 // ===== SUBMIT FORM =====
 async function submitApplication(formId) {
-  const name = document.getElementById('nameUnified')?.value;
+  const name = document.getElementById('nameUnified')?.value.trim();
   const generation = parseInt(document.getElementById('genUnified')?.value) || 0;
-  const phoneNumber = document.getElementById('telUnified')?.value || "";
-  if (!name) return showToast('이름을 입력해주세요.'); if (!generation) return showToast('기수를 선택해주세요.'); if (!phoneNumber) return showToast('연락처를 입력해주세요.');
+  const phoneNumber = document.getElementById('telUnified')?.value.trim();
+  
+  if (!name) return showToast('이름을 입력해주세요.');
+  if (!generation) return showToast('기수를 선택해주세요.');
+  if (!phoneNumber) return showToast('연락처를 입력해주세요.');
+  if (phoneNumber.length < 10) return showToast('올바른 연락처 형식이 아닙니다. (숫자만 입력)');
 
   const surveyData = getSurveyData('unified');
-  const isStdIdRequired = (window.curType === 'student' || window.curType === 'leave' || window.curType === 'army');
-  if (isStdIdRequired && !surveyData.stdId) return showToast('학번을 입력해주세요.');
+  
+  // Dynamic validation based on SURVEY_CONFIG
+  for (const q of SURVEY_CONFIG) {
+    if (q.showFor.includes(window.curType) && q.required) {
+        const val = surveyData[q.id];
+        if (!val || val.toString().trim() === '') {
+            return showToast(`${q.label} 필드를 입력/선택해주세요.`);
+        }
+    }
+  }
+
+  // Special validation for Carpool
+  if (surveyData.transportation === 'Car') {
+      if (!surveyData.carpoolAvailable) return showToast('동승 가능 여부를 선택해주세요.');
+      if (surveyData.carpoolAvailable === 'yes' && !surveyData.carpoolSeats) {
+          return showToast('카풀 가능 인원을 입력해주세요.');
+      }
+  }
+
+  // Special validation for License
+  if (surveyData.hasDriverLicense) {
+      if (!surveyData.licenseType) return showToast('면허 종류를 선택해주세요.');
+      if (!surveyData.canDrive) return showToast('실제 운전 가능 여부를 선택해주세요.');
+  }
 
   const passwordInp = document.getElementById('pwUnified');
   let finalPassword = passwordInp ? passwordInp.value : "";
   
-  if (!window.editingParticipantId && !finalPassword) {
-      return showToast('비밀번호를 입력해주세요.');
+  if (!window.editingParticipantId && (!finalPassword || finalPassword.length < 4)) {
+      return showToast('비밀번호를 4자리 이상 입력해주세요.');
   }
 
   let currentPassword = "";
@@ -944,7 +1016,7 @@ async function openCohortModal() {
   const name = localStorage.getItem('participantName');
   if (!name) { 
       window.pendingAction = openCohortModal;
-      await alert('동기/기수 확인은 신청 및 로그인 후에 이용 가능합니다. ✍️'); 
+      await alert('MT 참가 신청 후 확인 가능합니다'); 
       openModal('login'); 
       return; 
   }

@@ -61,7 +61,59 @@ td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #f0f0f0; fon
 
 .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
 .badge-income { background: #E6F2EC; color: #3D7A5A; }
-.badge-expense { background: #FFF0F0; color: #E5484D; }
+/* CUSTOM CHECKBOX STYLING */
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--blue);
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+input[type="checkbox"]:checked {
+    background: var(--blue);
+}
+input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 14px;
+    font-weight: 800;
+}
+input[type="checkbox"]:focus {
+    box-shadow: 0 0 0 3px rgba(118, 174, 217, 0.2);
+}
+
+.mission-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    gap: 12px;
+}
+.mission-item:last-child {
+    border-bottom: none;
+}
+.mission-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+.mission-text {
+    font-size: 13px;
+    line-height: 1.5;
+    word-break: break-all;
+}
 
 @media (max-width: 600px) {
     body { padding: 10px; }

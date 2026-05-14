@@ -230,6 +230,7 @@
             <div style="display: flex; gap: 12px; flex-direction: column;">
                 <button onclick="resetSettings()" style="background: #E5484D; color: white;">설정 초기화 (기본값 복구)</button>
                 <button onclick="resetParticipants()" style="background: #E5484D; color: white;">모든 참가 정보 및 마니또 기록 삭제</button>
+                <button onclick="resetManitto()" style="background: #E5484D; color: white;">마니또 배정 정보만 초기화</button>
             </div>
         </div>
     </div>
@@ -321,12 +322,22 @@
     <!-- TAB 4: MANITTO -->
     <div id="tab-manitto" class="tab-content">
         <div class="card">
-            <h1>🎁 마니또 매칭 (Manitto Matching)</h1>
+            <h1>🎁 마니또 매칭 및 공개 (Manitto)</h1>
             <p style="font-size: 12px; color: #666; margin-bottom: 15px;">
                 MT 신청자 전체(대기자 포함)를 대상으로 마니또를 랜덤 매칭합니다.<br>
                 <b>주의:</b> 매칭을 실행하면 기존의 모든 매칭 데이터가 초기화되고 새로 생성됩니다.
             </p>
-            <button onclick="matchManitto()" style="background: #E5484D; color:white;">🔥 마니또 랜덤 매칭 실행</button>
+            <div class="form-group" style="margin-bottom: 15px; max-width: 200px;">
+                <label>인당 미션 부여 개수</label>
+                <input type="number" id="manittoMissionCount" value="3" min="1" max="10">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="matchManitto()" style="background: #E5484D; color:white; flex: 1.5;">🔥 마니또 랜덤 매칭 실행</button>
+                <div style="display: flex; flex: 2; gap: 8px;">
+                    <button id="btnShowManitto" onclick="setManittoVisibility(true)" style="background: #2D468D; color:white; flex: 1;">📢 공개</button>
+                    <button id="btnHideManitto" onclick="setManittoVisibility(false)" style="background: #999; color:white; flex: 1;">🔒 숨기기</button>
+                </div>
+            </div>
         </div>
 
         <div class="card">
@@ -338,7 +349,15 @@
             <button onclick="addMissions()" style="background: #5B9E78; color:white;">+ 미션 목록 등록하기</button>
             
             <div style="margin-top: 25px;">
-                <h3 style="font-size: 14px; margin-bottom: 10px;">현재 등록된 미션 목록</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="font-size: 14px; margin: 0;">현재 등록된 미션 목록</h3>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <label style="font-size: 11px; color: #666; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                            <input type="checkbox" id="selectAllMissions" onclick="toggleSelectAllMissions(this.checked)"> 전체 선택
+                        </label>
+                        <button onclick="deleteSelectedMissions()" style="width:auto; padding:5px 10px; background:#ff4d4d; color:white; font-size:11px; margin:0;">선택 삭제</button>
+                    </div>
+                </div>
                 <div id="missionListContainer" style="background: #f8f9fa; padding: 15px; border-radius: 12px; font-size: 13px; line-height: 1.6; max-height: 200px; overflow-y: auto;">
                     데이터를 불러오는 중...
                 </div>
@@ -353,9 +372,7 @@
                         <tr>
                             <th>작성자 (기수)</th>
                             <th>대상 (마니또)</th>
-                            <th>부여된 미션</th>
-                            <th>상태</th>
-                            <th style="text-align: center;">관리</th>
+                            <th id="manitto-mission-header">부여된 미션</th>
                         </tr>
                     </thead>
                     <tbody id="manittoAssignmentList"></tbody>

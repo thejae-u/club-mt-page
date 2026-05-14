@@ -139,8 +139,8 @@
     <div style="display: flex; align-items: center; gap: 16px;">
       <div style="width: 50px; height: 50px; border-radius: 14px; background: white; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow-sm);">🏐</div>
       <div style="flex: 1;">
-        <h3 style="font-size: 16px; font-weight: 800; color: var(--blue-deep); margin-bottom: 4px;">나의 배구 포지션 찾기</h3>
-        <p style="font-size: 12px; color: var(--text3); line-height: 1.4;">질문을 통해 나의 배구 스타일과<br>MT 성향을 알아보세요!</p>
+        <h3 style="font-size: 16px; font-weight: 800; color: var(--blue-deep); margin-bottom: 4px;">나의 배구 MBTI 알아보기</h3>
+        <p style="font-size: 12px; color: var(--text3); line-height: 1.4;">질문을 통해 나의 배구 스타일을 알아보세요!</p>
       </div>
       <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--blue-deep); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px;">→</div>
     </div>
@@ -405,10 +405,10 @@
 
   <div id="manitto-mission" class="manitto-tab-content" style="display:none;">
     <div class="card" style="background:#F0F7FF; border:1.5px solid #8BA0CE;">
-      <div style="font-size:13px; color:#2D468D; font-weight:700; margin-bottom:8px;">🕵️ 비밀 미션</div>
-      <div id="manitto-mission-desc" style="font-size:16px; font-weight:700; line-height:1.5; margin-bottom:20px;">불러오는 중...</div>
-      <button id="btnCompleteMission" class="btn-submit" onclick="completeMission()" style="background:#2D468D; color:white;">완료 처리하기</button>
-      <div id="mission-complete-badge" style="display:none; text-align:center; color:#22C55E; font-weight:800;">✅ 미션 완료!</div>
+      <div style="font-size:13px; color:#2D468D; font-weight:700; margin-bottom:12px;">🕵️ 비밀 미션 (3개)</div>
+      <div id="manitto-mission-container">
+          <!-- Dynamic missions will be rendered here -->
+      </div>
     </div>
   </div>
 
@@ -442,7 +442,10 @@
   <div class="form-group"><label>이름</label><input type="text" id="login-name"></div>
   <div class="form-group"><label>기수</label><select id="login-gen"><option value="">선택</option><option value="1">1기</option><option value="2">2기</option><option value="3">3기</option><option value="4">4기</option><option value="5">5기</option><option value="6">6기</option><option value="7">7기</option></select></div>
   <div class="form-group"><label>비밀번호</label><input type="password" id="login-password"></div>
-  <button class="btn-submit" onclick="doLogin()">로그인</button>
+  <div style="display: flex; gap: 10px; margin-top: 10px;">
+    <button class="btn-submit" onclick="closeModal('login'); openModal('apply');" style="background: var(--bg3); color: var(--text2); flex: 1; margin-top: 0;">✍️ 참가신청</button>
+    <button class="btn-submit" onclick="doLogin()" style="flex: 1.5; margin-top: 0;">로그인</button>
+  </div>
 </div>
 </div>
 

@@ -96,30 +96,97 @@ async function loadModifications() {
             'Completed': { label: '완료', color: '#22C55E' }
         };
 
-        tbody.innerHTML = tasks.map(t => `
-            <tr>
-                <td>
+        tbody.innerHTML = tasks.map(t => {
+            const commentsHtml = (t.comments || []).map(c => `
+                <div style="font-size:11px; padding:6px 10px; background:#f0f2f5; border-radius:8px; margin-top:5px; display:flex; justify-content:space-between; align-items:flex-start; group/cmt;">
+                    <div style="flex:1;">
+                        <span style="font-weight:700; color:var(--blue-deep);">${escapeHTML(c.author)}:</span>
+                        <span style="color:#333;">${escapeHTML(c.content)}</span>
+                        <span style="font-size:9px; color:#999; margin-left:5px;">${new Date(c.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                    ${c.author === window.currentAdminUser ? `
+                        <button onclick="deleteModificationComment(${c.id}, ${t.id})" style="background:none; border:none; color:#E5484D; cursor:pointer; padding:0; margin:0 0 0 8px; font-size:10px; width:auto; box-shadow:none;">삭제</button>
+                    ` : ''}
+                </div>
+            `).join('');
+
+            return `
+            <tr style="border-bottom: 2px solid #eee;">
+                <td style="vertical-align: top; padding-top: 15px;">
                     <select onchange="updateModificationStatus(${t.id}, this.value)" style="font-size:11px; padding:2px; border-radius:4px; border:1.5px solid ${statusMap[t.status]?.color || '#ddd'};">
                         <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>⏳ 대기</option>
                         <option value="InProgress" ${t.status === 'InProgress' ? 'selected' : ''}>⚙️ 진행</option>
                         <option value="Completed" ${t.status === 'Completed' ? 'selected' : ''}>✅ 완료</option>
                     </select>
                 </td>
-                <td style="text-align:left;">
+                <td style="text-align:left; vertical-align: top; padding-bottom: 15px;">
                     <div style="font-weight:700; font-size:14px; ${t.status === 'Completed' ? 'text-decoration:line-through; color:#999;' : ''}">${escapeHTML(t.title)}</div>
                     <div style="font-size:12px; color:#666; margin-top:4px; white-space:pre-wrap;">${escapeHTML(t.description)}</div>
+                    
+                    <!-- Comments Section -->
+                    <div id="comments-container-${t.id}" style="margin-top:12px; border-top:1px solid #f0f0f0; padding-top:8px;">
+                        <div style="font-size:10px; font-weight:800; color:#999; margin-bottom:5px;">💬 댓글 ${t.comments?.length || 0}</div>
+                        ${commentsHtml}
+                        <div style="display:flex; gap:5px; margin-top:8px;">
+                            <input type="text" id="comment-input-${t.id}" placeholder="의견을 남겨주세요..." style="font-size:11px; padding:6px; height:auto; flex:1;">
+                            <button onclick="addModificationComment(${t.id})" style="width:auto; padding:0 12px; background:var(--blue-deep); color:white; font-size:11px; margin:0; border-radius:8px;">등록</button>
+                        </div>
+                    </div>
                 </td>
-                <td><span style="font-size:12px;">${escapeHTML(t.requestedBy)}</span></td>
-                <td><span style="font-size:11px; color:#999;">${new Date(t.createdAt).toLocaleDateString()}</span></td>
-                <td>
+                <td style="vertical-align: top; padding-top: 15px;"><span style="font-size:12px;">${escapeHTML(t.requestedBy)}</span></td>
+                <td style="vertical-align: top; padding-top: 15px;"><span style="font-size:11px; color:#999;">${new Date(t.createdAt).toLocaleDateString()}</span></td>
+                <td style="vertical-align: top; padding-top: 15px;">
                     <button onclick="deleteModification(${t.id})" style="padding:4px 8px; background:#ff4d4d; color:white; font-size:11px; margin:0; width:auto;">삭제</button>
                 </td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
     } catch (e) {
         console.error(e);
         tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">데이터 로드 실패</td></tr>';
     }
+}
+
+async function addModificationComment(taskId) {
+    const input = document.getElementById(`comment-input-${taskId}`);
+    const content = input?.value.trim();
+    if (!content) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Modification/${taskId}/comments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(content),
+            credentials: 'include'
+        });
+
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            loadModifications(); // Reload to show new comment
+        } else {
+            const err = await res.text();
+            await alert(`댓글 등록 실패: ${err}`);
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+async function deleteModificationComment(commentId, taskId) {
+    if (!await confirm('댓글을 삭제하시겠습니까?')) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Modification/comments/${commentId}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+
+        if (res.status === 401) return logout(true);
+        if (res.status === 403) return await alert('삭제 권한이 없습니다. (본인만 삭제 가능)');
+        if (res.ok) {
+            loadModifications();
+        } else {
+            await alert('댓글 삭제 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
 }
 
 async function addModification() {
@@ -255,6 +322,52 @@ async function deleteAdminAccount(id, username) {
 async function loadManittoTab() {
     await loadMissions();
     await loadAssignments();
+    
+    // Update Publish Button State
+    try {
+        const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        if (res.ok) {
+            const s = await res.json();
+            const btnShow = document.getElementById('btnShowManitto');
+            const btnHide = document.getElementById('btnHideManitto');
+            if (btnShow && btnHide) {
+                // Dim the inactive button
+                btnShow.style.opacity = s.isManittoPublic ? '1' : '0.4';
+                btnShow.style.boxShadow = s.isManittoPublic ? '0 4px 12px rgba(45,70,141,0.3)' : 'none';
+                btnHide.style.opacity = s.isManittoPublic ? '0.4' : '1';
+                btnHide.style.boxShadow = s.isManittoPublic ? 'none' : '0 4px 12px rgba(0,0,0,0.1)';
+            }
+        }
+    } catch (e) {}
+}
+
+async function setManittoVisibility(shouldBePublic) {
+    // Check current state first to avoid redundant calls
+    try {
+        const resSettings = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        if (resSettings.ok) {
+            const s = await resSettings.json();
+            if (s.isManittoPublic === shouldBePublic) {
+                await alert(`이미 ${shouldBePublic ? '공개' : '비공개'} 상태입니다.`);
+                return;
+            }
+        }
+    } catch (e) {}
+
+    if (!await confirm(`마니또 정보를 ${shouldBePublic ? '공개' : '숨김'} 처리하시겠습니까?`)) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/manitto/toggle-visibility`, { 
+            method: 'POST', 
+            credentials: 'include' 
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            const data = await res.json();
+            await alert(data.message);
+            loadManittoTab();
+        }
+    } catch (e) { await alert('서버 오류'); }
 }
 
 async function checkAuth() {
@@ -264,8 +377,10 @@ async function checkAuth() {
     try {
         const res = await fetch(`${API_BASE}/Auth/status`, { credentials: 'include' });
         if (res.ok) {
-            const data = await res.json();
-            if (loginOverlay) loginOverlay.style.display = 'none';
+        const data = await res.json();
+        window.currentAdminUser = data.username; // Save for permission checks
+        if (loginOverlay) loginOverlay.style.display = 'none';
+
             if (adminContent) adminContent.style.visibility = 'visible';
             
             // Show/Hide Account Management tab based on username
@@ -346,14 +461,49 @@ async function loadMissions() {
         }
 
         container.innerHTML = missions.map((m, i) => `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 10px; border-bottom:1px solid #eee;">
-                <span>${i + 1}. ${m.description}</span>
-                <button onclick="deleteMission(${m.id})" style="width:auto; padding:5px 10px; background:#ff4d4d; color:white; font-size:10px; margin:0;">삭제</button>
+            <div class="mission-item">
+                <div class="mission-content">
+                    <input type="checkbox" class="mission-checkbox" data-id="${m.id}">
+                    <span class="mission-text">${i + 1}. ${escapeHTML(m.description)}</span>
+                </div>
+                <button onclick="deleteMission(${m.id})" style="width:auto; padding:6px 12px; background:#ff4d4d; color:white; font-size:11px; margin:0; flex-shrink:0;">삭제</button>
             </div>
         `).join('');
     } catch (e) {
         container.innerHTML = '데이터를 불러오지 못했습니다.';
     }
+}
+
+function toggleSelectAllMissions(checked) {
+    document.querySelectorAll('.mission-checkbox').forEach(cb => cb.checked = checked);
+}
+
+async function deleteSelectedMissions() {
+    const selectedIds = Array.from(document.querySelectorAll('.mission-checkbox:checked'))
+        .map(cb => parseInt(cb.getAttribute('data-id')));
+
+    if (selectedIds.length === 0) return await alert('삭제할 미션을 선택해주세요.');
+
+    if (!await confirm(`${selectedIds.length}개의 미션을 삭제하시겠습니까?`)) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/manitto/missions/delete-batch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(selectedIds),
+            credentials: 'include'
+        });
+
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            await alert('✅ 선택한 미션이 삭제되었습니다.');
+            const selectAll = document.getElementById('selectAllMissions');
+            if (selectAll) selectAll.checked = false;
+            loadMissions();
+        } else {
+            await alert('삭제 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
 }
 
 async function addMissions() {
@@ -402,11 +552,11 @@ async function loadAssignments() {
         const res = await fetch(`${API_BASE}/Management/manitto/assignments`, { credentials: 'include' });
         if (res.status === 401) return logout(true);
         const list = await res.json();
-        
+
         window.currentAssignments = list; // Store for reference
 
         if (list.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#999;">신청자가 없거나 매칭 데이터가 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px; color:#999;">신청자가 없거나 매칭 데이터가 없습니 다.</td></tr>';
             return;
         }
 
@@ -414,99 +564,93 @@ async function loadAssignments() {
             <tr>
                 <td><b>${a.name}</b> (${a.generation}기)</td>
                 <td>
-                    <select onchange="updateManittoAssignmentLocal(${a.id}, 'TargetId', this.value)" style="font-size:11px; padding:4px;">
+                    <select onchange="updateManittoAssignmentLocal(${a.id}, 'TargetId', this.value)" style="font-size:11px; padding:4px; width:100%;">
                         <option value="">선택 안함</option>
                         ${list.map(p => `<option value="${p.id}" ${p.id === a.manittoTargetId ? 'selected' : ''}>${p.name} (${p.generation}기)</option>`).join('')}
                     </select>
                 </td>
-                <td>
-                    <select onchange="updateManittoAssignmentLocal(${a.id}, 'MissionId', this.value)" style="font-size:11px; padding:4px; max-width:150px;">
-                        <option value="">미션 없음</option>
-                        ${(window.currentMissions || []).map(m => `<option value="${m.id}" ${m.id === a.manittoMissionId ? 'selected' : ''}>${m.description}</option>`).join('')}
-                    </select>
-                </td>
-                <td>
-                    <span class="badge" onclick="toggleMissionStatus(${a.id}, ${a.isManittoMissionComplete})" style="background:${a.isManittoMissionComplete ? '#22C55E' : '#F5A623'}; color:white; cursor:pointer; user-select:none;" title="클릭하여 상태 변경">
-                        ${a.isManittoMissionComplete ? '성공' : '진행중'}
-                    </span>
-                </td>
-                <td style="text-align:center;">
-                    <button onclick="saveSingleAssignment(${a.id})" style="width:auto; padding:4px 8px; background:var(--blue-deep); color:white; font-size:11px; margin:0;">저장</button>
+                <td style="text-align:left; font-size:12px;">
+                    ${a.missions && a.missions.length > 0 ? a.missions.map((m, idx) => `
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; padding-bottom:4px; border-bottom:1px solid #f0f0f0;">
+                            <span style="color:${m.isComplete ? '#22C55E' : '#ccc'}; font-size:10px; flex-shrink:0;">●</span>
+                            <select onchange="updateManittoAssignmentLocal(${a.id}, 'MissionId', this.value, ${idx})" style="font-size:11px; padding:2px; flex:1; border:none; background:transparent;">
+                                ${(window.currentMissions || []).map(mm => `<option value="${mm.id}" ${mm.id === m.missionId ? 'selected' : ''}>${escapeHTML(mm.description)}</option>`).join('')}
+                            </select>
+                        </div>
+                    `).join('') : '<span style="color:#999;">미션 없음</span>'}
                 </td>
             </tr>
         `).join('');
     } catch (e) { console.error(e); }
 }
 
-async function toggleMissionStatus(id, currentStatus) {
+async function updateManittoAssignmentLocal(participantId, field, value, index = null) {
+    const original = window.currentAssignments.find(a => a.id === participantId);
+    if (!original) return;
+
+    const payload = {
+        targetId: field === 'TargetId' ? (value ? parseInt(value) : null) : original.manittoTargetId,
+        missions: original.missions ? JSON.parse(JSON.stringify(original.missions)) : []
+    };
+
+    if (index !== null) {
+        if (field === 'MissionId') payload.missions[index].missionId = parseInt(value);
+        if (field === 'IsComplete') payload.missions[index].isComplete = value;
+    }
+
     try {
-        const res = await fetch(`${API_BASE}/Management/manitto/assignments/${id}`, {
+        const res = await fetch(`${API_BASE}/Management/manitto/assignments/${participantId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ isComplete: !currentStatus }),
+            body: JSON.stringify(payload),
             credentials: 'include'
         });
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
-            loadAssignments();
+            // Update local state and re-render subtly if needed, or just reload
+            const updatedIdx = window.currentAssignments.findIndex(a => a.id === participantId);
+            const resData = await fetch(`${API_BASE}/Management/manitto/assignments`, { credentials: 'include' });
+            if (resData.ok) {
+                window.currentAssignments = await resData.json();
+                loadAssignments();
+            }
         } else {
-            await alert('상태 변경 실패');
+            const err = await res.text();
+            console.error(`저장 실패: ${err}`);
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { console.error('서버 오류', e); }
 }
 
-// Helper to store changes locally before saving
-window.assignmentChanges = {};
-
-function updateManittoAssignmentLocal(participantId, field, value) {
-    if (!window.assignmentChanges[participantId]) {
-        const original = window.currentAssignments.find(a => a.id === participantId);
-        window.assignmentChanges[participantId] = {
-            targetId: original.manittoTargetId,
-            isTargetCleared: false,
-            missionId: original.manittoMissionId,
-            isMissionCleared: false
-        };
-    }
-    
-    if (field === 'TargetId') {
-        const val = value ? parseInt(value) : null;
-        window.assignmentChanges[participantId].targetId = val;
-        window.assignmentChanges[participantId].isTargetCleared = (val === null);
-    }
-    if (field === 'MissionId') {
-        const val = value ? parseInt(value) : null;
-        window.assignmentChanges[participantId].missionId = val;
-        window.assignmentChanges[participantId].isMissionCleared = (val === null);
-    }
-}
-
-async function saveSingleAssignment(id) {
-    const changes = window.assignmentChanges[id];
-    if (!changes) return await alert('변경사항이 없습니다.');
+async function resetManitto() {
+    if (!await confirm('정말 마니또 배정 정보만 초기화하시겠습니까?\n참가 신청 내역은 유지됩니다.')) return;
+    const password = await window.prompt('관리자 비밀번호를 입력해주세요:');
+    if (!password) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/manitto/assignments/${id}`, {
-            method: 'PUT',
+        const res = await fetch(`${API_BASE}/Management/reset-manitto`, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(changes),
+            body: JSON.stringify({ password }),
             credentials: 'include'
         });
-
-        if (res.status === 401) return logout(true);
+        if (res.status === 401) {
+            await alert('비밀번호가 일치하지 않거나 권한이 없습니다.');
+            return;
+        }
         if (res.ok) {
-            await alert('✅ 저장되었습니다.');
-            delete window.assignmentChanges[id];
+            await alert('✅ 마니또 배정 정보가 초기화되었습니다.');
             loadAssignments();
         } else {
-            await alert('저장 실패');
+            await alert('초기화 실패');
         }
     } catch (e) { await alert('서버 오류'); }
 }
+
 
 async function matchManitto() {
-    if (!await confirm('정말 마니또 랜덤 매칭을 실행하시겠습니까?\n기존 매칭 정보는 모두 초기화됩니다.')) return;
+    const missionCount = parseInt(document.getElementById('manittoMissionCount')?.value || "3");
+    if (!await confirm(`정말 마니또 랜덤 매칭을 실행하시겠습니까?\n인당 ${missionCount}개의 미션이 부여됩니다.\n기존 매칭 정보는 모두 초기화됩니다.`)) return;
 
     const loadingOverlay = document.getElementById('loadingOverlay');
     if (loadingOverlay) loadingOverlay.style.display = 'flex';
@@ -514,6 +658,8 @@ async function matchManitto() {
     try {
         const res = await fetch(`${API_BASE}/Management/manitto/match`, {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(missionCount),
             credentials: 'include'
         });
 
@@ -847,6 +993,8 @@ async function loadSettings() {
         document.getElementById('registrationFee').value = s.registrationFee;
         document.getElementById('maxGeneralCapacity').value = s.maxGeneralCapacity;
         document.getElementById('maxMilitaryCapacity').value = s.maxMilitaryCapacity;
+        const mmc = document.getElementById('manittoMissionCount');
+        if (mmc) mmc.value = s.manittoMissionCount || 3;
 
         let commonItems = [];
         try { commonItems = JSON.parse(s.commonChecklistJson || "[]"); } catch(e) {}
@@ -914,6 +1062,7 @@ async function saveSettings() {
         registrationFee: parseInt(document.getElementById('registrationFee').value),
         maxGeneralCapacity: parseInt(document.getElementById('maxGeneralCapacity').value),
         maxMilitaryCapacity: parseInt(document.getElementById('maxMilitaryCapacity').value),
+        manittoMissionCount: parseInt(document.getElementById('manittoMissionCount')?.value || "3"),
         commonChecklistJson: JSON.stringify(document.getElementById('commonChecklist').value.split('\n').map(l => l.trim()).filter(l => l !== "")),
         scheduleDataJson: JSON.stringify(currentSchedule)
     };
@@ -1180,10 +1329,14 @@ window.addDay = addDay;
 window.removeDay = removeDay;
 window.addMissions = addMissions;
 window.deleteMission = deleteMission;
+window.toggleSelectAllMissions = toggleSelectAllMissions;
+window.deleteSelectedMissions = deleteSelectedMissions;
+window.setManittoVisibility = setManittoVisibility;
 window.matchManitto = matchManitto;
 window.updateManittoAssignmentLocal = updateManittoAssignmentLocal;
-window.saveSingleAssignment = saveSingleAssignment;
 window.addModification = addModification;
+window.addModificationComment = addModificationComment;
+window.deleteModificationComment = deleteModificationComment;
 window.deleteModification = deleteModification;
 window.updateModificationStatus = updateModificationStatus;
 window.addAdminAccount = addAdminAccount;
@@ -1195,6 +1348,7 @@ window.updateTimeline = updateTimeline;
 window.sortTable = sortTable;
 window.resetSettings = resetSettings;
 window.resetParticipants = resetParticipants;
+window.resetManitto = resetManitto;
 
 // --- DANGER ZONE ---
 async function resetSettings() {
@@ -1241,6 +1395,7 @@ async function resetParticipants() {
         if (res.ok) {
             await alert('✅ 모든 참가 정보가 안전하게 초기화되었습니다.');
             loadParticipants();
+            if (document.getElementById('manittoAssignmentList')) loadAssignments();
         } else {
             await alert('초기화 실패');
         }
