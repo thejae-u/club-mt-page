@@ -17,6 +17,7 @@ function switchTab(tabId) {
     if (tabId === 'settings') loadSettings();
     if (tabId === 'manitto') loadManittoTab();
     if (tabId === 'cooking') loadCookingTab();
+    if (tabId === 'vehicle') loadVehicleTab();
     if (tabId === 'board') loadBoard();
     if (tabId === 'modifications') loadModifications();
     if (tabId === 'accounts') loadAdmins();
@@ -682,6 +683,51 @@ async function loadCookingTab() {
     await fetchData(); // To get all participants
     const apps = await loadCookingApplications();
     await updateCookingUI();
+
+    // Fetch Cooking Battle Stats
+    try {
+        const res = await fetch(`${API_BASE}/Management/status`, { credentials: 'include' });
+        if (res.ok) {
+            const data = await res.json();
+            const cb = data.cookingBattle;
+            if (cb) {
+                document.getElementById('stat-black-votes').textContent = `${cb.blackVotes || 0}표`;
+                document.getElementById('stat-white-votes').textContent = `${cb.whiteVotes || 0}표`;
+                document.getElementById('stat-black-cheers').textContent = `${cb.blackCheers || 0}점`;
+                document.getElementById('stat-white-cheers').textContent = `${cb.whiteCheers || 0}점`;
+                document.getElementById('stat-comment-count').textContent = `${cb.commentCount || 0}개`;
+                document.getElementById('stat-app-count').textContent = `${cb.applicationCount || 0}명`;
+                document.getElementById('stat-assign-count').textContent = `${cb.assignmentCount || 0}명`;
+            }
+        }
+    } catch (e) { console.error('Failed to load cooking stats', e); }
+
+    // Fetch Cooking Battle Assignments
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/assignments`, { credentials: 'include' });
+        if (res.ok) {
+            const assignments = await res.json();
+            const blackList = document.getElementById('admin-cooking-black-team');
+            const whiteList = document.getElementById('admin-cooking-white-team');
+
+            const renderTeam = (teamName, container) => {
+                const filtered = assignments.filter(a => a.team === teamName);
+                if (filtered.length === 0) {
+                    container.innerHTML = '<p style="color: #999;">배정된 인원이 없습니다.</p>';
+                    return;
+                }
+                container.innerHTML = filtered.map(a => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:8px 12px; border-radius:8px; border:1px solid #eee;">
+                        <span style="font-weight:700;">${escapeHTML(a.name)} (${a.generation}기)</span>
+                        <span style="font-size:11px; background:#eee; padding:2px 6px; border-radius:4px; color:#666;">${escapeHTML(a.role)}</span>
+                    </div>
+                `).join('');
+            };
+
+            if (blackList) renderTeam('Black', blackList);
+            if (whiteList) renderTeam('White', whiteList);
+        }
+    } catch (e) { console.error('Failed to load assignments', e); }
     
     // Fill Chef Selects
     const bSel = document.getElementById('blackChefId');
@@ -910,45 +956,78 @@ async function loadParticipants() {
         const tbody = document.getElementById('participantList');
         if (!tbody) return;
         
-        const registered = list.filter(p => p.isRegistered);
-        if (registered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="padding: 30px; text-align: center; color: #999;">신청자가 없습니다.</td></tr>';
-            return;
-        }
+        const registered = list.filter(p => p.isRegistered && !p.isCancelRequested);
+        const canceledOrRequested = list.filter(p => p.isCancelRequested || !p.isRegistered);
 
         const confirmedArmy = registered.filter(p => p.type === 3 && !p.isWaitlisted).length;
         const confirmedGen = registered.filter(p => p.type !== 3 && !p.isWaitlisted).length;
 
-        tbody.innerHTML = registered.map(p => {
-            const isWait = p.isWaitlisted;
-            const isArmy = p.type === 3;
-            const isFull = isArmy ? (confirmedArmy >= MAX_ARMY) : (confirmedGen >= MAX_GEN);
-            
-            return `
-            <tr style="${isWait ? 'background: #FFF0F0;' : ''}">
-                <td><b>${p.name}${isWait ? ' <span style="color:#E5484D; font-size:10px;">(대기)</span>' : ''}</b></td>
-                <td>${typeLabels[p.type] || '기타'}</td>
-                <td>${p.generation}기</td>
-                <td style="font-size:12px;">${p.phoneNumber || '-'}</td>
-                <td>
-                    ${isWait ? 
-                        `<div style="display:flex; align-items:center; gap:5px;">
-                            <span style="color:#E5484D; font-weight:700; font-size:11px;">대기자</span>
-                            <button onclick="toggleWaitlist(${p.id})" ${isFull ? 'disabled' : ''} style="width:auto; padding:2px 6px; background:${isFull ? '#ccc' : '#E5484D'}; color:white; font-size:10px; margin:0; cursor:${isFull ? 'not-allowed' : 'pointer'};">
-                                신청 전환
-                            </button>
-                        </div>` : 
-                        `<button onclick="toggleDeposit(${p.id})" style="padding: 4px 8px; background: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; color:white; font-size: 11px; margin:0; width:auto;">
-                            ${p.isDepositConfirmed ? '입금완료' : '입금대기'}
-                        </button>`
-                    }
-                </td>
-                <td style="text-align: center; display: flex; gap: 4px; justify-content: center;">
-                    <button onclick="openEditModal(${p.id})" style="padding: 4px 8px; background: var(--blue-deep); color:white; font-size: 11px; margin:0; width:auto;">수정</button>
-                    <button onclick="deleteParticipant(${p.id})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">삭제</button>
-                </td>
-            </tr>`;
-        }).join('');
+        // Render Active Participants
+        if (registered.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="padding: 30px; text-align: center; color: #999;">신청자가 없습니다.</td></tr>';
+        } else {
+            tbody.innerHTML = registered.map(p => {
+                const isWait = p.isWaitlisted;
+                const isArmy = p.type === 3;
+                const isFull = isArmy ? (confirmedArmy >= MAX_ARMY) : (confirmedGen >= MAX_GEN);
+                
+                return `
+                <tr style="${isWait ? 'background: #FFF0F0;' : ''}">
+                    <td><b>${p.name}${isWait ? ' <span style="color:#E5484D; font-size:10px;">(대기)</span>' : ''}</b></td>
+                    <td>${typeLabels[p.type] || '기타'}</td>
+                    <td>${p.generation}기</td>
+                    <td style="font-size:12px;">${p.phoneNumber || '-'}</td>
+                    <td>
+                        ${isWait ? 
+                            `<div style="display:flex; align-items:center; gap:5px;">
+                                <span style="color:#E5484D; font-weight:700; font-size:11px;">대기자</span>
+                                <button onclick="toggleWaitlist(${p.id})" ${isFull ? 'disabled' : ''} style="width:auto; padding:2px 6px; background:${isFull ? '#ccc' : '#E5484D'}; color:white; font-size:10px; margin:0; cursor:${isFull ? 'not-allowed' : 'pointer'};">
+                                    신청 전환
+                                </button>
+                            </div>` : 
+                            `<button onclick="toggleDeposit(${p.id})" style="padding: 4px 8px; background: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; color:white; font-size: 11px; margin:0; width:auto;">
+                                ${p.isDepositConfirmed ? '입금완료' : '입금대기'}
+                            </button>`
+                        }
+                    </td>
+                    <td style="text-align: center; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+                        <button onclick="openEditModal(${p.id})" style="padding: 4px 8px; background: var(--blue-deep); color:white; font-size: 11px; margin:0; width:auto;">수정</button>
+                        <button onclick="deleteParticipant(${p.id})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">삭제</button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Render Cancelled or Requested Participants
+        const cancelTbody = document.getElementById('cancelList');
+        if (cancelTbody) {
+            if (canceledOrRequested.length === 0) {
+                cancelTbody.innerHTML = '<tr><td colspan="6" style="padding: 30px; text-align: center; color: #999;">취소(요청)자가 없습니다.</td></tr>';
+            } else {
+                cancelTbody.innerHTML = canceledOrRequested.map(p => {
+                    return `
+                    <tr style="${p.isCancelRequested ? 'background: #FFF9E6;' : 'background: #f8f9fa; opacity: 0.8;'}">
+                        <td><b>${p.name}</b> <span style="color:${p.isCancelRequested ? '#F5A623' : '#999'}; font-size:10px;">(${p.isCancelRequested ? '취소요청' : '취소완료'})</span></td>
+                        <td>${typeLabels[p.type] || '기타'}</td>
+                        <td>${p.generation}기</td>
+                        <td style="font-size:12px;">${p.phoneNumber || '-'}</td>
+                        <td>
+                            <span style="font-size:11px; font-weight:700; color:${p.isCancelRequested ? '#F5A623' : '#999'};">
+                                ${p.isCancelRequested ? '요청 대기중' : '완료됨'}
+                            </span>
+                        </td>
+                        <td style="text-align: center; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+                            ${p.isCancelRequested ? 
+                                `<button onclick="approveCancel(${p.id})" style="padding: 4px 8px; background: #E5484D; color:white; font-size: 11px; margin:0; width:auto; border:1px solid #C0392B;">취소 승인</button>
+                                 <button onclick="rejectCancel(${p.id})" style="padding: 4px 8px; background: #F5A623; color:white; font-size: 11px; margin:0; width:auto;">취소 반려</button>`
+                                :
+                                `<button onclick="deleteParticipant(${p.id})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">DB 삭제</button>`
+                            }
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+        }
     } catch (e) { console.error(e); }
 }
 
@@ -1080,6 +1159,38 @@ async function deleteParticipant(id) {
         if (res.status === 401) return logout(true);
         loadParticipants();
     } catch (e) { await alert('삭제 실패'); }
+}
+
+async function approveCancel(id) {
+    if (!await confirm('해당 참가자의 취소 요청을 승인하시겠습니까? 신청 내역이 초기화됩니다.')) return;
+    try {
+        const res = await fetch(`${API_BASE}/Participants/${id}/cancel`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        if (res.ok) { 
+            await alert('취소가 승인되었습니다.'); 
+            if (typeof loadParticipants === 'function' && document.getElementById('participantList')) loadParticipants();
+            if (typeof loadRegisteredData === 'function' && document.getElementById('regTableBody')) loadRegisteredData();
+        }
+        else { await alert('취소 승인 실패'); }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+async function rejectCancel(id) {
+    if (!await confirm('해당 참가자의 취소 요청을 반려하시겠습니까? 정상 신청 상태로 복구됩니다.')) return;
+    try {
+        const res = await fetch(`${API_BASE}/Participants/${id}/reject-cancel`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        if (res.ok) { 
+            await alert('취소 요청이 반려되었습니다.'); 
+            if (typeof loadParticipants === 'function' && document.getElementById('participantList')) loadParticipants();
+            if (typeof loadRegisteredData === 'function' && document.getElementById('regTableBody')) loadRegisteredData();
+        }
+        else { await alert('취소 반려 실패'); }
+    } catch (e) { await alert('서버 오류'); }
 }
 
 async function uploadCsv() {
@@ -1363,8 +1474,8 @@ function renderTables() {
     const regTbody = document.getElementById('regTableBody');
     if (regTbody) {
         regTbody.innerHTML = sortedReg.map(p => `
-            <tr style="${p.isWaitlisted ? 'background: #FFF0F0;' : ''}">
-                <td style="font-weight:700;">${p.name}${p.isWaitlisted ? ' <span style="color:#E5484D; font-size:10px; font-weight:normal;">(대기)</span>' : ''}</td>
+            <tr style="${p.isCancelRequested ? 'background: #FFF9E6;' : (p.isWaitlisted ? 'background: #FFF0F0;' : '')}">
+                <td style="font-weight:700;">${p.name}${p.isWaitlisted ? ' <span style="color:#E5484D; font-size:10px; font-weight:normal;">(대기)</span>' : ''}${p.isCancelRequested ? ' <span style="color:#F5A623; font-size:10px; font-weight:normal;">(취소요청)</span>' : ''}</td>
                 <td>${p.generation}기</td>
                 <td><span class="badge" style="background:var(--blue-soft); color:var(--blue-deep);">${typeLabels[p.type] || '기타'}</span></td>
                 <td>${formatPhone(p.phoneNumber)}</td>
@@ -1379,6 +1490,14 @@ function renderTables() {
                 <td style="color: #E8392D;">${p.allergies || '-'}</td>
                 <td title="${p.remarks || ''}">${p.remarks || '-'}</td>
                 <td style="font-size: 11px; color: #999;">${new Date(p.createdAt).toLocaleDateString()}</td>
+                <td style="text-align: center; display: flex; gap: 4px; justify-content: center; align-items: center; height: 100%;">
+                    ${p.isCancelRequested ? 
+                        `<button onclick="approveCancel(${p.id})" style="padding: 4px 8px; background: #E5484D; color:white; font-size: 11px; margin:0; width:auto;">취소 승인</button>
+                         <button onclick="rejectCancel(${p.id})" style="padding: 4px 8px; background: #F5A623; color:white; font-size: 11px; margin:0; width:auto;">반려</button>`
+                        :
+                        `<button onclick="deleteParticipant(${p.id})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">삭제</button>`
+                    }
+                </td>
             </tr>
         `).join('');
     }
@@ -1485,6 +1604,8 @@ window.deleteModification = deleteModification;
 window.updateModificationStatus = updateModificationStatus;
 window.addAdminAccount = addAdminAccount;
 window.deleteAdminAccount = deleteAdminAccount;
+window.approveCancel = approveCancel;
+window.rejectCancel = rejectCancel;
 window.addTimeline = addTimeline;
 window.removeTimeline = removeTimeline;
 window.updateDay = updateDay;
@@ -1551,3 +1672,483 @@ async function resetParticipants() {
 }
 window.filterData = filterData;
 window.fetchData = fetchData;
+
+// --- VEHICLE ASSIGNMENT MANAGEMENT ---
+async function loadVehicleTab() {
+    await fetchData(); // Populate global 'participants'
+
+    // Load current assignments
+    fetchAdminVehicleList();
+    
+    // Load current public status from settings
+    try {
+        const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        if (res.ok) {
+            const settings = await res.json();
+            updateVehiclePublicUI(settings.isVehicleAssignmentPublic);
+        }
+    } catch (e) { console.error(e); }
+
+    // Initialize OwnCar inputs if empty
+    const container = document.getElementById('ownCarConfigContainer');
+    if (container.children.length === 0) {
+        addOwnCarInput(); // Add at least one
+    }
+}
+
+function addOwnCarInput() {
+    const container = document.getElementById('ownCarConfigContainer');
+    const div = document.createElement('div');
+    div.style = "display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end;";
+    
+    // Driver Select
+    const driverSelect = document.createElement('select');
+    driverSelect.className = "own-car-driver";
+    driverSelect.innerHTML = '<option value="">차장 선택 (없음)</option>' + 
+        participants
+            .filter(p => p.isRegistered && !p.isWaitlisted)
+            .map(p => `<option value="${p.id}">${p.name} (${p.generation}기)</option>`).join('');
+    
+    // Capacity Input
+    const capInput = document.createElement('input');
+    capInput.type = "number";
+    capInput.value = "4";
+    capInput.min = "1";
+    capInput.className = "own-car-capacity";
+    capInput.placeholder = "정원";
+
+    // Remove Btn
+    const removeBtn = document.createElement('button');
+    removeBtn.textContent = "✕";
+    removeBtn.style = "width: auto; padding: 6px 10px; background: #999; color: white; margin: 0; cursor: pointer; border: none; border-radius: 4px;";
+    removeBtn.onclick = () => div.remove();
+
+    const formGroupDriver = document.createElement('div');
+    formGroupDriver.className = "form-group";
+    formGroupDriver.style.marginBottom = "0";
+    formGroupDriver.innerHTML = '<label style="font-size:11px;">차장</label>';
+    formGroupDriver.appendChild(driverSelect);
+
+    const formGroupCap = document.createElement('div');
+    formGroupCap.className = "form-group";
+    formGroupCap.style.marginBottom = "0";
+    formGroupCap.innerHTML = '<label style="font-size:11px;">정원</label>';
+    formGroupCap.appendChild(capInput);
+
+    div.appendChild(formGroupDriver);
+    div.appendChild(formGroupCap);
+    div.appendChild(removeBtn);
+    container.appendChild(div);
+}
+
+async function generateVehicleAssignments() {
+    if (!await confirm("랜덤 배정을 실행하시겠습니까? 기존 배정 데이터는 초기화됩니다.")) return;
+
+    const vehicles = Array.from(document.querySelectorAll('#ownCarConfigContainer > div')).map(div => ({
+        driverId: div.querySelector('.own-car-driver').value ? parseInt(div.querySelector('.own-car-driver').value) : null,
+        capacity: parseInt(div.querySelector('.own-car-capacity').value) || 4
+    }));
+
+    try {
+        const res = await fetch(`${API_BASE}/Vehicle/admin/generate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ vehicles }),
+            credentials: 'include'
+        });
+
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            await alert('✅ 랜덤 배정이 완료되었습니다.');
+            fetchAdminVehicleList();
+        } else {
+            await alert('❌ 배정 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+async function fetchAdminVehicleList() {
+    const container = document.getElementById('adminVehicleList');
+    if (!container) return;
+
+    try {
+        if (participants.length === 0) await fetchData();
+
+        const res = await fetch(`${API_BASE}/Vehicle/all`, { credentials: 'include' });
+        if (res.status === 401) return logout(true);
+        if (!res.ok) throw new Error('Failed to fetch vehicles');
+
+        const data = await res.json();
+        const vehicles = data.vehicles;
+
+        // Get list of all assigned participant IDs to filter the dropdown
+        const allAssignedIds = new Set();
+        vehicles.forEach(v => {
+            if (v.driver) allAssignedIds.add(v.driver.id.toString());
+            v.passengers.forEach(p => allAssignedIds.add(p.id.toString()));
+        });
+
+        if (!vehicles || vehicles.length === 0) {
+            container.innerHTML = '<p id="empty-vehicle-msg" style="text-align:center; color:#999; padding: 20px;">배정된 차량이 없습니다.</p>';
+            return;
+        }
+
+        container.innerHTML = vehicles.map(v => renderVehicleCard(v, allAssignedIds)).join('');
+    } catch (e) {
+        console.error('Error in fetchAdminVehicleList:', e);
+        container.innerHTML = '<p style="text-align:center; color:red; padding: 20px;">데이터 로드 중 오류가 발생했습니다.</p>';
+    }
+}
+
+function renderVehicleCard(v, allAssignedIds) {
+    // v can be a partial object for new vehicles
+    const vehicleNumber = v.vehicleNumber || 0;
+    const type = v.type || 'Taxi';
+    const id = v.id || 0;
+    const status = v.status || 0;
+    const driver = v.driver || null;
+    const passengers = v.passengers || [];
+
+    return `
+        <div class="card vehicle-admin-card" data-vehicle-number="${vehicleNumber}" data-type="${type}" data-id="${id}" style="padding: 15px; background: #f8f9fa; border: 1px solid #eee; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="vehicle-num-label" style="font-weight: 800; font-size: 15px;">${vehicleNumber}호차</div>
+                    <button onclick="removeVehicleUI(this)" style="background: none; border: 1px solid #ff4d4d; color: #ff4d4d; font-size: 10px; padding: 2px 6px; border-radius: 4px; cursor: pointer; width: auto; margin: 0;">차량 삭제</button>
+                </div>
+                <select class="admin-vehicle-status" onchange="silentSaveVehicleAssignments()" style="width: auto; padding: 4px 8px; font-size: 12px; border-radius: 6px; border: 1px solid #ddd;">
+                    <option value="0" ${status === 0 || status === 'None' ? 'selected' : ''}>⏳ 대기 중</option>
+                    <option value="1" ${status === 1 || status === 'Called' ? 'selected' : ''}>📞 호출 완료</option>
+                    <option value="2" ${status === 2 || status === 'Moving' ? 'selected' : ''}>🚚 이동중</option>
+                    <option value="3" ${status === 3 || status === 'Arrived' ? 'selected' : ''}>✅ 도착</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 12px;">
+                <label style="font-size: 11px; font-weight: 700; color: #666; display: block; margin-bottom: 4px;">차장 (ID)</label>
+                <select class="admin-vehicle-driver" onchange="handleDriverChange(${id}, this)" style="padding: 8px; border-radius: 8px; border: 1px solid #ddd; width: 100%; font-size: 13px;">
+                    <option value="">없음</option>
+                    ${participants.map(p => `<option value="${p.id}" ${driver && driver.id === p.id ? 'selected' : ''}>${p.name} (${p.generation}기)</option>`).join('')}
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label style="font-size: 11px; font-weight: 700; color: #666;">탑승자 명단</label>
+                    <select onchange="addPassengerToVehicleBySelect(${id}, this)" class="admin-vehicle-passenger-add-select" style="width: auto; padding: 2px 6px; background: #eee; border: 1px solid #ddd; border-radius: 4px; font-size: 11px; cursor: pointer; max-width: 120px;">
+                        <option value="">+ 탑승자 추가</option>
+                        ${participants
+                            .filter(p => !allAssignedIds.has(p.id.toString()))
+                            .map(p => `<option value="${p.id}">${p.name} (${p.generation}기)</option>`).join('')}
+                    </select>
+                </div>
+                <div class="admin-vehicle-passengers" style="font-size: 12px; min-height: 44px; padding: 8px; background: white; border: 1px solid #ddd; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
+                    ${passengers.length > 0 
+                        ? passengers.map(p => `
+                            <span data-id="${p.id}" style="background: #f1f3f5; padding: 2px 8px; border-radius: 4px; font-weight: 600; color: #495057; border: 1px solid #e9ecef; display: flex; align-items: center; gap: 4px;">
+                                ${p.name} 
+                                <button onclick="removePassengerFromVehicle(${id}, ${p.id})" style="background:none; border:none; color:#ff4d4d; padding:0; cursor:pointer; font-weight:800; width:auto; margin:0;">×</button>
+                            </span>`).join('')
+                        : '<span style="color: #adb5bd;">탑승자 없음</span>'}
+                </div>
+            </div>
+            <!-- Hidden inputs for saving -->
+            <input type="hidden" class="admin-vehicle-passenger-ids" value="${passengers.map(p => p.id).join(',')}">
+        </div>
+    `;
+}
+
+function addManualVehicle() {
+    const container = document.getElementById('adminVehicleList');
+    if (!container) return;
+
+    // Remove empty message if exists
+    const emptyMsg = document.getElementById('empty-vehicle-msg');
+    if (emptyMsg) emptyMsg.remove();
+
+    // Determine next vehicle number
+    const cards = document.querySelectorAll('.vehicle-admin-card');
+    let maxNum = 0;
+    cards.forEach(c => {
+        const num = parseInt(c.dataset.vehicleNumber);
+        if (num > maxNum) maxNum = num;
+    });
+    const nextNum = maxNum + 1;
+
+    // Get currently assigned IDs
+    const allAssignedIds = new Set();
+    document.querySelectorAll('.admin-vehicle-driver').forEach(s => { if(s.value) allAssignedIds.add(s.value); });
+    document.querySelectorAll('.admin-vehicle-passenger-ids').forEach(i => {
+        if(i.value) i.value.split(',').forEach(id => allAssignedIds.add(id.trim()));
+    });
+
+    const v = {
+        vehicleNumber: nextNum,
+        type: 'Taxi',
+        id: Date.now(), // Temp ID for UI mapping
+        status: 0,
+        driver: null,
+        passengers: []
+    };
+
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = renderVehicleCard(v, allAssignedIds);
+    container.appendChild(tempDiv.firstElementChild);
+
+    silentSaveVehicleAssignments();
+}
+
+async function removeVehicleUI(btn) {
+    if (!await confirm("이 차량을 삭제하시겠습니까? (저장 시 반영)")) return;
+    const card = btn.closest('.vehicle-admin-card');
+    if (card) {
+        card.remove();
+        recalculateVehicleNumbers();
+        silentSaveVehicleAssignments();
+        updateAllPassengerDropdowns();
+    }
+}
+
+function recalculateVehicleNumbers() {
+    const cards = document.querySelectorAll('.vehicle-admin-card');
+    cards.forEach((card, index) => {
+        const newNum = index + 1;
+        card.dataset.vehicleNumber = newNum;
+        const label = card.querySelector('.vehicle-num-label');
+        if (label) label.textContent = `${newNum}호차`;
+    });
+}
+
+async function saveVehicleAssignments() {
+    await silentSaveVehicleAssignments(true);
+}
+
+async function silentSaveVehicleAssignments(showSuccess = false) {
+    const cards = document.querySelectorAll('.vehicle-admin-card');
+    const updates = Array.from(cards).map(card => {
+        const passengerIds = card.querySelector('.admin-vehicle-passenger-ids').value 
+            ? card.querySelector('.admin-vehicle-passenger-ids').value.split(',').map(id => parseInt(id))
+            : [];
+        
+        return {
+            vehicleNumber: parseInt(card.dataset.vehicleNumber),
+            type: card.dataset.type === 'OwnCar' ? 0 : 1, // OwnCar=0, Taxi=1
+            driverId: card.querySelector('.admin-vehicle-driver').value ? parseInt(card.querySelector('.admin-vehicle-driver').value) : null,
+            status: parseInt(card.querySelector('.admin-vehicle-status').value),
+            passengerIds: passengerIds
+        };
+    });
+
+    try {
+        const res = await fetch(`${API_BASE}/Vehicle/admin/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates),
+            credentials: 'include'
+        });
+
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            if (showSuccess) await alert('✅ 차량 배정 정보가 저장되었습니다.');
+            // Only fetch again if NOT silent to avoid dropdown reset during editing
+            if (showSuccess) fetchAdminVehicleList();
+        } else {
+            console.error('Silent save failed');
+        }
+    } catch (e) { console.error('Server error during silent save', e); }
+}
+
+async function resetVehicleAssignments() {
+    if (!await confirm("정말로 모든 차량 배정 데이터를 초기화하시겠습니까?")) return;
+    try {
+        const res = await fetch(`${API_BASE}/Vehicle/admin/reset`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            await alert('✅ 초기화 완료');
+            fetchAdminVehicleList();
+        } else {
+            await alert('❌ 초기화 실패');
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+async function toggleVehiclePublic() {
+    try {
+        const res = await fetch(`${API_BASE}/Vehicle/admin/toggle-public`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            const data = await res.json();
+            updateVehiclePublicUI(data.isPublic);
+            await alert(data.isPublic ? "✅ 차량 배정표가 공개되었습니다." : "🔒 차량 배정표가 비공개 처리되었습니다.");
+        }
+    } catch (e) { await alert('서버 오류'); }
+}
+
+function updateVehiclePublicUI(isPublic) {
+    const btn = document.getElementById('btnVehicleTogglePublic');
+    if (!btn) return;
+    if (isPublic) {
+        btn.textContent = "✅ 공개 상태";
+        btn.style.background = "#22C55E";
+    } else {
+        btn.textContent = "🔒 비공개 상태";
+        btn.style.background = "#212529";
+    }
+}
+
+// Attach vehicle functions to window
+window.loadVehicleTab = loadVehicleTab;
+window.addOwnCarInput = addOwnCarInput;
+window.generateVehicleAssignments = generateVehicleAssignments;
+window.fetchAdminVehicleList = fetchAdminVehicleList;
+window.saveVehicleAssignments = saveVehicleAssignments;
+window.resetVehicleAssignments = resetVehicleAssignments;
+window.toggleVehiclePublic = toggleVehiclePublic;
+window.addManualVehicle = addManualVehicle;
+window.removeVehicleUI = removeVehicleUI;
+
+function addPassengerToVehicleBySelect(vehicleId, selectEl) {
+    const pId = selectEl.value;
+    if (!pId) return;
+    
+    const card = document.querySelector(`.vehicle-admin-card[data-id="${vehicleId}"]`);
+    if (!card) return;
+    
+    const input = card.querySelector('.admin-vehicle-passenger-ids');
+    let ids = input.value ? input.value.split(',').map(id => id.trim()) : [];
+    
+    if (ids.includes(pId)) {
+        alert("이미 등록된 탑승자입니다.");
+        selectEl.value = "";
+        return;
+    }
+    
+    ids.push(pId);
+    input.value = ids.join(',');
+    
+    // Refresh UI tag list
+    const p = participants.find(pp => pp.id == pId);
+    const tagContainer = card.querySelector('.admin-vehicle-passengers');
+    if (tagContainer.innerHTML.includes('탑승자 없음')) tagContainer.innerHTML = '';
+    
+    const tag = document.createElement('span');
+    tag.style = "background: #f1f3f5; padding: 2px 8px; border-radius: 4px; font-weight: 600; color: #495057; border: 1px solid #e9ecef; display: flex; align-items: center; gap: 4px;";
+    tag.dataset.id = pId;
+    tag.innerHTML = `${p ? p.name : 'ID:'+pId} <button onclick="removePassengerFromVehicle(${vehicleId}, ${pId})" style="background:none; border:none; color:#ff4d4d; padding:0; cursor:pointer; font-weight:800; width:auto; margin:0;">×</button>`;
+    tagContainer.appendChild(tag);
+
+    // Reset select
+    selectEl.value = "";
+
+    // Auto save
+    silentSaveVehicleAssignments();
+
+    // Update other dropdowns
+    updateAllPassengerDropdowns();
+}
+
+function removePassengerFromVehicle(vehicleId, pId) {
+    const card = document.querySelector(`.vehicle-admin-card[data-id="${vehicleId}"]`);
+    if (!card) return;
+    
+    const input = card.querySelector('.admin-vehicle-passenger-ids');
+    let ids = input.value ? input.value.split(',').map(id => id.trim()) : [];
+    
+    ids = ids.filter(id => id != pId);
+    input.value = ids.join(',');
+    
+    const tag = card.querySelector(`.admin-vehicle-passengers span[data-id="${pId}"]`);
+    if (tag) tag.remove();
+    
+    const tagContainer = card.querySelector('.admin-vehicle-passengers');
+    if (tagContainer.children.length === 0) {
+        tagContainer.innerHTML = '<span style="color: #adb5bd;">탑승자 없음</span>';
+    }
+
+    // Auto save
+    silentSaveVehicleAssignments();
+
+    // Update other dropdowns
+    updateAllPassengerDropdowns();
+}
+
+window.addPassengerToVehicleBySelect = addPassengerToVehicleBySelect;
+window.removePassengerFromVehicle = removePassengerFromVehicle;
+
+function handleDriverChange(vehicleId, selectEl) {
+    const pId = selectEl.value;
+    const card = document.querySelector(`.vehicle-admin-card[data-id="${vehicleId}"]`);
+    if (card) {
+        card.dataset.type = pId ? 'OwnCar' : 'Taxi';
+    }
+
+    if (!pId) {
+        // If driver cleared, still save the change
+        silentSaveVehicleAssignments();
+        updateAllPassengerDropdowns();
+        return;
+    }
+
+    const input = card.querySelector('.admin-vehicle-passenger-ids');
+    let ids = input.value ? input.value.split(',').map(id => id.trim()) : [];
+
+    // If new driver is not in passenger list, add them
+    if (!ids.includes(pId)) {
+        ids.push(pId);
+        input.value = ids.join(',');
+
+        // Refresh UI tag list for passengers
+        const p = participants.find(pp => pp.id == pId);
+        const tagContainer = card.querySelector('.admin-vehicle-passengers');
+        if (tagContainer.innerHTML.includes('탑승자 없음')) tagContainer.innerHTML = '';
+
+        const tag = document.createElement('span');
+        tag.style = "background: #f1f3f5; padding: 2px 8px; border-radius: 4px; font-weight: 600; color: #495057; border: 1px solid #e9ecef; display: flex; align-items: center; gap: 4px;";
+        tag.dataset.id = pId;
+        tag.innerHTML = `${p ? p.name : 'ID:'+pId} <button onclick="removePassengerFromVehicle(${vehicleId}, ${pId})" style="background:none; border:none; color:#ff4d4d; padding:0; cursor:pointer; font-weight:800; width:auto; margin:0;">×</button>`;
+        tagContainer.appendChild(tag);
+    }
+
+    // Auto save
+    silentSaveVehicleAssignments();
+
+    // Update other dropdowns
+    updateAllPassengerDropdowns();
+}
+
+window.handleDriverChange = handleDriverChange;
+
+function updateAllPassengerDropdowns() {
+    // 1. Collect ALL currently assigned IDs from the UI
+    const allAssignedIds = new Set();
+    
+    // Check drivers
+    document.querySelectorAll('.admin-vehicle-driver').forEach(select => {
+        if (select.value) allAssignedIds.add(select.value.toString());
+    });
+    
+    // Check passenger hidden inputs
+    document.querySelectorAll('.admin-vehicle-passenger-ids').forEach(input => {
+        if (input.value) {
+            input.value.split(',').forEach(id => allAssignedIds.add(id.trim()));
+        }
+    });
+
+    // 2. Update EVERY passenger dropdown with filtered unassigned participants
+    document.querySelectorAll('.admin-vehicle-passenger-add-select').forEach(select => {
+        const currentVal = select.value;
+        const unassigned = participants.filter(p => !allAssignedIds.has(p.id.toString()));
+        
+        let html = '<option value="">+ 탑승자 추가</option>';
+        html += unassigned.map(p => `<option value="${p.id}">${p.name} (${p.generation}기)</option>`).join('');
+        
+        select.innerHTML = html;
+        select.value = currentVal; // Restore if it was selected (usually empty)
+    });
+}
+
+window.updateAllPassengerDropdowns = updateAllPassengerDropdowns;

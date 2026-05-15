@@ -364,3 +364,38 @@ body.no-scroll {
 .heart-btn:active { transform: scale(0.9); }
 .heart-label { font-size: 11px; font-weight: 800; color: var(--text2); }
 .vote-btn:disabled { opacity: 0.5; cursor: not-allowed; background: var(--bg3) !important; color: var(--text3) !important; border: 1px solid var(--border) !important; }
+
+/* UNIFIED TAB STYLES */
+.tab-wrap {
+  display: flex;
+  gap: 8px;
+  background: var(--bg3);
+  padding: 5px;
+  border-radius: 14px;
+  margin-bottom: 24px;
+}
+.tab-btn {
+  flex: 1;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text3);
+  transition: all 0.2s;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tab-btn.active {
+  background: var(--card);
+  color: var(--blue-deep);
+  box-shadow: var(--shadow-sm);
+}
+[data-theme="dark"] .tab-btn.active {
+  background: var(--bg2);
+  color: #fff;
+}

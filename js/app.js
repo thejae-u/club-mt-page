@@ -507,6 +507,26 @@ async function openMyPage() {
       const ccC = document.getElementById('common-checklist-container');
       const cI = document.querySelector('#modal-mypage .form-group[style*="display:flex"]');
 
+      if (!p.isRegistered) {
+          const el = document.getElementById('mypage-name-gen'); if (el) el.textContent = `${p.generation}기 ${p.name}님 (신청 취소됨)`;
+          if (depEl) {
+              depEl.innerHTML = '❌ 취소 완료';
+              depEl.style.color = '#E5484D';
+              if (depCard) { depCard.style.borderLeftColor = '#E5484D'; const l = depCard.querySelector('div'); if (l) l.textContent = '현재 상태'; }
+          }
+          titles.forEach(t => t.style.display = 'none'); 
+          if (cC) cC.style.display = 'none'; 
+          if (ccC) ccC.style.display = 'none'; 
+          if (cI) cI.style.display = 'none'; 
+          if (btnManitto) btnManitto.style.display = 'none';
+          if (btnE) btnE.style.display = 'none'; 
+          if (btnC) btnC.style.display = 'none'; 
+          const btnMbti = document.querySelector('#modal-mypage button[onclick*="viewMBTIFromMyPage"]');
+          if (btnMbti) btnMbti.style.display = 'none';
+          openModal('mypage');
+          return;
+      }
+
       if (depEl) {
         if (p.isWaitlisted) { 
           depEl.innerHTML = '⏳ 신청 대기 중'; 
@@ -540,6 +560,46 @@ async function openMyPage() {
           if (p.isDepositConfirmed) { depEl.textContent = '✅ 입금 확인 완료'; depEl.style.color = '#22C55E'; if (depCard) depCard.style.borderLeftColor = '#22C55E'; } 
           else { depEl.textContent = '⏳ 입금 대기 중'; depEl.style.color = '#F5A623'; if (depCard) depCard.style.borderLeftColor = '#F5A623'; } 
           const l = depCard?.querySelector('div'); if (l && l.textContent === '현재 상태') l.textContent = '입금 확인 상태'; 
+        }
+
+        // 취소 요청 상태에 따른 일괄 UI 업데이트 (대기/확정 상관없음)
+        if (p.isCancelRequested) {
+          // Hide all the extra features
+          titles.forEach(t => t.style.display = 'none'); 
+          if (cC) cC.style.display = 'none'; 
+          if (ccC) ccC.style.display = 'none'; 
+          if (cI) cI.style.display = 'none'; 
+          if (btnManitto) btnManitto.style.display = 'none';
+          const btnMbti = document.querySelector('#modal-mypage button[onclick*="viewMBTIFromMyPage"]');
+          if (btnMbti) btnMbti.style.display = 'none';
+
+          if (depEl) {
+              depEl.textContent = '⏳ 취소 승인 대기 중'; 
+              depEl.style.color = '#F5A623'; 
+              if (depCard) { 
+                  depCard.style.borderLeftColor = '#F5A623'; 
+                  const l = depCard.querySelector('div'); 
+                  if (l) l.textContent = '현재 상태'; 
+              }
+          }
+
+          if (btnE) btnE.style.display = 'none'; // 취소 진행 중에는 정보 수정 불가
+          if (btnC) {
+            btnC.style.display = 'block';
+            btnC.textContent = '🔄 재참여 신청';
+            btnC.style.background = '#22C55E';
+            btnC.style.color = 'white';
+            btnC.disabled = false;
+            btnC.onclick = undoCancelRegistration;
+          }
+        } else {
+          if (btnC) {
+            btnC.textContent = '🚫 신청 취소';
+            btnC.style.background = 'var(--bg3)';
+            btnC.style.color = '#E5484D';
+            btnC.disabled = false;
+            btnC.onclick = cancelRegistration;
+          }
         }
       }
       renderCommonChecklist(window.siteSettings.commonChecklistJson, p.commonChecklistStatusJson); renderChecklist(p.checklistJson); openModal('mypage');
@@ -595,7 +655,7 @@ async function openEditFromMyPage() {
         } catch (e) { console.error('Fetch me error:', e); }
     }
 
-    if (!p || (!password && !window.editingParticipantId)) {
+    if (!p) {
         showToast('세션 정보가 부족합니다. 다시 로그인해주세요.');
         logout();
         return;
@@ -610,7 +670,9 @@ async function openEditFromMyPage() {
     const editHeader = document.getElementById('editHeader');
     const editHeaderInfo = document.getElementById('editHeaderInfo');
     const typeSelectionArea = document.getElementById('typeSelectionArea');
-    const cancelBtn = editHeader ? editHeader.querySelector('button') : null;
+    const btnActualCancel = document.getElementById('btnActualCancel');
+    const btnUndoCancel = document.getElementById('btnUndoCancel');
+    const cancelPendingNotice = document.getElementById('cancelPendingNotice');
 
     if (editHeader && editHeaderInfo && typeSelectionArea) {
       const typeLabels = ['재학생', '졸업생', '휴학생', '군인', '기타'];
@@ -619,9 +681,22 @@ async function openEditFromMyPage() {
       editHeader.style.display = 'flex';
       typeSelectionArea.style.display = 'none';
       
-      // Hide cancel button in edit header if confirmed and deadline passed
-      if (cancelBtn) {
-          cancelBtn.style.display = (window.isDeadlinePassed && !p.isWaitlisted) ? 'none' : 'block';
+      const isDead = window.isDeadlinePassed && !p.isWaitlisted;
+
+      if (p.isCancelRequested) {
+          if (btnActualCancel) btnActualCancel.style.display = 'none';
+          if (btnUndoCancel) btnUndoCancel.style.display = 'block';
+          if (cancelPendingNotice) cancelPendingNotice.style.display = 'block';
+          
+          const btnSubmitUnified = document.getElementById('btnSubmitUnified');
+          if (btnSubmitUnified) btnSubmitUnified.style.display = 'none';
+      } else {
+          if (btnActualCancel) btnActualCancel.style.display = isDead ? 'none' : 'block';
+          if (btnUndoCancel) btnUndoCancel.style.display = 'none';
+          if (cancelPendingNotice) cancelPendingNotice.style.display = 'none';
+
+          const btnSubmitUnified = document.getElementById('btnSubmitUnified');
+          if (btnSubmitUnified) btnSubmitUnified.style.display = 'block';
       }
     }
 
@@ -665,24 +740,64 @@ function resetApplyForm() {
   if (btn) btn.style.display = 'none'; if (label) label.style.display = 'block'; if (inp) inp.style.display = 'block';
 }
 
+async function undoCancelRegistration() {
+  const targetId = window.editingParticipantId || (window.currentParticipant ? window.currentParticipant.id : null);
+  if (!targetId) return;
+  const p = window.currentParticipant;
+  
+  const password = await prompt('취소 요청을 철회하고 재참여하려면 비밀번호를 입력해주세요.');
+  if (!password) return;
+
+  if (!await confirm('취소 요청을 철회하시겠습니까?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/Participants/${targetId}/undo-cancel`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }), credentials: 'include' });
+    if (res.ok) { 
+        showToast('✅ 취소 요청이 철회되었습니다. 다시 정상 신청 상태로 변경되었습니다.'); 
+        setTimeout(() => location.reload(), 1000);
+    }
+    else {
+        const txt = await res.text();
+        showToast(`❌ 철회 실패: ${txt}`);
+    }
+  } catch (err) { showToast('서버 연결 오류가 발생했습니다.'); }
+}
+
 async function cancelRegistration() {
-  if (!window.editingParticipantId) return;
+  const targetId = window.editingParticipantId || (window.currentParticipant ? window.currentParticipant.id : null);
+  if (!targetId) return;
 
   const isM = window.isDeadlinePassed;
   const p = window.currentParticipant;
+
+  if (p && p.isDepositConfirmed) {
+      await alert('입금이 완료된 상태에서는 신청 취소가 불가능합니다. 관리자에게 문의해주세요.');
+      return;
+  }
+
   if (isM && p && !p.isWaitlisted) {
       await alert('마감일 이후에는 신청 취소가 불가능합니다. 관리자에게 문의해주세요.');
       return;
   }
   
+  if (p && p.isCancelRequested) {
+      await alert('이미 취소 요청이 접수되었습니다. 관리자의 승인을 기다려주세요.');
+      return;
+  }
+
   const password = await prompt(p && p.isWaitlisted ? '대기 취소를 위해 비밀번호를 입력해주세요.' : '신청 취소를 위해 비밀번호를 입력해주세요.');
   if (!password) return;
 
   if (!await confirm(p && p.isWaitlisted ? '정말로 대기를 취소하시겠습니까?' : '정말로 신청을 취소하시겠습니까?')) return;
   try {
-    const res = await fetch(`${API_BASE}/Participants/${window.editingParticipantId}/cancel`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }), credentials: 'include' });
-    if (res.ok) { showToast(p && p.isWaitlisted ? '✅ 대기 취소가 완료되었습니다.' : '✅ 신청이 취소되었습니다.'); closeModal('apply'); window.editingParticipantId = null; window.editingPassword = null; updateDashboard(); logout(); }
-    else showToast(`❌ 취소 실패: ${await res.text()}`);
+    const res = await fetch(`${API_BASE}/Participants/${targetId}/cancel`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }), credentials: 'include' });
+    if (res.ok) { 
+        await alert('✅ 취소 요청이 정상적으로 접수되었습니다.\n\n취소 승인 대기 중에는 행사 도구 및 일부 서비스 이용이 제한됩니다.'); 
+        location.reload();
+    }
+    else {
+        const txt = await res.text();
+        showToast(`❌ 취소 실패: ${txt}`);
+    }
   } catch (err) { showToast('서버 연결 오류가 발생했습니다.'); }
 }
 
@@ -695,6 +810,18 @@ async function openManittoModal() {
       openModal('login'); 
       return; 
   }
+
+  try {
+    const meRes = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+    if (meRes.ok) {
+        const p = await meRes.json();
+        if (!p.isRegistered || p.isCancelRequested) {
+            await alert('취소 신청 상태이거나 취소된 참가자는 행사 도구를 이용할 수 없습니다.');
+            return;
+        }
+    }
+  } catch (e) {}
+
   try {
     const res = await fetch(`${API_BASE}/Manitto/me`, { credentials: 'include' }); 
     if (res.status === 401) {
@@ -1020,6 +1147,18 @@ async function openCohortModal() {
       openModal('login'); 
       return; 
   }
+
+  try {
+    const meRes = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+    if (meRes.ok) {
+        const p = await meRes.json();
+        if (!p.isRegistered || p.isCancelRequested) {
+            await alert('취소 신청 상태이거나 취소된 참가자는 행사 도구를 이용할 수 없습니다.');
+            return;
+        }
+    }
+  } catch (e) {}
+
   openModal('cohort'); updateCohortTable();
 }
 
@@ -1080,37 +1219,32 @@ async function openChangePasswordPopup() {
 window.alert = (msg) => showPopup('알림', msg, 'alert'); window.confirm = (msg) => showPopup('확인', msg, 'confirm'); window.prompt = (msg) => showPopup('확인', msg, 'prompt');
 window.openModal = openModal; window.closeModal = closeModal; window.closeBg = closeBg; window.switchType = switchType; window.openApplyArmy = openApplyArmy; window.openFeeModal = openFeeModal; window.openLocationModal = openLocationModal; window.openCohortModal = openCohortModal; window.toggleSchedule = toggleSchedule; window.applyCohortFilter = applyCohortFilter; window.openEditFromHome = openEditFromHome; window.showPopup = showPopup; window.setSurveyData = setSurveyData; window.openChangePasswordPopup = openChangePasswordPopup; window.submitApplication = submitApplication; window.doSubmit = submitApplication; window.toggleTransport = toggleTransport; window.toggleLicense = toggleLicense; window.goToCohort = goToCohort;
 
-// ===== V-MBTI LOGIC =====
+// ===== B-MBTI LOGIC =====
 const MBTI_QUESTIONS = [
   {
-    q: "경기 중 연속 실점으로 분위기가 가라앉았을 때?",
-    a: "파이팅!!! 소리 지르며 분위기를 띄운다.",
-    b: "조용히 다음 플레이를 어떻게 할지 복기한다.",
-    trait: "EI"
+    q: "경기 시작 전, 모르는 사람들과 팀이 되었을 때 나는?",
+    a: "먼저 말을 걸며 파이팅을 외친다",
+    b: "조용히 몸을 풀며 내 역할에 집중한다"
   },
   {
-    q: "공격 상황에서 당신이 더 선호하는 플레이는?",
-    a: "블로킹 사이를 뚫는 강력한 스파이크!",
-    b: "빈틈을 노리는 정교한 페인트나 연타!",
-    trait: "PT"
+    q: "공격 찬스가 왔을 때 내가 더 선호하는 득점 방식은?",
+    a: "블로킹 위에서 찍어 누르는 강력한 스파이크",
+    b: "상대 수비가 없는 곳을 찌르는 정교한 연타나 페인트"
   },
   {
-    q: "수비할 때 당신의 스타일은?",
-    a: "일단 몸부터 날리고 보는 허슬 플레이!",
-    b: "길목을 지키고 서서 정확하게 받아내는 위치 선정!",
-    trait: "HS"
+    q: "우리 팀 세터의 토스가 오늘따라 불안정하다면?",
+    a: "공이 올라오는 궤적과 높이를 분석해 맞춤형으로 뜬다",
+    b: "\"괜찮아!\"라고 외치며 일단 어떻게든 처리해주려 노력한다"
   },
   {
-    q: "팀원에게 피드백을 줄 때 당신은?",
-    a: "\"괜찮아! 할 수 있어!\" 격려부터 한다.",
-    b: "\"방금은 자세가 낮았어.\" 팩트부터 말한다.",
-    trait: "AL"
+    q: "랠리 상황에서 수비 위치를 잡을 때 나는?",
+    a: "미리 약속된 수비 포메이션 위치를 철저히 지킨다",
+    b: "공이 날아가는 방향을 보고 본능적으로 몸을 던진다"
   },
   {
-    q: "엠티 술자리에서 당신의 모습은?",
+    q: "경기가 끝나고 다 같이 회식을 갔을 때 나의 모습은?",
     a: "게임 주도! 텐션 폭발! 분위기 메이커",
-    b: "구석에서 소소하게 딥토크 하는 상담가",
-    trait: "Overall"
+    b: "구석에서 소소하게 딥토크 하는 상담가"
   }
 ];
 
@@ -1165,31 +1299,36 @@ function selectMBTIAnswer(ans) {
 }
 
 function showMBTIResult() {
-  const aCount = mbtiAnswers.filter(a => a === 'A').length;
-  const bCount = mbtiAnswers.filter(a => a === 'B').length;
-  
-  const q3 = mbtiAnswers[2]; // 수비 HS
-  
   let code = "";
-  if (aCount >= 4) code = "EPHA";
-  else if (bCount >= 4) code = "ITSL";
-  else if (q3 === 'A') code = "ETHL";
-  else code = "ITSA";
-
+  code += mbtiAnswers[0] === 'A' ? 'A' : 'R';
+  code += mbtiAnswers[1] === 'A' ? 'P' : 'C';
+  code += mbtiAnswers[2] === 'A' ? 'L' : 'H';
+  code += mbtiAnswers[3] === 'A' ? 'S' : 'F';
   showMBTIResultByCode(code);
 }
 
+const MBTI_RESULTS = {
+  "APLS": { title: "전술적 폭격기형", desc: "파이팅이 넘치며 약속된 플레이를 완벽히 수행함", mt: "고기 굽기부터 게임 진행까지 도맡는 과대표 스타일" },
+  "APLF": { title: "코트의 야생마형", desc: "강력한 파워와 본능적인 감각으로 득점을 몰아침", mt: "제일 늦게까지 남아서 술자리를 지키는 에너자이저" },
+  "APHS": { title: "열정의 리더형", desc: "팀 분위기를 주도하며 전술적으로 팀원을 독려함", mt: "분위기 처질 때쯤 브금(BGM) 선곡하며 텐션 올림" },
+  "APHF": { title: "분위기 메이커형", desc: "감각적인 플레이와 리액션으로 코트를 장악함", mt: "웃음소리가 제일 커서 멀리서도 위치 파악 가능" },
+  "ACLS": { title: "정밀한 저격수형", desc: "상대 빈틈을 논리적으로 분석해 정교하게 찌름", mt: "장보기 리스트 완벽 정리하고 회계 정산하는 총무" },
+  "ACLF": { title: "코트의 마술사형", desc: "예상치 못한 타이밍에 기술적인 페인트를 넣음", mt: "구석에서 웃긴 드립 하나씩 던져서 빵 터뜨림" },
+  "ACHS": { title: "든든한 살림꾼형", desc: "팀원들을 챙기며 정해진 위치를 끝까지 사수함", mt: "모두가 즐거운지 확인하며 조용히 뒷정리함" },
+  "ACHF": { title: "센스 만점 수비수형", desc: "본능적인 위치 선정과 따뜻한 소통 능력을 갖춤", mt: "선배·후배 모두에게 스스럼없이 다가가는 마당발" },
+  "RPLS": { title: "냉철한 에이스형", desc: "조용하지만 강력한 한 방으로 결과를 보여줌", mt: "필요한 말만 딱딱 하고 족구 내기에서 캐리함" },
+  "RPLF": { title: "묵묵한 해결사형", desc: "말없이 있다가 결정적인 순간에 몸을 날려 해결함", mt: "조용히 술 마시다가 게임 시작하면 눈빛 변함" },
+  "RPHS": { title: "소리 없는 기둥형", desc: "튀지는 않지만 팀원들의 멘탈을 전술적으로 지탱함", mt: "사람들 얘기 다 들어주고 고민 상담해 주는 상담소" },
+  "RPHF": { title: "자유로운 영혼형", desc: "코트 위에서 가장 편안하고 유연하게 움직임", mt: "안주 맛집 기가 막히게 찾아서 혼자 잘 즐김" },
+  "RCLS": { title: "인간 데이터기형", desc: "조용히 상대 코스를 읽고 정해진 수비를 해냄", mt: "다음 날 아침 제일 먼저 일어나서 설거지하는 타입" },
+  "RCLF": { title: "본능적 전략가형", desc: "수 싸움에 능하며 감각적인 수비 범위가 넓음", mt: "다들 취했을 때 혼자 안 취하고 상황 정리 끝냄" },
+  "RCHS": { title: "안전 지대형", desc: "빈틈없는 위치 선정과 따뜻한 격려로 팀을 안정시킴", mt: "뒤에서 묵묵히 고기 나르고 쌈 싸주는 스타일" },
+  "RCHF": { title: "코트의 관찰자형", desc: "흐름을 읽는 눈이 좋고 팀원과 부드럽게 호흡함", mt: "마당 평상에 앉아 밤하늘 보며 힐링하는 감성파" }
+};
+
 function showMBTIResultByCode(code) {
-  let result = {};
-  if (code === "EPHA") {
-    result = { code: "EPHA", title: "🔥 열정의 불꽃 하이커 (Outside Hitter)", desc: "빅이큐의 에너자이저! 당신이 나타나면 코트 위 공기가 바뀝니다. 실력보다 기세로 상대를 압도하는 타입.", mt: "술자리 게임의 지배자. 다음 날 목이 쉴 확률 200%." };
-  } else if (code === "ITSL") {
-    result = { code: "ITSL", title: "❄️ 냉철한 야전사령관 (Setter)", desc: "차가운 머리와 뜨거운 손끝! 경기의 흐름을 읽고 조율하는 능력이 탁월합니다. 팀원들이 가장 의지하는 뇌섹남/녀 타입.", mt: "회비 정산이나 장보기 리스트를 짜고 있을 확률이 높음." };
-  } else if (code === "ETHL") {
-    result = { code: "ETHL", title: "🕊️ 불사조 수비 요정 (Libero)", desc: "헌신의 아이콘! 보이지 않는 곳에서 팀을 지탱하는 든든한 조력자입니다. 당신의 디그 한 번이 팀원들을 춤추게 합니다.", mt: "남들 놀 때 뒤에서 뒷정리하거나 취한 사람 챙겨주는 천사." };
-  } else {
-    result = { code: "ITSA", title: "🧱 통곡의 벽 (Middle Blocker)", desc: "상대의 수를 미리 읽고 차단하는 지능형 플레이어! 묵묵히 제 자리를 지키며 상대의 공격을 무력화시킵니다.", mt: "묵묵히 고기 굽다가 한마디씩 툭 던지는게 제일 웃긴 스타일." };
-  }
+  let result = MBTI_RESULTS[code];
+  if (!result) result = MBTI_RESULTS["APLS"]; // Fallback
   
   currentMbtiResultCode = code;
 
@@ -1198,7 +1337,10 @@ function showMBTIResultByCode(code) {
   document.getElementById('mbti-quiz').style.display = 'none';
   document.getElementById('mbti-result').style.display = 'block';
   
-  document.getElementById('res-mbti-code').textContent = result.code;
+  const lettersHtml = code.split('').map(c => 
+    `<div style="width: 44px; height: 44px; background: var(--blue-soft); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; color: var(--blue-deep); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">${c}</div>`
+  ).join('');
+  document.getElementById('res-mbti-code').innerHTML = `<div style="display: flex; justify-content: center; gap: 8px;">${lettersHtml}</div>`;
   document.getElementById('res-title').textContent = result.title;
   document.getElementById('res-desc').textContent = result.desc;
   document.getElementById('res-mt').textContent = result.mt;
@@ -1278,6 +1420,17 @@ async function openCookingBattleModal() {
       openModal('login'); 
       return; 
   }
+
+  try {
+    const meRes = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+    if (meRes.ok) {
+        const p = await meRes.json();
+        if (!p.isRegistered || p.isCancelRequested) {
+            await alert('취소 신청 상태이거나 취소된 참가자는 행사 도구를 이용할 수 없습니다.');
+            return;
+        }
+    }
+  } catch (e) {}
   
   openModal('cooking');
   await refreshCookingStatus();
@@ -1299,7 +1452,7 @@ async function refreshCookingStatus() {
     // My Team Button
     const btnMyTeam = document.getElementById('btnMyTeam');
     if (btnMyTeam) {
-        const isAssigned = window.myCookingData.teamsAssigned;
+        const isAssigned = data.teams && data.teams.some(t => t.chef);
         btnMyTeam.disabled = !isAssigned;
         btnMyTeam.style.opacity = isAssigned ? '1' : '0.5';
         btnMyTeam.style.background = isAssigned ? 'var(--blue-deep)' : 'var(--bg3)';
@@ -1331,8 +1484,6 @@ async function refreshCookingStatus() {
     };
 
     // Stats
-    document.getElementById('black-percent').textContent = Math.round(data.cheerStats.blackPercent);
-    document.getElementById('white-percent').textContent = Math.round(data.cheerStats.whitePercent);
     document.getElementById('black-cheer-bar').style.height = `${data.cheerStats.blackPercent}%`;
     document.getElementById('white-cheer-bar').style.height = `${data.cheerStats.whitePercent}%`;
 
@@ -1524,3 +1675,255 @@ document.addEventListener('DOMContentLoaded', () => {
   const tb = document.getElementById('themeBtn'); if (tb) tb.addEventListener('click', function() { const d = document.documentElement.dataset.theme === 'dark'; document.documentElement.dataset.theme = d ? 'light' : 'dark'; this.textContent = d ? '🌙' : '☀️'; });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => closeModal(m.id.replace('modal-', ''))); });
 });
+
+// ===== VEHICLE ASSIGNMENT =====
+let vehiclePollingInterval = null;
+
+async function openVehicleModal() {
+  const name = localStorage.getItem('participantName'); 
+  if (!name) { 
+      window.pendingAction = openVehicleModal;
+      await alert('MT 참가 신청 후 확인 가능합니다'); 
+      openModal('login'); 
+      return; 
+  }
+
+  try {
+    const meRes = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+    if (meRes.ok) {
+        const p = await meRes.json();
+        if (!p.isRegistered || p.isCancelRequested) {
+            await alert('취소 신청 상태이거나 취소된 참가자는 행사 도구를 이용할 수 없습니다.');
+            return;
+        }
+    }
+  } catch (e) {}
+
+  try {
+    const res = await fetch(`${API_BASE}/Vehicle/my`, { credentials: 'include' });
+    if (res.status === 401) {
+        await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        logout();
+        return;
+    }
+    if (res.status === 404) {
+        await alert('아직 차량이 배정되지 않았습니다. 관리자의 배정을 기다려주세요.');
+        return;
+    }
+    if (!res.ok) { showToast('데이터 로드에 실패했습니다.'); return; }
+
+    const data = await res.json();
+    if (!data.isPublic && !window.isAdmin) {
+        await alert('🔒 아직 차량 배정표가 공개되지 않았습니다.');
+        return;
+    }
+
+    openModal('vehicle');
+    switchVehicleTab('my');
+    
+    // Start polling
+    if (vehiclePollingInterval) clearInterval(vehiclePollingInterval);
+    vehiclePollingInterval = setInterval(() => {
+      const modal = document.getElementById('modal-vehicle');
+      if (modal && modal.classList.contains('active')) {
+        const activeTab = document.querySelector('.tab-btn.active#tab-vehicle-my') ? 'my' : 'all';
+        if (activeTab === 'my') fetchVehicleMy();
+        else fetchVehicleAll();
+      } else {
+        clearInterval(vehiclePollingInterval);
+        vehiclePollingInterval = null;
+      }
+    }, 5000);
+  } catch (err) {
+    console.error(err);
+    showToast('서버 통신 중 오류가 발생했습니다.');
+  }
+}
+
+function switchVehicleTab(tab) {
+  const tabs = ['my', 'all'];
+  tabs.forEach(t => {
+    const btn = document.getElementById(`tab-vehicle-${t}`);
+    const content = document.getElementById(`vehicle-${t}-content`);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (content) content.style.display = t === tab ? 'block' : 'none';
+  });
+
+  if (tab === 'my') fetchVehicleMy();
+  else fetchVehicleAll();
+}
+
+async function fetchVehicleMy() {
+  const titleEl = document.getElementById('vehicle-my-title');
+  const infoEl = document.getElementById('vehicle-my-info');
+  const privateMsg = document.getElementById('vehicle-private-msg');
+  const driverActions = document.getElementById('vehicle-driver-actions');
+  const myContent = document.getElementById('vehicle-my-content');
+
+  try {
+    const res = await fetch(`${API_BASE}/Vehicle/my`, { credentials: 'include' });
+    if (res.status === 401) {
+      if (myContent) myContent.style.display = 'none';
+      if (privateMsg) {
+        privateMsg.style.display = 'block';
+        privateMsg.innerHTML = '🔒 로그인 후 이용 가능합니다.';
+      }
+      return;
+    }
+    if (res.status === 404) {
+      if (myContent) myContent.style.display = 'block';
+      if (privateMsg) privateMsg.style.display = 'none';
+      if (titleEl) titleEl.textContent = '아직 차량이 배정되지 않았습니다.';
+      if (infoEl) infoEl.innerHTML = '<p style="text-align:center; color:var(--text3);">관리자의 배정을 기다려주세요.</p>';
+      if (driverActions) driverActions.style.display = 'none';
+      return;
+    }
+    if (!res.ok) throw new Error();
+
+    const data = await res.json();
+    if (!data.isPublic && !window.isAdmin) {
+      if (myContent) myContent.style.display = 'none';
+      if (privateMsg) {
+        privateMsg.style.display = 'block';
+        privateMsg.innerHTML = '🔒 아직 차량 배정표가 공개되지 않았습니다.';
+      }
+      return;
+    }
+
+    if (myContent) myContent.style.display = 'block';
+    if (privateMsg) privateMsg.style.display = 'none';
+
+    const v = data.vehicle;
+    const myName = window.currentParticipant ? window.currentParticipant.name : '본인';
+    if (titleEl) titleEl.textContent = `${myName} 님의 이동수단: [${v.vehicleNumber}호차]`;
+
+    let html = `
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <div style="font-size: 12px; color: var(--text3); margin-bottom: 6px; font-weight: 700;">배정 상태</div>
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: var(--blue-soft); color: var(--blue-deep); padding: 6px 14px; border-radius: 100px; font-weight: 800; font-size: 14px;">
+              ${getVehicleStatusIcon(v.status)} ${getVehicleStatusText(v.status)}
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 12px; color: var(--text3); margin-bottom: 6px; font-weight: 700;">차량 정보</div>
+            <div style="font-size: 15px; font-weight: 800; color: var(--text);">
+              ${v.vehicleNumber}호차 (${v.type === 'OwnCar' || v.type === 0 ? '자차' : '택시'})
+            </div>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 20px;">
+          <div style="font-size: 12px; color: var(--text3); margin-bottom: 10px; font-weight: 700;">함께 이동하는 인원</div>
+          <div style="background: var(--bg); border-radius: 14px; padding: 16px; border: 1px solid var(--border);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px dashed var(--border);">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--blue-soft); display: flex; align-items: center; justify-content: center; font-size: 18px;">👑</div>
+              <div>
+                <div style="font-size: 11px; color: var(--text3); font-weight: 700;">차장</div>
+                <div style="font-size: 14px; font-weight: 800;">${v.driver ? `${v.driver.name} (${v.driver.generation}기)` : '미지정'}</div>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              ${v.passengers.map(p => `<span style="background: var(--bg2); padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; color: var(--text2); border: 1px solid var(--border);">${p.name}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+    if (infoEl) infoEl.innerHTML = html;
+
+    if (v.driver && window.currentParticipant && v.driver.id === window.currentParticipant.id) {
+      if (driverActions) driverActions.style.display = 'block';
+      window.myVehicleId = v.id;
+    } else {
+      if (driverActions) driverActions.style.display = 'none';
+    }
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function fetchVehicleAll() {
+  const container = document.getElementById('vehicle-list-container');
+  const privateMsg = document.getElementById('vehicle-private-msg');
+  const allContent = document.getElementById('vehicle-all-content');
+
+  try {
+    const res = await fetch(`${API_BASE}/Vehicle/all`, { credentials: 'include' });
+    if (!res.ok) throw new Error();
+
+    const data = await res.json();
+    if (!data.isPublic && !window.isAdmin) {
+      if (allContent) allContent.style.display = 'none';
+      if (privateMsg) {
+        privateMsg.style.display = 'block';
+        privateMsg.innerHTML = '🔒 아직 차량 배정표가 공개되지 않았습니다.';
+      }
+      return;
+    }
+
+    if (allContent) allContent.style.display = 'block';
+    if (privateMsg) privateMsg.style.display = 'none';
+
+    if (data.vehicles.length === 0) {
+      if (container) container.innerHTML = '<p style="text-align:center; color:var(--text3); padding:40px 0;">배정된 차량이 없습니다.</p>';
+      return;
+    }
+
+    if (container) container.innerHTML = data.vehicles.map(v => `
+      <div class="card" style="padding: 16px; border: 1.5px solid ${v.status === 3 ? 'var(--border)' : 'var(--blue-mid)'}; opacity: ${v.status === 3 ? 0.7 : 1};">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="font-size: 15px; font-weight: 800;">[${v.vehicleNumber}호차] ${v.driver ? v.driver.name : '차장 없음'}</div>
+          <div style="font-size: 13px; font-weight: 700; color: var(--blue-deep);">
+            ${getVehicleStatusIcon(v.status)} ${getVehicleStatusText(v.status)}
+          </div>
+        </div>
+        <div style="font-size: 12px; color: var(--text3); line-height: 1.5;">
+          ${v.passengers.map(p => p.name).join(', ')}
+        </div>
+      </div>
+    `).join('');
+
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function updateVehicleStatus(status) {
+  if (!window.myVehicleId) return;
+  const statusMap = { 'Called': 1, 'Moving': 2, 'Arrived': 3 };
+  try {
+    const res = await fetch(`${API_BASE}/Vehicle/status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ vehicleId: window.myVehicleId, status: statusMap[status] }),
+      credentials: 'include'
+    });
+    if (res.ok) {
+      showToast('상태가 업데이트되었습니다.');
+      fetchVehicleMy();
+    } else {
+      showToast('상태 업데이트에 실패했습니다.');
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function getVehicleStatusIcon(status) {
+  switch (status) {
+    case 1: case 'Called': return '📞'; case 2: case 'Moving': return '🚚'; case 3: case 'Arrived': return '✅'; default: return '⏳';
+  }
+}
+
+function getVehicleStatusText(status) {
+  switch (status) {
+    case 1: case 'Called': return '호출 완료'; case 2: case 'Moving': return '이동중'; case 3: case 'Arrived': return '도착'; default: return '대기 중';
+  }
+}
+
+window.openVehicleModal = openVehicleModal;
+window.switchVehicleTab = switchVehicleTab;
+window.updateVehicleStatus = updateVehicleStatus;

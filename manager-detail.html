@@ -36,6 +36,7 @@
         #regTable th:nth-child(13) { width: 120px; } /* 알레르기 (Wider & Wrap) */
         #regTable th:nth-child(14) { min-width: 150px; } /* 메모/요청 (Flexible & Wrap) */
         #regTable th:nth-child(15) { width: 100px; } /* 등록일 */
+        #regTable th:nth-child(16) { width: 120px; } /* 관리 */
 
         /* Unregistered Table Specific */
         #unregTable { min-width: 400px; width: 100%; table-layout: fixed; border-top: 2px solid #ddd; }
@@ -124,6 +125,7 @@
                             <th onclick="sortTable('allergies')">알레르기</th>
                             <th onclick="sortTable('remarks')">메모/요청</th>
                             <th onclick="sortTable('createdAt')">등록일</th>
+                            <th>관리</th>
                         </tr>
                     </thead>
                     <tbody id="regTableBody"></tbody>
