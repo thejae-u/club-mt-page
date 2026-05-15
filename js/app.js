@@ -1433,15 +1433,36 @@ async function openCookingBattleModal() {
   } catch (e) {}
   
   openModal('cooking');
-  await refreshCookingStatus();
+  const statusData = await refreshCookingStatus();
   await refreshCookingComments();
+
+  // Start polling only if public
+  if (cookingPollingInterval) clearInterval(cookingPollingInterval);
+  if (statusData && statusData.isPublic) {
+    cookingPollingInterval = setInterval(() => {
+      const modal = document.getElementById('modal-cooking');
+      if (modal && modal.classList.contains('active')) {
+        refreshCookingStatus().then(data => {
+            // If it becomes private while polling, stop polling
+            if (data && !data.isPublic) {
+                clearInterval(cookingPollingInterval);
+                cookingPollingInterval = null;
+            }
+        });
+        refreshCookingComments();
+      } else {
+        clearInterval(cookingPollingInterval);
+        cookingPollingInterval = null;
+      }
+    }, 5000);
+  }
 }
 
 async function refreshCookingStatus() {
   try {
     const res = await fetch(`${API_BASE}/CookingBattle/status`, { credentials: 'include' });
     if (res.status === 401) return logout();
-    if (!res.ok) return;
+    if (!res.ok) return null;
     const data = await res.json();
 
     if (data.myApplication) {
@@ -1515,7 +1536,12 @@ async function refreshCookingStatus() {
       btn.style.opacity = data.isVotingActive ? '1' : '0.5';
       btn.style.cursor = data.isVotingActive ? 'pointer' : 'not-allowed';
     });
-  } catch (e) { console.error(e); }
+
+    return data;
+  } catch (e) { 
+    console.error(e);
+    return null;
+  }
 }
 
 async function openMyTeamModal() {
@@ -1678,6 +1704,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== VEHICLE ASSIGNMENT =====
 let vehiclePollingInterval = null;
+let cookingPollingInterval = null;
 
 async function openVehicleModal() {
   const name = localStorage.getItem('participantName'); 
@@ -1809,7 +1836,7 @@ async function fetchVehicleMy() {
           <div style="text-align: right;">
             <div style="font-size: 12px; color: var(--text3); margin-bottom: 6px; font-weight: 700;">차량 정보</div>
             <div style="font-size: 15px; font-weight: 800; color: var(--text);">
-              ${v.vehicleNumber}호차 (${v.type === 'OwnCar' || v.type === 0 ? '자차' : '택시'})
+              ${v.vehicleNumber}호차
             </div>
           </div>
         </div>

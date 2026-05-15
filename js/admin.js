@@ -330,34 +330,21 @@ async function loadManittoTab() {
         const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
         if (res.ok) {
             const s = await res.json();
-            const btnShow = document.getElementById('btnShowManitto');
-            const btnHide = document.getElementById('btnHideManitto');
-            if (btnShow && btnHide) {
-                // Dim the inactive button
-                btnShow.style.opacity = s.isManittoPublic ? '1' : '0.4';
-                btnShow.style.boxShadow = s.isManittoPublic ? '0 4px 12px rgba(45,70,141,0.3)' : 'none';
-                btnHide.style.opacity = s.isManittoPublic ? '0.4' : '1';
-                btnHide.style.boxShadow = s.isManittoPublic ? 'none' : '0 4px 12px rgba(0,0,0,0.1)';
+            const btn = document.getElementById('btnToggleManittoPublic');
+            if (btn) {
+                if (s.isManittoPublic) {
+                    btn.textContent = "✅ 공개 상태";
+                    btn.style.background = "#22C55E";
+                } else {
+                    btn.textContent = "🔒 비공개 상태";
+                    btn.style.background = "#212529";
+                }
             }
         }
     } catch (e) {}
 }
 
-async function setManittoVisibility(shouldBePublic) {
-    // Check current state first to avoid redundant calls
-    try {
-        const resSettings = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
-        if (resSettings.ok) {
-            const s = await resSettings.json();
-            if (s.isManittoPublic === shouldBePublic) {
-                await alert(`이미 ${shouldBePublic ? '공개' : '비공개'} 상태입니다.`);
-                return;
-            }
-        }
-    } catch (e) {}
-
-    if (!await confirm(`마니또 정보를 ${shouldBePublic ? '공개' : '숨김'} 처리하시겠습니까?`)) return;
-
+async function toggleManittoVisibility() {
     try {
         const res = await fetch(`${API_BASE}/Management/manitto/toggle-visibility`, { 
             method: 'POST', 
@@ -709,6 +696,7 @@ async function loadCookingTab() {
             const assignments = await res.json();
             const blackList = document.getElementById('admin-cooking-black-team');
             const whiteList = document.getElementById('admin-cooking-white-team');
+            const spectatorList = document.getElementById('admin-cooking-spectator-team');
 
             const renderTeam = (teamName, container) => {
                 const filtered = assignments.filter(a => a.team === teamName);
@@ -717,15 +705,79 @@ async function loadCookingTab() {
                     return;
                 }
                 container.innerHTML = filtered.map(a => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:white; padding:8px 12px; border-radius:8px; border:1px solid #eee;">
-                        <span style="font-weight:700;">${escapeHTML(a.name)} (${a.generation}기)</span>
-                        <span style="font-size:11px; background:#eee; padding:2px 6px; border-radius:4px; color:#666;">${escapeHTML(a.role)}</span>
+                    <div style="display:flex; flex-direction:column; background:white; padding:10px; border-radius:8px; border:1px solid #eee; gap:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:700; font-size:14px;">${escapeHTML(a.name)} (${a.generation}기)</span>
+                            <button onclick="deleteCookingAssignment(${a.id})" style="background:none; border:none; color:#ff4d4d; padding:0; cursor:pointer; width:auto; font-size:12px; margin:0;">삭제</button>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                            <select onchange="updateCookingAssignment(${a.id}, this)" data-type="team" style="padding:4px; font-size:11px; border-radius:4px; border:1px solid #ddd;">
+                                <option value="Black" ${a.team === 'Black' ? 'selected' : ''}>흑팀</option>
+                                <option value="White" ${a.team === 'White' ? 'selected' : ''}>백팀</option>
+                                <option value="None" ${a.team === 'None' ? 'selected' : ''}>무소속</option>
+                            </select>
+                            <select onchange="updateCookingAssignment(${a.id}, this)" data-type="role" style="padding:4px; font-size:11px; border-radius:4px; border:1px solid #ddd;">
+                                <option value="OrderChef" ${a.role === 'OrderChef' ? 'selected' : ''}>오더셰프</option>
+                                <option value="Avatar" ${a.role === 'Avatar' ? 'selected' : ''}>아바타</option>
+                                <option value="Assistant" ${a.role === 'Assistant' ? 'selected' : ''}>어시스턴트</option>
+                                <option value="Spectator" ${a.role === 'Spectator' ? 'selected' : ''}>참관인</option>
+                            </select>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            const renderSpectators = (container) => {
+                const filtered = assignments.filter(a => a.team === 'None' || a.role === 'Spectator');
+                if (filtered.length === 0) {
+                    container.innerHTML = '<p style="color: #999; grid-column: span 2;">배정된 참관인이 없습니다.</p>';
+                    return;
+                }
+                container.innerHTML = filtered.map(a => `
+                    <div style="display:flex; flex-direction:column; background:white; padding:12px; border-radius:8px; border:1px solid #eee; gap:8px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="font-weight:700; font-size:14px;">${escapeHTML(a.name)} (${a.generation}기)</span>
+                            <div style="display:flex; gap:8px;">
+                                <button onclick="deleteCookingAssignment(${a.id})" style="background:none; border:none; color:#ff4d4d; padding:0; cursor:pointer; width:auto; font-size:11px; margin:0;">삭제</button>
+                            </div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                            <select onchange="updateCookingAssignment(${a.id}, this)" data-type="team" style="padding:4px; font-size:11px; border-radius:4px; border:1px solid #ddd;">
+                                <option value="None" ${a.team === 'None' ? 'selected' : ''}>무소속</option>
+                                <option value="Black" ${a.team === 'Black' ? 'selected' : ''}>흑팀</option>
+                                <option value="White" ${a.team === 'White' ? 'selected' : ''}>백팀</option>
+                            </select>
+                            <select onchange="updateCookingAssignment(${a.id}, this)" data-type="role" style="padding:4px; font-size:11px; border-radius:4px; border:1px solid #ddd;">
+                                <option value="Spectator" ${a.role === 'Spectator' ? 'selected' : ''}>참관인</option>
+                                <option value="Avatar" ${a.role === 'Avatar' ? 'selected' : ''}>아바타</option>
+                                <option value="Assistant" ${a.role === 'Assistant' ? 'selected' : ''}>어시스턴트</option>
+                                <option value="OrderChef" ${a.role === 'OrderChef' ? 'selected' : ''}>오더셰프</option>
+                            </select>
+                        </div>
+                        <div style="font-size:11px; color:#666; display:flex; gap:12px; border-top:1px solid #f0f0f0; padding-top:8px;">
+                            <span>응원 가능: <b style="color:var(--blue-deep);">${a.remainingCheers}</b></span>
+                            <span>투표: <b style="${a.voteTeam ? 'color:#E5484D;' : 'color:#999;'}">${a.voteTeam ? (a.voteTeam === 'Black' ? '⚫ 흑팀' : '⚪ 백팀') : '미완료'}</b></span>
+                        </div>
+                        <div style="font-size:11px; color:#666;">
+                            <div style="font-weight:700; margin-bottom:4px;">💬 한줄평 내역 (${a.comments.length})</div>
+                            <div style="max-height:80px; overflow-y:auto; background:#f9f9f9; padding:6px; border-radius:4px; line-height:1.4;">
+                                ${a.comments.length > 0 
+                                    ? a.comments.map(c => `<div style="margin-bottom:6px; border-bottom:1px dashed #eee; padding-bottom:4px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                        <div>
+                                            <span style="color:${c.team === 'Black' ? '#333' : '#2D468D'}; font-weight:700;">[${c.team === 'Black' ? '흑' : '백'}]</span> ${escapeHTML(c.content)}
+                                        </div>
+                                        <button onclick="deleteCookingComment(${c.id})" style="background:none; border:none; color:#ff4d4d; padding:0; cursor:pointer; width:auto; font-size:10px; margin:0; flex-shrink:0;">삭제</button>
+                                      </div>`).join('') 
+                                    : '<span style="color:#ccc;">작성한 평이 없습니다.</span>'}
+                            </div>
+                        </div>
                     </div>
                 `).join('');
             };
 
             if (blackList) renderTeam('Black', blackList);
             if (whiteList) renderTeam('White', whiteList);
+            if (spectatorList) renderSpectators(spectatorList);
         }
     } catch (e) { console.error('Failed to load assignments', e); }
     
@@ -737,6 +789,18 @@ async function loadCookingTab() {
         const noneOpt = '<option value="0">선택 안함</option>';
         bSel.innerHTML = noneOpt + options;
         wSel.innerHTML = noneOpt + options;
+
+        // Auto-select current chefs
+        try {
+            const resA = await fetch(`${API_BASE}/Management/cooking-battle/assignments`, { credentials: 'include' });
+            if (resA.ok) {
+                const assignments = await resA.ok ? await resA.json() : [];
+                const bChef = assignments.find(a => a.team === 'Black' && a.role === 'OrderChef');
+                const wChef = assignments.find(a => a.team === 'White' && a.role === 'OrderChef');
+                if (bChef) bSel.value = bChef.participantId;
+                if (wChef) wSel.value = wChef.participantId;
+            }
+        } catch (e) {}
     }
 
     // Fill Excluded List
@@ -782,33 +846,41 @@ async function updateCookingUI() {
         if (res.ok) {
             const s = await res.json();
             window.currentSettings = s;
-            const btnShow = document.getElementById('btnShowCooking');
-            const btnHide = document.getElementById('btnHideCooking');
-            const btnStartVote = document.getElementById('btnStartCookingVote');
-            const btnStopVote = document.getElementById('btnStopCookingVote');
+            const btnPub = document.getElementById('btnToggleCookingPublic');
+            const btnVote = document.getElementById('btnToggleCookingVote');
 
-            if (btnShow && btnHide) {
-                btnShow.style.opacity = s.isCookingBattlePublic ? '1' : '0.4';
-                btnHide.style.opacity = s.isCookingBattlePublic ? '0.4' : '1';
+            if (btnPub) {
+                if (s.isCookingBattlePublic) {
+                    btnPub.textContent = "✅ 공개 상태";
+                    btnPub.style.background = "#22C55E";
+                } else {
+                    btnPub.textContent = "🔒 비공개 상태";
+                    btnPub.style.background = "#212529";
+                }
             }
-            if (btnStartVote && btnStopVote) {
-                btnStartVote.style.opacity = s.isCookingBattleVotingActive ? '1' : '0.4';
-                btnStopVote.style.opacity = s.isCookingBattleVotingActive ? '0.4' : '1';
+            if (btnVote) {
+                if (s.isCookingBattleVotingActive) {
+                    btnVote.textContent = "🗳️ 투표 진행 중";
+                    btnVote.style.background = "#E5484D";
+                } else {
+                    btnVote.textContent = "⏹️ 투표 종료 상태";
+                    btnVote.style.background = "#212529";
+                }
             }
         }
     } catch (e) {}
 }
 
-async function setCookingVisibility(val) {
+async function toggleCookingVisibility() {
     if (!window.currentSettings) return;
-    window.currentSettings.isCookingBattlePublic = val;
+    window.currentSettings.isCookingBattlePublic = !window.currentSettings.isCookingBattlePublic;
     await saveSettings();
     updateCookingUI();
 }
 
-async function setCookingVoteStatus(val) {
+async function toggleCookingVoteStatus() {
     if (!window.currentSettings) return;
-    window.currentSettings.isCookingBattleVotingActive = val;
+    window.currentSettings.isCookingBattleVotingActive = !window.currentSettings.isCookingBattleVotingActive;
     await saveSettings();
     updateCookingUI();
 }
@@ -829,10 +901,106 @@ async function assignCookingTeams() {
         });
         if (res.ok) {
             await alert('✅ 팀 배정이 완료되었습니다.');
+            loadCookingTab();
         } else {
             alert('배정 실패');
         }
     } catch (e) { alert('서버 오류'); }
+}
+
+async function updateCookingAssignment(id, el) {
+    const container = el.closest('div');
+    let team = container.querySelector('select[data-type="team"]').value;
+    let role = container.querySelector('select[data-type="role"]').value;
+
+    // Logic for transitions
+    if (el.dataset.type === 'team') {
+        if (team === 'None') {
+            role = 'Spectator'; // If team is None, must be Spectator
+        } else if (role === 'Spectator') {
+            role = 'Assistant'; // If moved to team but role was Spectator, default to Assistant
+        }
+    } else if (el.dataset.type === 'role') {
+        if (role === 'Spectator') {
+            team = 'None'; // If role is Spectator, must be None team
+        } else if (team === 'None') {
+            team = 'Black'; // If changed to active role but team was None, default to Black (or similar)
+        }
+    }
+
+    const roleMap = { 'OrderChef': 1, 'Avatar': 2, 'Assistant': 3, 'Spectator': 0 };
+    const teamMap = { 'None': 0, 'Black': 1, 'White': 2 };
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/assignments/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                team: teamMap[team], 
+                role: roleMap[role] 
+            }),
+            credentials: 'include'
+        });
+        if (res.ok) {
+            loadCookingTab();
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function deleteCookingAssignment(id) {
+    if (!await confirm('해당 배정을 삭제하시겠습니까?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/assignments/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.ok) {
+            loadCookingTab();
+        }
+    } catch (e) { console.error(e); }
+}
+
+async function deleteCookingComment(id) {
+    if (!await confirm('이 한줄평을 삭제하시겠습니까?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/comments/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.ok) {
+            loadCookingTab();
+        } else {
+            const msg = await res.text();
+            alert(`삭제 실패: ${msg}`);
+        }
+    } catch (e) { console.error(e); }
+}
+
+window.updateCookingAssignment = updateCookingAssignment;
+window.deleteCookingAssignment = deleteCookingAssignment;
+window.deleteCookingComment = deleteCookingComment;
+
+async function resetCookingTeams() {
+    if (!await confirm('오더 셰프를 제외한 팀 배정 정보를 초기화하시겠습니까?')) return;
+    const password = await window.prompt('관리자 비밀번호를 입력해주세요:');
+    if (!password) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/reset-teams`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
+            credentials: 'include' 
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            await alert('✅ 팀 배정 정보가 초기화되었습니다. (오더 셰프 유지)');
+            loadCookingTab();
+        } else {
+            const msg = await res.text();
+            await alert(`❌ 초기화 실패: ${msg || '알 수 없는 오류'}`);
+        }
+    } catch (e) { await alert('서버 오류'); }
 }
 
 async function resetCookingBattle() {
@@ -1594,7 +1762,7 @@ window.addMissions = addMissions;
 window.deleteMission = deleteMission;
 window.toggleSelectAllMissions = toggleSelectAllMissions;
 window.deleteSelectedMissions = deleteSelectedMissions;
-window.setManittoVisibility = setManittoVisibility;
+window.toggleManittoVisibility = toggleManittoVisibility;
 window.matchManitto = matchManitto;
 window.updateManittoAssignmentLocal = updateManittoAssignmentLocal;
 window.addModification = addModification;
@@ -1614,9 +1782,10 @@ window.sortTable = sortTable;
 window.resetSettings = resetSettings;
 window.resetParticipants = resetParticipants;
 window.resetManitto = resetManitto;
-window.setCookingVisibility = setCookingVisibility;
-window.setCookingVoteStatus = setCookingVoteStatus;
+window.toggleCookingVisibility = toggleCookingVisibility;
+window.toggleCookingVoteStatus = toggleCookingVoteStatus;
 window.assignCookingTeams = assignCookingTeams;
+window.resetCookingTeams = resetCookingTeams;
 window.resetCookingBattle = resetCookingBattle;
 
 // --- DANGER ZONE ---
@@ -1958,17 +2127,30 @@ async function silentSaveVehicleAssignments(showSuccess = false) {
 
 async function resetVehicleAssignments() {
     if (!await confirm("정말로 모든 차량 배정 데이터를 초기화하시겠습니까?")) return;
+    const password = await window.prompt('관리자 비밀번호를 입력해주세요:');
+    if (!password) return;
+
     try {
         const res = await fetch(`${API_BASE}/Vehicle/admin/reset`, {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401) {
+            const data = await res.json().catch(() => ({}));
+            if (data.message === "비밀번호가 일치하지 않습니다.") {
+                await alert('❌ 비밀번호가 일치하지 않습니다.');
+                return;
+            }
+            return logout(true);
+        }
         if (res.ok) {
             await alert('✅ 초기화 완료');
             fetchAdminVehicleList();
         } else {
-            await alert('❌ 초기화 실패');
+            const msg = await res.text();
+            await alert(`❌ 초기화 실패: ${msg || '알 수 없는 오류'}`);
         }
     } catch (e) { await alert('서버 오류'); }
 }
