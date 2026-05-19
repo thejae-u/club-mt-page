@@ -1308,45 +1308,171 @@ function showMBTIResult() {
 }
 
 const MBTI_RESULTS = {
-  "APLS": { title: "전술적 폭격기형", desc: "파이팅이 넘치며 약속된 플레이를 완벽히 수행함", mt: "고기 굽기부터 게임 진행까지 도맡는 과대표 스타일" },
-  "APLF": { title: "코트의 야생마형", desc: "강력한 파워와 본능적인 감각으로 득점을 몰아침", mt: "제일 늦게까지 남아서 술자리를 지키는 에너자이저" },
-  "APHS": { title: "열정의 리더형", desc: "팀 분위기를 주도하며 전술적으로 팀원을 독려함", mt: "분위기 처질 때쯤 브금(BGM) 선곡하며 텐션 올림" },
-  "APHF": { title: "분위기 메이커형", desc: "감각적인 플레이와 리액션으로 코트를 장악함", mt: "웃음소리가 제일 커서 멀리서도 위치 파악 가능" },
-  "ACLS": { title: "정밀한 저격수형", desc: "상대 빈틈을 논리적으로 분석해 정교하게 찌름", mt: "장보기 리스트 완벽 정리하고 회계 정산하는 총무" },
-  "ACLF": { title: "코트의 마술사형", desc: "예상치 못한 타이밍에 기술적인 페인트를 넣음", mt: "구석에서 웃긴 드립 하나씩 던져서 빵 터뜨림" },
-  "ACHS": { title: "든든한 살림꾼형", desc: "팀원들을 챙기며 정해진 위치를 끝까지 사수함", mt: "모두가 즐거운지 확인하며 조용히 뒷정리함" },
-  "ACHF": { title: "센스 만점 수비수형", desc: "본능적인 위치 선정과 따뜻한 소통 능력을 갖춤", mt: "선배·후배 모두에게 스스럼없이 다가가는 마당발" },
-  "RPLS": { title: "냉철한 에이스형", desc: "조용하지만 강력한 한 방으로 결과를 보여줌", mt: "필요한 말만 딱딱 하고 족구 내기에서 캐리함" },
-  "RPLF": { title: "묵묵한 해결사형", desc: "말없이 있다가 결정적인 순간에 몸을 날려 해결함", mt: "조용히 술 마시다가 게임 시작하면 눈빛 변함" },
-  "RPHS": { title: "소리 없는 기둥형", desc: "튀지는 않지만 팀원들의 멘탈을 전술적으로 지탱함", mt: "사람들 얘기 다 들어주고 고민 상담해 주는 상담소" },
-  "RPHF": { title: "자유로운 영혼형", desc: "코트 위에서 가장 편안하고 유연하게 움직임", mt: "안주 맛집 기가 막히게 찾아서 혼자 잘 즐김" },
-  "RCLS": { title: "인간 데이터기형", desc: "조용히 상대 코스를 읽고 정해진 수비를 해냄", mt: "다음 날 아침 제일 먼저 일어나서 설거지하는 타입" },
-  "RCLF": { title: "본능적 전략가형", desc: "수 싸움에 능하며 감각적인 수비 범위가 넓음", mt: "다들 취했을 때 혼자 안 취하고 상황 정리 끝냄" },
-  "RCHS": { title: "안전 지대형", desc: "빈틈없는 위치 선정과 따뜻한 격려로 팀을 안정시킴", mt: "뒤에서 묵묵히 고기 나르고 쌈 싸주는 스타일" },
-  "RCHF": { title: "코트의 관찰자형", desc: "흐름을 읽는 눈이 좋고 팀원과 부드럽게 호흡함", mt: "마당 평상에 앉아 밤하늘 보며 힐링하는 감성파" }
+  "APLS": {
+    "title": "💣 전술적 폭격기형",
+    "desc": "빅이큐의 인간 활력소이자 훈련 부장 스타일. 득점하면 체육관이 떠나가라 소리를 지르며 부원들 등을 불이 나게 두들겨 줍니다. 감독님이 지시한 작전이나 연습했던 포메이션을 자다가 깨워도 칼같이 몸으로 구현해 내는 팀의 아주 든든한 대들보입니다.",
+    "mt": "고기 굽기부터 게임 진행까지 도맡는 과대표 스타일"
+  },
+  "APLF": {
+    "title": "🐎 코트의 야생마형",
+    "desc": "일단 공이 높게 떴다? 그러면 눈빛부터 야수로 변합니다. 각도가 나오든 안 나오든 본능적인 동물적 감각과 무지막지한 파워로 블로킹을 찢고 득점을 만들어냅니다. 가끔 너무 신나서 라인을 벗어나는 대형 범실을 하지만, 다음 랠리에서 더 강한 스파이크로 만회하는 미워할 수 없는 크레이지 에이스!",
+    "mt": "제일 늦게까지 남아서 술자리를 지키는 에너자이저"
+  },
+  "APHS": {
+    "title": "👑 열정의 리더형",
+    "desc": "우리 팀원이 서브 범실을 하거나 넷터치를 해도 절대로 기죽지 않게 \"나이스 서브!\", \"마이 가자!\"를 가장 크게 외쳐주는 멘탈 케어 장인입니다. 흔들리는 팀 분위기를 전술적인 팁과 따뜻한 격려로 한 번에 다잡는, 그야말로 코트 위의 정신적 지주이자 캡틴 그 자체.",
+    "mt": "분위기 처질 때쯤 브금(BGM) 선곡하며 텐션 올림"
+  },
+  "APHF": {
+    "title": "✨ 분위기 메이커형",
+    "desc": "배구를 하러 온 건지 예능을 찍으러 온 건지 모를 정도로 리액션이 화려합니다. 멋진 페인트 한 번 성공하면 세상 세레머니는 혼자 다 하며 코트를 뒤집어 놓습니다. 타고난 유연성과 감각적인 플레이로 예상치 못한 득점을 빵빵 터뜨려 관중석 환호성을 독차지하는 타입!",
+    "mt": "웃음소리가 제일 커서 멀리서도 위치 파악 가능"
+  },
+  "ACLS": {
+    "title": "🎯 정밀한 저격수형",
+    "desc": "코트 위에서 소리는 지르고 있지만 머릿속은 AI처럼 차갑게 돌아가고 있습니다. 상대 수비가 어디로 치우쳤는지 논리적으로 분석한 뒤, 빈 공간에 서브를 꽂아 넣거나 빈틈을 정교하게 찔러서 득점합니다. 겉은 뜨겁고 속은 냉철한 츤데레 지략가입니다.",
+    "mt": "장보기 리스트 완벽 정리하고 회계 정산하는 총무"
+  },
+  "ACLF": {
+    "title": "🪄 코트의 마술사형",
+    "desc": "상대 블로커 세 명이 높게 뜨면, 때리는 척하면서 툭- 팁을 놔버리는 야속하고도 완벽한 기술자입니다. 뻔한 플레이는 거부하는 개성파로, 예상치 못한 타이밍에 기상천외한 이단 연결이나 패스 페인트로 상대 팀 타이밍을 완벽하게 뺏고 혼자 씩 웃는 스타일.",
+    "mt": "구석에서 웃긴 드립 하나씩 던져서 빵 터뜨림"
+  },
+  "ACHS": {
+    "title": "🏠 든든한 살림꾼형",
+    "desc": "화려한 공격에 가려지기 쉽지만, 팀이 이기기 위해 절대 없어서는 안 될 소중한 존재입니다. 정해진 수비 위치를 자석처럼 지키며 공을 살려내고, 리시브가 흔들려도 \"내가 커버할게!\"라며 동료들의 허점을 온몸으로 메워주는 배구판의 마더 테레사.",
+    "mt": "모두가 즐거운지 확인하며 조용히 뒷정리함"
+  },
+  "ACHF": {
+    "title": "💡 센스 만점 수비수형",
+    "desc": "\"그게 왜 거기 가 있어?\" 소리가 절로 나오는 신기한 수비 위치 선정을 보여줍니다. 상대 공격수가 때릴 코스를 본능적으로 예측해서 몸을 날려 디그해 냅니다. 미스한 팀원에게 다가가 손을 꼭 잡아주며 \"다음 거 하나 하자\"고 다정하게 속삭여주는 소통 보스.",
+    "mt": "선배·후배 모두에게 스스럼없이 다가가는 마당발"
+  },
+  "RPLS": {
+    "title": "❄️ 냉철한 에이스형",
+    "desc": "평소엔 말없이 묵묵히 몸을 풀지만, 경기 시작 휘슬이 울리면 눈빛이 돌변합니다. 철저하게 계산된 포지셔닝과 논리적인 코스 분석으로, 결정적인 순간에 블로킹 벽을 찢어버리는 강력한 한 방을 꽂아 넣습니다. 과묵한 카리스마로 팀원들이 믿고 공을 올리는 진정한 에이스.",
+    "mt": "필요한 말만 딱딱 하고 족구 내기에서 캐리함"
+  },
+  "RPLF": {
+    "title": "🧱 묵묵한 해결사형",
+    "desc": "코트 위에서 말이 별로 없습니다. 하지만 랠리가 길어지고 다들 지쳐서 공을 놓칠 때, 어디선가 무서운 기세로 튀어나와 몸을 날려 공을 살려내고 해결해 줍니다. 본능적인 순발력과 피지컬로 말보다 행동, 점수로 모든 것을 증명하는 상남자/상여자 스타일.",
+    "mt": "조용히 술 마시다가 게임 시작하면 눈빛 변함"
+  },
+  "RPHS": {
+    "title": "⚓ 소리 없는 기둥형",
+    "desc": "팀원들이 연속 범실을 해서 멘탈이 바스러지기 직전, 중심을 꽉 잡아주는 든든한 주춧돌입니다. 전술적으로 자기가 커버해야 할 영역을 조용히 넓히며 동료들의 부담을 덜어줍니다. 화려하게 눈에 띄진 않아도 이 사람의 존재 자체가 팀원들에게는 엄청난 안도감을 줍니다.",
+    "mt": "사람들 얘기 다 들어주고 고민 상담해 주는 상담소"
+  },
+  "RPHF": {
+    "title": "🐈 자유로운 영혼형",
+    "desc": "배구를 고통스럽게 하지 않고 세상에서 가장 편안하고 유연하게 즐깁니다. 긴장감 넘치는 매치포인트 상황에서도 혼자 여유로운 미소를 띠며 본능적인 센스로 공을 툭 넘겨 득점합니다. 압박감 따위는 가볍게 씹어 드시는 코트 위의 낭만 고양이.",
+    "mt": "안주 맛집 기가 막히게 찾아서 혼자 잘 즐김"
+  },
+  "RCLS": {
+    "title": "💻 인간 데이터기형",
+    "desc": "상대 팀 세터의 손 모양, 공격수의 시선 처리를 조용히 스캔하고 있습니다. \"저 형 다음엔 무조건 직선 때린다\"를 예측하고 정해진 수비 코스에 미리 가 서 있는 돋보기 같은 존재. 기복 없이 늘 평균 이상의 안정적인 플레이를 보여주는 인간 계산기입니다.",
+    "mt": "다음 날 아침 제일 먼저 일어나서 설거지하는 타입"
+  },
+  "RCLF": {
+    "title": "🧠 본능적 전략가형",
+    "desc": "영리함 그 자체. 상대 수비수들과의 치열한 두뇌 싸움에서 절대 밀리지 않습니다. 넓은 수비 범위와 날카로운 촉을 가지고 있어서, 상대가 빈틈을 만들면 귀신같이 알아채고 감각적인 토스나 페인트로 코트를 요리조리 흔들어 놓습니다.",
+    "mt": "다들 취했을 때 혼자 안 취하고 상황 정리 끝냄"
+  },
+  "RCHS": {
+    "title": "🛡️ 안전 지대형",
+    "desc": "이 사람 뒤에 서 있으면 마치 내 뒤에 거대한 방파제가 있는 것 같습니다. 완벽한 위치 선정으로 어떤 강타든 부드럽게 받아 올려 세터 머리 위에 예쁘게 배달해 줍니다. 실수한 동료에게 \"내 토스가 짧았어, 미안해\"라며 모든 걸 안아주는 포근함의 대명사.",
+    "mt": "뒤에서 묵묵히 고기 나르고 쌈 싸주는 스타일"
+  },
+  "RCHF": {
+    "title": "🔭 코트의 관찰자형",
+    "desc": "전체적인 경기 흐름을 읽는 눈이 아주 좋습니다. 팀원들이 어떤 타이밍에 공을 때리기 좋아하는지, 어떤 위치를 불안해하는지 조용히 관찰했다가 가장 편안한 플레이를 할 수 있도록 부드럽게 호흡을 맞춰주는 숨은 조력자이자 살림꾼입니다.",
+    "mt": "마당 평상에 앉아 밤하늘 보며 힐링하는 감성파"
+  }
 };
+
+const MBTI_LETTER_MAP = {
+  'A': { category: '에너지', name: 'Active (활동파)' },
+  'R': { category: '에너지', name: 'Reserved (묵묵파)' },
+  'P': { category: '플레이', name: 'Power (파워형)' },
+  'C': { category: '플레이', name: 'Control (컨트롤형)' },
+  'L': { category: '판단/소통', name: 'Logic (논리형)' },
+  'H': { category: '판단/소통', name: 'Heart (따뜻한 마음형)' },
+  'S': { category: '경기 운영', name: 'System (전술파)' },
+  'F': { category: '경기 운영', name: 'Flex (감각파)' }
+};
+
+function showLetterDesc(letter, event) {
+  const info = MBTI_LETTER_MAP[letter];
+  if (!info) return;
+
+  const container = document.getElementById('res-mbti-code');
+  const target = event.currentTarget;
+  
+  // Remove existing tooltips
+  const oldTooltips = container.querySelectorAll('.letter-tooltip');
+  oldTooltips.forEach(t => t.remove());
+
+  // Create tooltip
+  const tooltip = document.createElement('div');
+  tooltip.className = 'letter-tooltip';
+  tooltip.innerHTML = `<span style="opacity:0.7; font-size:10px; display:block; margin-bottom:2px;">${info.category}</span>${info.name}`;
+  
+  // Calculate position relative to container
+  const rect = target.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  
+  const left = (rect.left - containerRect.left) + (rect.width / 2);
+  const top = (rect.top - containerRect.top);
+  
+  tooltip.style.left = left + 'px';
+  tooltip.style.top = top + 'px';
+  
+  container.appendChild(tooltip);
+  
+  // Force reflow and activate
+  tooltip.offsetHeight;
+  tooltip.classList.add('active');
+  
+  // Auto-remove after 2.5 seconds
+  setTimeout(() => {
+    if (tooltip.parentElement) {
+      tooltip.classList.remove('active');
+      setTimeout(() => tooltip.remove(), 400);
+    }
+  }, 2000);
+
+  const letters = container.querySelectorAll('[data-letter]');
+  letters.forEach(el => {
+    if (el.getAttribute('data-letter') === letter) {
+      el.style.transform = 'scale(1.1)';
+      el.style.boxShadow = '0 0 0 2px var(--blue)';
+    } else {
+      el.style.transform = 'scale(1)';
+      el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.05)';
+    }
+  });
+}
 
 function showMBTIResultByCode(code) {
   let result = MBTI_RESULTS[code];
   if (!result) result = MBTI_RESULTS["APLS"]; // Fallback
-  
+
   currentMbtiResultCode = code;
 
   document.getElementById('mbti-progress').style.width = '100%';
   document.getElementById('mbti-start').style.display = 'none';
   document.getElementById('mbti-quiz').style.display = 'none';
   document.getElementById('mbti-result').style.display = 'block';
-  
-  const lettersHtml = code.split('').map(c => 
-    `<div style="width: 44px; height: 44px; background: var(--blue-soft); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; color: var(--blue-deep); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">${c}</div>`
+
+  const lettersHtml = code.split('').map(c =>
+    `<div data-letter="${c}" onclick="showLetterDesc('${c}', event)" style="width: 44px; height: 44px; background: var(--blue-soft); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 900; color: var(--blue-deep); box-shadow: 0 2px 4px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s;">${c}</div>`
   ).join('');
   document.getElementById('res-mbti-code').innerHTML = `<div style="display: flex; justify-content: center; gap: 8px;">${lettersHtml}</div>`;
   document.getElementById('res-title').textContent = result.title;
   document.getElementById('res-desc').textContent = result.desc;
   document.getElementById('res-mt').textContent = result.mt;
 
-  const btnSave = document.getElementById('btnSaveMbti');
-  if (btnSave) {
+  const btnSave = document.getElementById('btnSaveMbti');  if (btnSave) {
     if (window.currentParticipant && window.currentParticipant.mbtiResult === code) {
       btnSave.textContent = '저장됨';
       btnSave.style.background = '#999';
@@ -1487,12 +1613,36 @@ async function refreshCookingStatus() {
         const prefix = t.team.toLowerCase();
         const nameEl = document.getElementById(`${prefix}-chef-name`);
         const descEl = document.getElementById(`${prefix}-chef-desc`);
+        const membersEl = document.getElementById(`${prefix}-members`);
+
         if (t.chef) {
           nameEl.textContent = `${t.chef.name} (${t.chef.generation}기)`;
           descEl.textContent = t.chef.experience || '';
         } else {
           nameEl.textContent = '-';
           descEl.textContent = '지원자 중 선발 예정';
+        }
+
+        if (membersEl) {
+            if (t.members && t.members.length > 0) {
+                const avatars = t.members.filter(m => m.role === 'Avatar');
+                const assistants = t.members.filter(m => m.role === 'Assistant');
+                
+                let html = '';
+                if (avatars.length > 0) {
+                    html += `<div style="display:flex; flex-wrap:wrap; gap:6px; width:100%; border-bottom:1px dashed var(--border); padding-bottom:8px; margin-bottom:8px;">`;
+                    html += avatars.map(m => `<span style="background: var(--blue-soft); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; color: var(--blue-deep); border: 1px solid var(--blue-mid);">아바타: ${m.name}</span>`).join('');
+                    html += `</div>`;
+                }
+                if (assistants.length > 0) {
+                    html += `<div style="display:flex; flex-wrap:wrap; gap:6px; width:100%;">`;
+                    html += assistants.map(m => `<span style="background: var(--bg2); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; color: var(--text2); border: 1px solid var(--border);">보조: ${m.name}</span>`).join('');
+                    html += `</div>`;
+                }
+                membersEl.innerHTML = html;
+            } else {
+                membersEl.innerHTML = '';
+            }
         }
       });
     }
@@ -1501,6 +1651,7 @@ async function refreshCookingStatus() {
     window.myCookingData = { 
         assignment: data.myAssignment, 
         isPublic: data.isPublic,
+        isChefPublic: data.isChefPublic,
         teamsAssigned: data.teams && data.teams.some(t => t.chef)
     };
 
@@ -1509,7 +1660,7 @@ async function refreshCookingStatus() {
     document.getElementById('white-cheer-bar').style.height = `${data.cheerStats.whitePercent}%`;
 
     // Cheer Buttons and Comment Inputs
-    const canCheer = data.isPublic && data.teams && data.teams.some(t => t.chef);
+    const canCheer = (data.isPublic || data.isChefPublic) && data.teams && data.teams.some(t => t.chef);
     document.querySelectorAll('.heart-btn-wrap').forEach(btn => {
       btn.style.opacity = canCheer ? '1' : '0.5';
       btn.style.cursor = canCheer ? 'pointer' : 'not-allowed';
@@ -1545,7 +1696,7 @@ async function refreshCookingStatus() {
 }
 
 async function openMyTeamModal() {
-  if (!window.myCookingData || !window.myCookingData.isPublic) return;
+  if (!window.myCookingData || (!window.myCookingData.isPublic && !window.myCookingData.isChefPublic)) return;
   
   const roleEl = document.getElementById('my-cooking-role-large');
   const name = localStorage.getItem('participantName');
@@ -1553,19 +1704,27 @@ async function openMyTeamModal() {
   if (!window.myCookingData.teamsAssigned) {
       roleEl.innerHTML = `${name}님은<br><span style="color:var(--text3); font-size:24px;">팀 배정 대기 중</span>입니다.`;
   } else if (window.myCookingData.assignment && window.myCookingData.assignment.role !== 0) {
-    const teamStr = window.myCookingData.assignment.team === 1 ? '흑팀' : window.myCookingData.assignment.team === 2 ? '백팀' : '';
-    let roleStr = '';
-    switch(window.myCookingData.assignment.role) {
-        case 1: roleStr = '오더 셰프'; break;
-        case 2: roleStr = '아바타'; break;
-        case 3: roleStr = '보조 셰프'; break;
-        case 4: roleStr = '관객'; break;
-        default: roleStr = '팀 배정 대기 중'; break;
-    }
-    if (window.myCookingData.assignment.role === 4) {
-        roleEl.innerHTML = `${name}님은<br><span style="color:var(--text3); font-size:24px;">관객</span>입니다.`;
+    const isSpectator = window.myCookingData.assignment.role === 4;
+    const isChefOnlyReveal = window.myCookingData.isChefPublic && !window.myCookingData.isPublic;
+    
+    // If only chef is public and user is NOT a chef, show as spectator or waiting
+    if (isChefOnlyReveal && window.myCookingData.assignment.role !== 1) {
+        roleEl.innerHTML = `${name}님은<br><span style="color:var(--text3); font-size:24px;">팀 배정 대기 중</span>입니다.`;
     } else {
-        roleEl.innerHTML = `${name}님은<br><span style="color:var(--blue); font-size:24px;">${teamStr} ${roleStr}</span>입니다!`;
+        const teamStr = window.myCookingData.assignment.team === 1 ? '흑팀' : window.myCookingData.assignment.team === 2 ? '백팀' : '';
+        let roleStr = '';
+        switch(window.myCookingData.assignment.role) {
+            case 1: roleStr = '오더 셰프'; break;
+            case 2: roleStr = '아바타'; break;
+            case 3: roleStr = '보조 셰프'; break;
+            case 4: roleStr = '관객'; break;
+            default: roleStr = '팀 배정 대기 중'; break;
+        }
+        if (window.myCookingData.assignment.role === 4) {
+            roleEl.innerHTML = `${name}님은<br><span style="color:var(--text3); font-size:24px;">관객</span>입니다.`;
+        } else {
+            roleEl.innerHTML = `${name}님은<br><span style="color:var(--blue); font-size:24px;">${teamStr} ${roleStr}</span>입니다!`;
+        }
     }
   } else {
     // Teams are assigned, but this user has no assignment or Role=0 (None)
@@ -1598,13 +1757,34 @@ async function applyForChef() {
 }
 
 async function cheerTeam(team) {
+  const prefix = team.toLowerCase();
+  const btnWrap = document.getElementById(`btn-cheer-${prefix}`);
+  const bar = document.getElementById(`${prefix}-cheer-bar`);
+  
+  // 1. Optimistic UI: Immediately update the bar slightly
+  if (bar) {
+    const currentHeight = parseFloat(bar.style.height || '0');
+    if (currentHeight < 100) {
+      bar.style.height = `${Math.min(100, currentHeight + 3)}%`;
+    }
+  }
+
+  // 2. Animation: Heart beat effect
+  if (btnWrap) {
+    btnWrap.classList.remove('heart-beat');
+    void btnWrap.offsetWidth; // Trigger reflow
+    btnWrap.classList.add('heart-beat');
+    setTimeout(() => btnWrap.classList.remove('heart-beat'), 400);
+  }
+
   try {
     const res = await fetch(`${API_BASE}/CookingBattle/cheer/${team}`, { method: 'POST', credentials: 'include' });
     if (res.ok) {
-      showToast('❤️ 응원이 전달되었습니다!');
+      // Background refresh to sync with real data
       refreshCookingStatus();
     } else if (res.status === 429) {
       alert('응원하기 횟수가 소진되었습니다.');
+      refreshCookingStatus();
     } else {
       let msg = '응원 실패';
       const text = await res.text();
@@ -1615,8 +1795,12 @@ async function cheerTeam(team) {
         msg = text || msg;
       }
       alert(msg);
+      refreshCookingStatus();
     }
-  } catch (e) { alert('서버 오류'); }
+  } catch (e) { 
+      console.error(e);
+      refreshCookingStatus();
+  }
 }
 
 async function voteTeam(team) {

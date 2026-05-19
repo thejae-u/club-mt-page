@@ -847,15 +847,25 @@ async function updateCookingUI() {
             const s = await res.json();
             window.currentSettings = s;
             const btnPub = document.getElementById('btnToggleCookingPublic');
+            const btnChefPub = document.getElementById('btnToggleCookingChefPublic');
             const btnVote = document.getElementById('btnToggleCookingVote');
 
             if (btnPub) {
                 if (s.isCookingBattlePublic) {
-                    btnPub.textContent = "✅ 공개 상태";
+                    btnPub.textContent = "✅ 전체 공개 상태";
                     btnPub.style.background = "#22C55E";
                 } else {
-                    btnPub.textContent = "🔒 비공개 상태";
+                    btnPub.textContent = "🔒 전체 비공개 상태";
                     btnPub.style.background = "#212529";
+                }
+            }
+            if (btnChefPub) {
+                if (s.isCookingBattleChefPublic) {
+                    btnChefPub.textContent = "✅ 셰프 선공개 중";
+                    btnChefPub.style.background = "#22C55E";
+                } else {
+                    btnChefPub.textContent = "🔒 셰프 명단 비공개";
+                    btnChefPub.style.background = "#212529";
                 }
             }
             if (btnVote) {
@@ -873,9 +883,44 @@ async function updateCookingUI() {
 
 async function toggleCookingVisibility() {
     if (!window.currentSettings) return;
-    window.currentSettings.isCookingBattlePublic = !window.currentSettings.isCookingBattlePublic;
+    const newStatus = !window.currentSettings.isCookingBattlePublic;
+    window.currentSettings.isCookingBattlePublic = newStatus;
+    
+    // Rule: When turning on full public, ensure chef public is also turned on.
+    if (newStatus && !window.currentSettings.isCookingBattleChefPublic) {
+        window.currentSettings.isCookingBattleChefPublic = true;
+    }
+
     await saveSettings();
     updateCookingUI();
+}
+
+async function toggleCookingChefVisibility() {
+    if (!window.currentSettings) return;
+
+    // Rule: If full public is enabled, chef public must remain enabled.
+    if (window.currentSettings.isCookingBattlePublic && window.currentSettings.isCookingBattleChefPublic) {
+        await alert('전체 공개 상태에서는 셰프 명단을 비공개로 전환할 수 없습니다.');
+        return;
+    }
+
+    const newStatus = !window.currentSettings.isCookingBattleChefPublic;
+    
+    const payload = { ...window.currentSettings, isCookingBattleChefPublic: newStatus };
+    try {
+        const res = await fetch(`${API_BASE}/Settings`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            credentials: 'include'
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            window.currentSettings.isCookingBattleChefPublic = newStatus;
+            updateCookingUI();
+            await alert(newStatus ? '✅ 셰프 명단이 선공개되었습니다.' : '🔒 셰프 명단이 비공개 처리되었습니다.');
+        }
+    } catch (e) { await alert('서버 오류'); }
 }
 
 async function toggleCookingVoteStatus() {
@@ -1484,6 +1529,7 @@ async function saveSettings() {
         maxMilitaryCapacity: parseInt(document.getElementById('maxMilitaryCapacity').value),
         manittoMissionCount: parseInt(document.getElementById('manittoMissionCount')?.value || "3"),
         isCookingBattlePublic: window.currentSettings?.isCookingBattlePublic || false,
+        isCookingBattleChefPublic: window.currentSettings?.isCookingBattleChefPublic || false,
         isCookingBattleVotingActive: window.currentSettings?.isCookingBattleVotingActive || false,
         maxCheerPerPerson: parseInt(document.getElementById('maxCheerPerPerson')?.value || "10"),
         commonChecklistJson: JSON.stringify(document.getElementById('commonChecklist').value.split('\n').map(l => l.trim()).filter(l => l !== "")),
@@ -1783,6 +1829,7 @@ window.resetSettings = resetSettings;
 window.resetParticipants = resetParticipants;
 window.resetManitto = resetManitto;
 window.toggleCookingVisibility = toggleCookingVisibility;
+window.toggleCookingChefVisibility = toggleCookingChefVisibility;
 window.toggleCookingVoteStatus = toggleCookingVoteStatus;
 window.assignCookingTeams = assignCookingTeams;
 window.resetCookingTeams = resetCookingTeams;
