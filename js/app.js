@@ -12,7 +12,9 @@ const SURVEY_CONFIG = [
     id: "stdId",
     label: "학번",
     type: "text",
-    placeholder: "예: 2022123456",
+    placeholder: "예: 202612345 (9자리)",
+    pattern: "\\d{4}\\d{5}",
+    maxlength: 9,
     required: true,
     showFor: ['student', 'leave', 'army']
   },
@@ -385,7 +387,7 @@ function renderDynamicSurveys(curType) {
         } else if (q.type === 'license') {
             return `<div class="form-group"><label>${q.label} *</label><div class="toggle-row"><button class="toggle-btn" onclick="toggleLicense(this, 'unified')">소지</button><button class="toggle-btn active" onclick="toggleLicense(this, 'unified')">미소지</button></div><div id="license-detail-unified" class="sub-input" style="display:none"><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;"><div><label style="font-size:11px;">면허 종류</label><select id="survey-unified-licenseType" data-survey-id="licenseType" class="license-type"><option value="">선택</option>${q.licenseOptions.map(opt => `<option value="${opt}">${opt}</option>`).join('')}</select></div><div><label style="font-size:11px;">실제 운전 가능 여부</label><select id="survey-unified-canDrive" data-survey-id="canDrive" class="can-drive">${q.canDriveOptions.map((opt, i) => `<option value="${i === 1 ? 'yes' : 'no'}">${opt}</option>`).join('')}</select></div></div><input type="text" id="survey-unified-drivingExperience" data-survey-id="drivingExperience" class="driving-exp" placeholder="운전 경력 (예: 2년, 매일 운전 등)" style="margin-top:8px;"></div></div>`;
         } else {
-            return `<div class="form-group"><label>${q.label} ${q.required ? '*' : ''}</label><input type="${q.type || 'text'}" id="survey-unified-${q.id}" data-survey-id="${q.id}" placeholder="${q.placeholder || ''}"></div>`;
+            return `<div class="form-group"><label>${q.label} ${q.required ? '*' : ''}</label><input type="${q.type || 'text'}" id="survey-unified-${q.id}" data-survey-id="${q.id}" placeholder="${q.placeholder || ''}" ${q.pattern ? `pattern="${q.pattern}"` : ''} ${q.maxlength ? `maxlength="${q.maxlength}"` : ''}></div>`;
         }
     }).join('');
 }
@@ -977,16 +979,26 @@ async function submitApplication(formId) {
   if (!name) return showToast('이름을 입력해주세요.');
   if (!generation) return showToast('기수를 선택해주세요.');
   if (!phoneNumber) return showToast('연락처를 입력해주세요.');
-  if (phoneNumber.length < 10) return showToast('올바른 연락처 형식이 아닙니다. (숫자만 입력)');
+  
+  const phoneRegex = /^010\d{7,8}$/;
+  if (!phoneRegex.test(phoneNumber)) {
+      return showToast('올바른 연락처 형식이 아닙니다. (010으로 시작하는 10~11자리 숫자)');
+  }
 
   const surveyData = getSurveyData('unified');
   
   // Dynamic validation based on SURVEY_CONFIG
   for (const q of SURVEY_CONFIG) {
-    if (q.showFor.includes(window.curType) && q.required) {
+    if (q.showFor.includes(window.curType)) {
         const val = surveyData[q.id];
-        if (!val || val.toString().trim() === '') {
+        if (q.required && (!val || val.toString().trim() === '')) {
             return showToast(`${q.label} 필드를 입력/선택해주세요.`);
+        }
+        if (val && q.pattern) {
+            const regex = new RegExp(`^${q.pattern}$`);
+            if (!regex.test(val)) {
+                return showToast(`${q.label} 형식이 올바르지 않습니다.`);
+            }
         }
     }
   }
@@ -1008,8 +1020,10 @@ async function submitApplication(formId) {
   const passwordInp = document.getElementById('pwUnified');
   let finalPassword = passwordInp ? passwordInp.value : "";
   
-  if (!window.editingParticipantId && (!finalPassword || finalPassword.length < 4)) {
-      return showToast('비밀번호를 4자리 이상 입력해주세요.');
+  if (!window.editingParticipantId) {
+      if (finalPassword.length < 4) {
+          return showToast('비밀번호는 4자리 이상이어야 합니다.');
+      }
   }
 
   let currentPassword = "";
@@ -1207,7 +1221,14 @@ function showPopup(title, message, type = 'alert') {
 }
 
 async function openChangePasswordPopup() {
-    const res = await showPopup('비밀번호 변경', '현재 비밀번호와 새 비밀번호를 입력해주세요.', 'passwordChange'); if (!res) return; if (!res.new) return showToast('새 비밀번호를 입력해주세요.');
+    const res = await showPopup('비밀번호 변경', '현재 비밀번호와 새 비밀번호를 입력해주세요.', 'passwordChange'); 
+    if (!res) return; 
+    
+    if (!res.new) return showToast('새 비밀번호를 입력해주세요.');
+    if (res.new.length < 4) {
+        return showToast('새 비밀번호는 4자리 이상이어야 합니다.');
+    }
+
     const p = window.currentParticipant; if (!p) return;
     try {
         const ur = await fetch(`${API_BASE}/Participants/${p.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...p, currentPassword: res.old, password: res.new, name: p.name, phoneNumber: p.phoneNumber, studentId: p.studentId }), credentials: 'include' });

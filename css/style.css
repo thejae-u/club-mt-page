@@ -16,9 +16,39 @@
   --bg:#0A0F1E;--bg2:#111829;--bg3:#182038;--card:#111829;
   --text:#FFFFFF;--text2:#FFFFFF;--text3:#FFFFFF;
   --border:rgba(118,174,217,0.35);--shadow:0 4px 24px rgba(0,0,0,0.4);--shadow-sm:0 2px 12px rgba(0,0,0,0.3);
-  --blue-pale:#1A0808;--blue-soft:#3A1210;--army-soft:#122A1F;
+  --blue-pale:#111D2B;--blue-soft:#16243A;--army-soft:#122A1F;
   --blue:#76aed9;--blue-light:#94bfe2;--blue-deep:#2e7ab0;--blue-mid:#b0cfe8;
   --army:#5BBF8A;--army-light:#7DDBA8;
+}
+
+.card-mbti-entry {
+  background: linear-gradient(135deg, #f8fbff 0%, #edf2f7 100%);
+  border: 1.5px solid var(--blue-mid) !important;
+}
+[data-theme="dark"] .card-mbti-entry {
+  background: var(--bg2);
+  border: 1px solid var(--border) !important;
+}
+
+.mbti-icon-box {
+  background: white;
+}
+[data-theme="dark"] .mbti-icon-box {
+  background: var(--bg3);
+}
+
+.mbti-res-card-blue {
+  background: var(--blue-soft);
+}
+[data-theme="dark"] .mbti-res-card-blue {
+  background: rgba(118, 174, 217, 0.15);
+}
+
+.mbti-res-card-red {
+  background: #FFF5F5;
+}
+[data-theme="dark"] .mbti-res-card-red {
+  background: rgba(229, 72, 77, 0.15);
 }
 [data-theme="dark"] * { color: inherit; }
 [data-theme="dark"] body { color: #FFFFFF; }

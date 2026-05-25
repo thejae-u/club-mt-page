@@ -1638,7 +1638,7 @@ function formatPhone(num) {
 // Global state for detail page
 let participants = [];
 let masterMembers = [];
-let sortConfig = { key: 'name', direction: 'asc' };
+let sortConfig = { key: 'createdAt', direction: 'asc' };
 
 async function fetchData() {
     try {
