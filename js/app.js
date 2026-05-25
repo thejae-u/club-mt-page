@@ -1020,9 +1020,10 @@ async function submitApplication(formId) {
   const passwordInp = document.getElementById('pwUnified');
   let finalPassword = passwordInp ? passwordInp.value : "";
   
-  if (!window.editingParticipantId) {
-      if (finalPassword.length < 4) {
-          return showToast('비밀번호는 4자리 이상이어야 합니다.');
+  if (!window.editingParticipantId || finalPassword.length > 0) {
+      const pwRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+      if (!pwRegex.test(finalPassword)) {
+          return showToast('비밀번호는 8자리 이상이며, 영문과 숫자를 모두 포함해야 합니다.');
       }
   }
 
@@ -1208,7 +1209,7 @@ function showPopup(title, message, type = 'alert') {
       if (type === 'passwordChange') { 
         inew.style.display = 'block'; 
         inew.value = ''; 
-        inew.placeholder = '새 비밀번호';
+        inew.placeholder = '새 비밀번호 (8자 이상, 영문+숫자)';
       } else inew.style.display = 'none'; 
       setTimeout(() => i.focus(), 100); 
     }
@@ -1225,8 +1226,9 @@ async function openChangePasswordPopup() {
     if (!res) return; 
     
     if (!res.new) return showToast('새 비밀번호를 입력해주세요.');
-    if (res.new.length < 4) {
-        return showToast('새 비밀번호는 4자리 이상이어야 합니다.');
+    const pwRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+    if (!pwRegex.test(res.new)) {
+        return showToast('비밀번호는 8자리 이상이며, 영문과 숫자를 모두 포함해야 합니다.');
     }
 
     const p = window.currentParticipant; if (!p) return;
@@ -1240,7 +1242,7 @@ async function openChangePasswordPopup() {
 window.alert = (msg) => showPopup('알림', msg, 'alert'); window.confirm = (msg) => showPopup('확인', msg, 'confirm'); window.prompt = (msg) => showPopup('확인', msg, 'prompt');
 window.openModal = openModal; window.closeModal = closeModal; window.closeBg = closeBg; window.switchType = switchType; window.openApplyArmy = openApplyArmy; window.openFeeModal = openFeeModal; window.openLocationModal = openLocationModal; window.openCohortModal = openCohortModal; window.toggleSchedule = toggleSchedule; window.applyCohortFilter = applyCohortFilter; window.openEditFromHome = openEditFromHome; window.showPopup = showPopup; window.setSurveyData = setSurveyData; window.openChangePasswordPopup = openChangePasswordPopup; window.submitApplication = submitApplication; window.doSubmit = submitApplication; window.toggleTransport = toggleTransport; window.toggleLicense = toggleLicense; window.goToCohort = goToCohort;
 
-// ===== B-MBTI LOGIC =====
+// ===== V-MBTI LOGIC =====
 const MBTI_QUESTIONS = [
   {
     q: "경기 시작 전, 모르는 사람들과 팀이 되었을 때 나는?",

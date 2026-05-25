@@ -1166,6 +1166,9 @@ async function loadParticipants() {
         const res = await fetch(`${API_BASE}/Participants`, { credentials: 'include' });
         if (res.status === 401) return logout(true);
         const list = await res.json();
+        // Sort by CreatedAt Ascending
+        list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
         const tbody = document.getElementById('participantList');
         if (!tbody) return;
         
@@ -1319,7 +1322,7 @@ async function saveParticipantEdit() {
 
 async function resetPassword() {
     const id = document.getElementById('edit-id').value;
-    if (!await confirm('비밀번호를 휴대폰 번호 뒷 4자리로 초기화하시겠습니까?')) return;
+    if (!await confirm('비밀번호를 \'mt + 휴대폰 번호 뒷 4자리 + !!\' 패턴으로 초기화하시겠습니까? (예: mt1234!!)')) return;
 
     try {
         const res = await fetch(`${API_BASE}/Participants/${id}/reset-password`, {
