@@ -282,15 +282,18 @@ function renderExpectations(expectations) {
     const marqueeTrack = document.getElementById('marqueeTrack');
     const expectationSection = document.getElementById('expectationSection');
     if (!marqueeTrack) return;
-    if (expectations.length === 0) {
+
+    const validExpectations = (expectations || []).filter(e => e.text && e.text.trim() !== '');
+
+    if (validExpectations.length === 0) {
       if (expectationSection) expectationSection.style.display = 'none';
       marqueeTrack.innerHTML = '';
       return;
     }
     if (expectationSection) expectationSection.style.display = 'block';
-    const repeatCount = expectations.length < 5 ? 10 : 2; 
-    const allExp = []; for (let i = 0; i < repeatCount; i++) allExp.push(...expectations);
-    marqueeTrack.innerHTML = allExp.map(e => `<div class="exp-chip">${e.text}<div class="exp-author">— ${e.author}</div></div>`).join('');
+    const repeatCount = validExpectations.length < 5 ? 10 : 2; 
+    const allExp = []; for (let i = 0; i < repeatCount; i++) allExp.push(...validExpectations);
+    marqueeTrack.innerHTML = allExp.map(e => `<div class="exp-chip">${escapeHTML(e.text)}<div class="exp-author">— ${escapeHTML(e.author || '익명')}</div></div>`).join('');
     marqueeTrack.style.animation = 'none'; marqueeTrack.offsetHeight; 
     
     // Maintain constant speed: Duration proportional to ACTUAL track length
@@ -1128,6 +1131,8 @@ function renderSchedule(data) {
         <div class="timeline-container">
           ${d.timeline.map((t, ti) => {
             const hasManitto = t.title.includes('마니또') || t.desc.includes('마니또');
+            const hasVehicle = t.title.includes('체육관으로 이동') || t.desc.includes('체육관으로 이동');
+            const hasCooking = t.title.includes('요리 배틀') || t.desc.includes('요리 배틀') || t.title.includes('요리배틀') || t.desc.includes('요리배틀');
             return `
               <div class="tl-item">
                 <div class="tl-time">${t.time}</div>
@@ -1135,7 +1140,11 @@ function renderSchedule(data) {
                 <div class="tl-body">
                   <h4>${t.title}</h4>
                   <p>${t.desc}</p>
-                  ${hasManitto ? `<div style="margin-top:8px;"><button onclick="openManittoModal()" style="padding:4px 10px; background:var(--blue-soft); color:var(--blue-deep); border:1px solid var(--blue-mid); border-radius:8px; font-size:11px; font-weight:700; cursor:pointer;">🎁 내 마니또 확인</button></div>` : ''}
+                  <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;">
+                    ${hasManitto ? `<button onclick="openManittoModal()" style="padding:4px 10px; background:var(--blue-soft); color:var(--blue-deep); border:1px solid var(--blue-mid); border-radius:8px; font-size:11px; font-weight:700; cursor:pointer;">🎁 내 마니또 확인</button>` : ''}
+                    ${hasVehicle ? `<button onclick="openVehicleModal()" style="padding:4px 10px; background:var(--blue-soft); color:var(--blue-deep); border:1px solid var(--blue-mid); border-radius:8px; font-size:11px; font-weight:700; cursor:pointer;">🚗 차량 확인</button>` : ''}
+                    ${hasCooking ? `<button onclick="openCookingBattleModal()" style="padding:4px 10px; background:var(--blue-soft); color:var(--blue-deep); border:1px solid var(--blue-mid); border-radius:8px; font-size:11px; font-weight:700; cursor:pointer;">👨‍🍳 요리배틀</button>` : ''}
+                  </div>
                 </div>
               </div>
             `;
@@ -1182,9 +1191,25 @@ function openModal(id) {
   if (id === 'apply' && !window.editingParticipantId) { resetApplyForm(); const eh = document.getElementById('editHeader'); const ts = document.getElementById('typeSelectionArea'); if (eh) eh.style.display = 'none'; if (ts) ts.style.display = 'block'; }
   el.classList.add('active'); document.body.classList.add('no-scroll');
 }
-function closeModal(id) { const el = document.getElementById('modal-' + id); if (el) el.classList.remove('active'); if (!document.querySelector('.modal-overlay.active')) document.body.classList.remove('no-scroll'); }
-function closeBg(e, id) { if (e.target === document.getElementById('modal-' + id)) closeModal(id); }
+function closeModal(id) { 
+  const el = document.getElementById('modal-' + id); 
+  if (el) el.classList.remove('active'); 
+  if (!document.querySelector('.modal-overlay.active')) document.body.classList.remove('no-scroll'); 
+}
 
+// Track where mousedown started to prevent closing when releasing a drag outside
+let modalMouseDownTarget = null;
+document.addEventListener('mousedown', e => {
+    modalMouseDownTarget = e.target;
+});
+
+function closeBg(e, id) { 
+  const overlay = document.getElementById('modal-' + id);
+  // Only close if BOTH mousedown and mouseup (click) happened strictly on the overlay
+  if (e.target === overlay && modalMouseDownTarget === overlay) {
+      closeModal(id); 
+  }
+}
 function switchType(btn, type) { window.curType = type; btn.closest('.type-btns').querySelectorAll('.type-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderDynamicSurveys(type); }
 function openApplyArmy() { openModal('apply'); const btns = document.querySelectorAll('.type-btn'); if (btns.length >= 4) switchType(btns[3], 'army'); }
 function openFeeModal() { openModal('fee'); updateFeeTable(); }
@@ -1903,7 +1928,7 @@ window.logout = logout; window.openMyPage = openMyPage; window.addChecklistItem 
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-  updateDashboard(); updateAuthUI();
+  updateDashboard(); updateAuthUI(); updatePhotoSection();
   const ci = document.getElementById('checklist-input'); if (ci) ci.addEventListener('keypress', (e) => { if (e.key === 'Enter') addChecklistItem(); });
   const tb = document.getElementById('themeBtn'); if (tb) tb.addEventListener('click', function() { const d = document.documentElement.dataset.theme === 'dark'; document.documentElement.dataset.theme = d ? 'light' : 'dark'; this.textContent = d ? '🌙' : '☀️'; });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => closeModal(m.id.replace('modal-', ''))); });
@@ -2161,3 +2186,139 @@ function getVehicleStatusText(status) {
 window.openVehicleModal = openVehicleModal;
 window.switchVehicleTab = switchVehicleTab;
 window.updateVehicleStatus = updateVehicleStatus;
+
+// ===== PHOTO STUDIO =====
+let photoFetched = false;
+async function updatePhotoSection() {
+  const section = document.getElementById('photoSection');
+  const track = document.getElementById('photoMarqueeTrack');
+  if (!section || !track || photoFetched) return;
+
+  try {
+    photoFetched = true;
+    const res = await fetch(`${API_BASE}/Photo/all-photos`);
+    if (!res.ok) return;
+    const photos = await res.json();
+
+    if (photos.length === 0) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = 'block';
+    
+    // Create scrolling marquee
+    const repeatCount = photos.length < 5 ? 10 : 2;
+    const allPhotos = [];
+    for (let i = 0; i < repeatCount; i++) allPhotos.push(...photos);
+    
+    track.innerHTML = allPhotos.map(p => `
+      <div class="marquee-item" style="width: 120px; height: 120px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: var(--bg2); border: 1px solid var(--border);">
+        <img src="${API_BASE.replace('/api', '')}${p.thumbnailUrl || p.url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/120?text=Error'">
+      </div>
+    `).join('');
+    
+    track.style.animation = 'none';
+    track.offsetHeight; // trigger reflow
+    
+    // Maintain constant speed: Duration proportional to track length
+    const speedFactor = 6.0; // Seconds for one image to pass
+    const moveCount = allPhotos.length / 2;
+    const totalDuration = moveCount * speedFactor;
+    
+    track.style.animation = `marquee ${totalDuration}s linear infinite`;
+    track.style.setProperty('--marquee-end', `-50%`);
+  } catch (e) {
+    console.error('Error fetching photos:', e);
+  }
+}
+
+let cachedSessions = null;
+
+async function openPhotoModal() {
+  openModal('photo');
+  const listContainer = document.getElementById('photo-session-list');
+  const emptyMsg = document.getElementById('photo-empty-msg');
+
+  try {
+    const res = await fetch(`${API_BASE}/Photo/sessions`);
+    if (!res.ok) throw new Error();
+    const sessions = await res.json();
+
+    if (sessions.length === 0) {
+      listContainer.innerHTML = '';
+      emptyMsg.style.display = 'block';
+      return;
+    }
+
+    emptyMsg.style.display = 'none';
+
+    listContainer.innerHTML = sessions.map(s => `
+      <div class="photo-session-section" style="margin-bottom: 32px;">
+        <div class="section-title">${escapeHTML(s.title)}</div>
+        <div class="photo-scroll-container" style="display: flex; gap: 12px; overflow-x: auto; padding: 12px 0; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; cursor: grab; user-select: none;">
+          ${s.photos && s.photos.length > 0 
+            ? s.photos.map(p => `
+                <div class="card" style="padding: 0; overflow: hidden; width: 160px; height: 160px; flex-shrink: 0; position: relative; border: 1px solid var(--border); border-radius: 14px; cursor: pointer;">
+                  <img onclick="openFullPhoto('${API_BASE.replace('/api', '')}${p.url}')" src="${API_BASE.replace('/api', '')}${p.thumbnailUrl || p.url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/160?text=Error'">
+                  ${p.description ? `<div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; padding: 6px 8px; font-size: 10px; backdrop-filter: blur(4px); border-radius: 0 0 14px 14px;">${escapeHTML(p.description)}</div>` : ''}
+                </div>
+              `).join('')
+            : '<div style="text-align: center; width: 100%; padding: 20px 0; color: var(--text3); font-size: 13px;">등록된 사진이 없습니다.</div>'
+          }
+        </div>
+      </div>
+    `).join('');
+
+    // --- PC Mouse Drag Scroll Logic ---
+    const containers = document.querySelectorAll('.photo-scroll-container');
+    containers.forEach(el => {
+      let isDown = false;
+      let startX;
+      let scrollLeft;
+
+      el.addEventListener('mousedown', (e) => {
+        isDown = true;
+        el.style.cursor = 'grabbing';
+        startX = e.pageX - el.offsetLeft;
+        scrollLeft = el.scrollLeft;
+      });
+
+      el.addEventListener('mouseleave', () => {
+        isDown = false;
+        el.style.cursor = 'grab';
+      });
+
+      el.addEventListener('mouseup', () => {
+        isDown = false;
+        el.style.cursor = 'grab';
+      });
+
+      el.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - el.offsetLeft;
+        const walk = (x - startX) * 2; // Scroll speed
+        el.scrollLeft = scrollLeft - walk;
+      });
+    });
+
+  } catch (e) {
+    showToast('사진 정보를 불러오는데 실패했습니다.');
+  }
+}
+
+
+async function openFullPhoto(url) {
+  const overlay = document.getElementById("modal-photo-full");
+  const img = document.getElementById("photo-full-img");
+  if (!overlay || !img) return;
+  
+  img.src = url;
+  overlay.classList.add("active");
+  document.body.classList.add("no-scroll");
+}
+
+window.openFullPhoto = openFullPhoto;
+
+window.openPhotoModal = openPhotoModal;

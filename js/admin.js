@@ -18,6 +18,7 @@ function switchTab(tabId) {
     if (tabId === 'manitto') loadManittoTab();
     if (tabId === 'cooking') loadCookingTab();
     if (tabId === 'vehicle') loadVehicleTab();
+    if (tabId === 'photo') fetchPhotoSessions();
     if (tabId === 'board') loadBoard();
     if (tabId === 'modifications') loadModifications();
     if (tabId === 'accounts') loadAdmins();
@@ -2384,3 +2385,173 @@ function updateAllPassengerDropdowns() {
 }
 
 window.updateAllPassengerDropdowns = updateAllPassengerDropdowns;
+
+// --- PHOTO STUDIO MANAGEMENT ---
+async function fetchPhotoSessions() {
+    const list = document.getElementById('admin-photo-session-list');
+    if (!list) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Photo/sessions`, { credentials: 'include' });
+        if (res.status === 401) return logout(true);
+        if (!res.ok) throw new Error();
+        const sessions = await res.json();
+
+        if (sessions.length === 0) {
+            list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">등록된 회차가 없습니다.</p>';
+            return;
+        }
+
+        list.innerHTML = sessions.map(s => `
+            <div class="card photo-session-card" data-id="${s.id}" style="border: 1px solid #ddd;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="drag-handle" style="cursor: grab; padding: 4px 8px; background: #f0f0f0; border-radius: 4px; color: #999; font-size: 18px;">☰</div>
+                        <span style="font-weight: 800; font-size: 16px;">${escapeHTML(s.title)}</span>
+                    </div>
+                    <button onclick="deletePhotoSession(${s.id})" style="width: auto; padding: 4px 10px; background: #ff4d4d; color: white; font-size: 11px; margin: 0;">회차 삭제</button>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    ${s.photos.map(p => `
+                        <div style="position: relative; aspect-ratio: 1/1; border-radius: 8px; overflow: hidden; background: #eee;">
+                            <img src="${API_BASE.replace('/api', '')}${p.url}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <button onclick="deletePhoto(${p.id})" style="position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,0,0,0.7); color: white; border: none; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;">✕</button>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="background: #f4f6fb; padding: 12px; border-radius: 8px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #666; margin-bottom: 8px;">📸 사진 추가 (PNG, JPG, HEIC 지원 / 최대 50MB / 여러 장 선택 가능)</div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="file" id="new-photo-file-${s.id}" accept="image/png, image/jpeg, image/heic, image/heif" multiple style="flex: 2; font-size: 12px; margin-bottom: 0; padding: 4px; background: white; border: 1px solid #ddd; border-radius: 4px;">
+                        <input type="text" id="new-photo-desc-${s.id}" placeholder="설명(선택)" style="flex: 1; font-size: 12px; margin-bottom: 0;">
+                        <button onclick="addPhotoToSession(${s.id})" style="width: auto; padding: 0 15px; background: #2D468D; color: white; font-size: 12px; margin: 0; border-radius: 8px;">업로드</button>
+                    </div>
+                    <div style="font-size: 10px; color: #999; margin-top: 6px;">* 여러 장을 선택하여 한 번에 올릴 수 있습니다. (설명은 공통 적용)</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        console.error(e);
+        list.innerHTML = '<p style="text-align:center; color:red;">데이터 로드 실패</p>';
+    }
+
+    // Initialize Sortable
+    if (window.photoSortable) window.photoSortable.destroy();
+    window.photoSortable = new Sortable(list, {
+        animation: 150,
+        handle: '.drag-handle', // Only allow dragging via the handle
+        ghostClass: 'sortable-ghost',
+        delay: 100, // 100ms delay for touch
+        delayOnTouchOnly: true, // only delay if touch is used
+        touchStartThreshold: 5, // ignore small movements
+        onEnd: async () => {
+            const cards = list.querySelectorAll('.photo-session-card');
+            const updates = Array.from(cards).map((card, index) => ({
+                id: parseInt(card.dataset.id),
+                order: index
+            }));
+            
+            try {
+                const res = await fetch(`${API_BASE}/Photo/sessions/reorder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates),
+                    credentials: 'include'
+                });
+                if (res.status === 401) return logout(true);
+                if (!res.ok) alert('순서 저장 실패');
+            } catch (e) { console.error('Reorder error:', e); }
+        }
+    });
+}
+
+async function addPhotoSession() {
+    const titleInp = document.getElementById('new-photo-session-title');
+    const title = titleInp.value.trim();
+
+    if (!title) return alert('회차 제목을 입력해주세요.');
+
+    try {
+        const res = await fetch(`${API_BASE}/Photo/sessions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, order: 999 }), // Set a high default order
+            credentials: 'include'
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            titleInp.value = '';
+            fetchPhotoSessions();
+        } else {
+            alert('회차 추가 실패');
+        }
+    } catch (e) { alert('서버 오류'); }
+}
+
+async function deletePhotoSession(id) {
+    if (!await confirm('이 회차와 포함된 모든 사진을 삭제하시겠습니까?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/Photo/sessions/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) fetchPhotoSessions();
+        else alert('삭제 실패');
+    } catch (e) { alert('서버 오류'); }
+}
+
+async function addPhotoToSession(sessionId) {
+    const fileInp = document.getElementById(`new-photo-file-${sessionId}`);
+    const descInp = document.getElementById(`new-photo-desc-${sessionId}`);
+    const files = fileInp.files;
+    const description = descInp.value.trim();
+
+    if (!files || files.length === 0) return alert('업로드할 파일을 선택해주세요.');
+
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+    }
+    if (description) formData.append('description', description);
+
+    console.log(`Uploading ${files.length} files for session ${sessionId}...`);
+    try {
+        const res = await fetch(`${API_BASE}/Photo/sessions/${sessionId}/upload`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
+        console.log('Upload response status:', res.status);
+        if (res.status === 401) return logout(true);
+        if (res.ok) {
+            fileInp.value = '';
+            descInp.value = '';
+            fetchPhotoSessions();
+        } else {
+            const msg = await res.text();
+            alert(`업로드 실패: ${msg}`);
+        }
+    } catch (e) { alert('서버 오류'); }
+}
+
+async function deletePhoto(id) {
+    if (!await confirm('이 사진을 삭제하시겠습니까?')) return;
+    try {
+        const res = await fetch(`${API_BASE}/Photo/photos/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        if (res.status === 401) return logout(true);
+        if (res.ok) fetchPhotoSessions();
+        else alert('삭제 실패');
+    } catch (e) { alert('서버 오류'); }
+}
+
+window.fetchPhotoSessions = fetchPhotoSessions;
+window.addPhotoSession = addPhotoSession;
+window.deletePhotoSession = deletePhotoSession;
+window.addPhotoToSession = addPhotoToSession;
+window.deletePhoto = deletePhoto;
