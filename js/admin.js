@@ -1,4 +1,5 @@
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
+const IMAGE_BASE = API_BASE.replace(/\/api$/, '');
 
 const escapeHTML = (str) => {
   if (!str) return '';
@@ -1198,18 +1199,18 @@ async function loadParticipants() {
                         ${isWait ? 
                             `<div style="display:flex; align-items:center; gap:5px;">
                                 <span style="color:#E5484D; font-weight:700; font-size:11px;">대기자</span>
-                                <button onclick="toggleWaitlist(${p.id})" ${isFull ? 'disabled' : ''} style="width:auto; padding:2px 6px; background:${isFull ? '#ccc' : '#E5484D'}; color:white; font-size:10px; margin:0; cursor:${isFull ? 'not-allowed' : 'pointer'};">
+                                <button onclick="toggleWaitlist(${pid})" ${isFull ? 'disabled' : ''} style="width:auto; padding:2px 6px; background:${isFull ? '#ccc' : '#E5484D'}; color:white; font-size:10px; margin:0; cursor:${isFull ? 'not-allowed' : 'pointer'};">
                                     신청 전환
                                 </button>
                             </div>` : 
-                            `<button onclick="toggleDeposit(${p.id})" style="padding: 4px 8px; background: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; color:white; font-size: 11px; margin:0; width:auto;">
+                            `<button onclick="toggleDeposit(${pid})" style="padding: 4px 8px; background: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; color:white; font-size: 11px; margin:0; width:auto;">
                                 ${p.isDepositConfirmed ? '입금완료' : '입금대기'}
                             </button>`
                         }
                     </td>
                     <td style="text-align: center; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
-                        <button onclick="openEditModal(${p.id})" style="padding: 4px 8px; background: var(--blue-deep); color:white; font-size: 11px; margin:0; width:auto;">수정</button>
-                        <button onclick="deleteParticipant(${p.id})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">삭제</button>
+                        <button onclick="openEditModal(${pid})" style="padding: 4px 8px; background: var(--blue-deep); color:white; font-size: 11px; margin:0; width:auto;">수정</button>
+                        <button onclick="deleteParticipant(${pid})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">삭제</button>
                     </td>
                 </tr>`;
             }).join('');
@@ -1235,10 +1236,10 @@ async function loadParticipants() {
                         </td>
                         <td style="text-align: center; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
                             ${p.isCancelRequested ? 
-                                `<button onclick="approveCancel(${p.id})" style="padding: 4px 8px; background: #E5484D; color:white; font-size: 11px; margin:0; width:auto; border:1px solid #C0392B;">취소 승인</button>
-                                 <button onclick="rejectCancel(${p.id})" style="padding: 4px 8px; background: #F5A623; color:white; font-size: 11px; margin:0; width:auto;">취소 반려</button>`
+                                `<button onclick="approveCancel(${pid})" style="padding: 4px 8px; background: #E5484D; color:white; font-size: 11px; margin:0; width:auto; border:1px solid #C0392B;">취소 승인</button>
+                                 <button onclick="rejectCancel(${pid})" style="padding: 4px 8px; background: #F5A623; color:white; font-size: 11px; margin:0; width:auto;">취소 반려</button>`
                                 :
-                                `<button onclick="deleteParticipant(${p.id})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">DB 삭제</button>`
+                                `<button onclick="deleteParticipant(${pid})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">DB 삭제</button>`
                             }
                         </td>
                     </tr>`;
@@ -1710,10 +1711,10 @@ function renderTables() {
                 <td style="font-size: 11px; color: #999;">${new Date(p.createdAt).toLocaleDateString()}</td>
                 <td style="text-align: center; display: flex; gap: 4px; justify-content: center; align-items: center; height: 100%;">
                     ${p.isCancelRequested ? 
-                        `<button onclick="approveCancel(${p.id})" style="padding: 4px 8px; background: #E5484D; color:white; font-size: 11px; margin:0; width:auto;">취소 승인</button>
-                         <button onclick="rejectCancel(${p.id})" style="padding: 4px 8px; background: #F5A623; color:white; font-size: 11px; margin:0; width:auto;">반려</button>`
+                        `<button onclick="approveCancel(${pid})" style="padding: 4px 8px; background: #E5484D; color:white; font-size: 11px; margin:0; width:auto;">취소 승인</button>
+                         <button onclick="rejectCancel(${pid})" style="padding: 4px 8px; background: #F5A623; color:white; font-size: 11px; margin:0; width:auto;">반려</button>`
                         :
-                        `<button onclick="deleteParticipant(${p.id})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">삭제</button>`
+                        `<button onclick="deleteParticipant(${pid})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">삭제</button>`
                     }
                 </td>
             </tr>
@@ -2063,9 +2064,9 @@ function renderVehicleCard(v, allAssignedIds) {
                 <div class="admin-vehicle-passengers" style="font-size: 12px; min-height: 44px; padding: 8px; background: white; border: 1px solid #ddd; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
                     ${passengers.length > 0 
                         ? passengers.map(p => `
-                            <span data-id="${p.id}" style="background: #f1f3f5; padding: 2px 8px; border-radius: 4px; font-weight: 600; color: #495057; border: 1px solid #e9ecef; display: flex; align-items: center; gap: 4px;">
+                            <span data-id="${pid}" style="background: #f1f3f5; padding: 2px 8px; border-radius: 4px; font-weight: 600; color: #495057; border: 1px solid #e9ecef; display: flex; align-items: center; gap: 4px;">
                                 ${p.name} 
-                                <button onclick="removePassengerFromVehicle(${id}, ${p.id})" style="background:none; border:none; color:#ff4d4d; padding:0; cursor:pointer; font-weight:800; width:auto; margin:0;">×</button>
+                                <button onclick="removePassengerFromVehicle(${id}, ${pid})" style="background:none; border:none; color:#ff4d4d; padding:0; cursor:pointer; font-weight:800; width:auto; margin:0;">×</button>
                             </span>`).join('')
                         : '<span style="color: #adb5bd;">탑승자 없음</span>'}
                 </div>
@@ -2413,12 +2414,12 @@ async function fetchPhotoSessions() {
                 </div>
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-                    ${s.photos.map(p => `
+                    ${(s.photos || s.Photos || []).map(p => { const url = p.url || p.Url; const pid = p.id || p.Id; return `
                         <div style="position: relative; aspect-ratio: 1/1; border-radius: 8px; overflow: hidden; background: #eee;">
-                            <img src="${API_BASE.replace('/api', '')}${p.url}" style="width: 100%; height: 100%; object-fit: cover;">
-                            <button onclick="deletePhoto(${p.id})" style="position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,0,0,0.7); color: white; border: none; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;">✕</button>
+                            <img src="${IMAGE_BASE}${url}" style="width: 100%; height: 100%; object-fit: cover;">
+                            <button onclick="deletePhoto(${pid})" style="position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; border-radius: 50%; background: rgba(255,0,0,0.7); color: white; border: none; font-size: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0;">✕</button>
                         </div>
-                    `).join('')}
+                    `; }).join('')}
                 </div>
 
                 <div style="background: #f4f6fb; padding: 12px; border-radius: 8px;">

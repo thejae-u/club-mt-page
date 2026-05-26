@@ -1,5 +1,6 @@
 // When hosting separately, you MUST use an absolute URL pointing to your backend.
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
+const IMAGE_BASE = API_BASE.replace(/\/api$/, '');
 
 const escapeHTML = (str) => {
   if (!str) return '';
@@ -2212,11 +2213,14 @@ async function updatePhotoSection() {
     const allPhotos = [];
     for (let i = 0; i < repeatCount; i++) allPhotos.push(...photos);
     
-    track.innerHTML = allPhotos.map(p => `
+    track.innerHTML = allPhotos.map(p => {
+      const url = p.url || p.Url;
+      const thumb = p.thumbnailUrl || p.ThumbnailUrl || url;
+      return `
       <div class="marquee-item" style="width: 120px; height: 120px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: var(--bg2); border: 1px solid var(--border);">
-        <img src="${API_BASE.replace('/api', '')}${p.thumbnailUrl || p.url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/120?text=Error'">
+        <img src="${IMAGE_BASE}${thumb}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/120?text=Error'">
       </div>
-    `).join('');
+    `}).join('');
     
     track.style.animation = 'none';
     track.offsetHeight; // trigger reflow
@@ -2260,7 +2264,7 @@ async function openPhotoModal() {
           ${s.photos && s.photos.length > 0 
             ? s.photos.map(p => `
                 <div class="card" style="padding: 0; overflow: hidden; width: 160px; height: 160px; flex-shrink: 0; position: relative; border: 1px solid var(--border); border-radius: 14px; cursor: pointer;">
-                  <img onclick="openFullPhoto('${API_BASE.replace('/api', '')}${p.url}')" src="${API_BASE.replace('/api', '')}${p.thumbnailUrl || p.url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/160?text=Error'">
+                  <img onclick="openFullPhoto('${IMAGE_BASE}${p.url}')" src="${IMAGE_BASE}${p.thumbnailUrl || p.url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/160?text=Error'">
                   ${p.description ? `<div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; padding: 6px 8px; font-size: 10px; backdrop-filter: blur(4px); border-radius: 0 0 14px 14px;">${escapeHTML(p.description)}</div>` : ''}
                 </div>
               `).join('')
