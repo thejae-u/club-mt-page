@@ -71,6 +71,7 @@ async function deleteReport(id) {
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             loadBoard();
         } else {
             await alert('삭제 실패');
@@ -166,6 +167,7 @@ async function addModificationComment(taskId) {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             loadModifications(); // Reload to show new comment
         } else {
             const err = await res.text();
@@ -186,6 +188,7 @@ async function deleteModificationComment(commentId, taskId) {
         if (res.status === 401) return logout(true);
         if (res.status === 403) return await alert('삭제 권한이 없습니다. (본인만 삭제 가능)');
         if (res.ok) {
+            
             loadModifications();
         } else {
             await alert('댓글 삭제 실패');
@@ -209,6 +212,7 @@ async function addModification() {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             document.getElementById('mod-title').value = '';
             document.getElementById('mod-desc').value = '';
             loadModifications();
@@ -229,6 +233,7 @@ async function updateModificationStatus(id, status) {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             loadModifications();
         } else {
             await alert('상태 변경 실패');
@@ -245,6 +250,7 @@ async function deleteModification(id) {
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             loadModifications();
         } else {
             await alert('삭제 실패');
@@ -294,6 +300,7 @@ async function addAdminAccount() {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             await alert('✅ 새로운 관리자 계정이 생성되었습니다.');
             document.getElementById('new-admin-username').value = '';
             document.getElementById('new-admin-password').value = '';
@@ -314,6 +321,7 @@ async function deleteAdminAccount(id, username) {
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             await alert('✅ 삭제되었습니다.');
             loadAdmins();
         } else {
@@ -331,6 +339,7 @@ async function loadManittoTab() {
     try {
         const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
         if (res.ok) {
+            
             const s = await res.json();
             const btn = document.getElementById('btnToggleManittoPublic');
             if (btn) {
@@ -354,6 +363,7 @@ async function toggleManittoVisibility() {
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             const data = await res.json();
             await alert(data.message);
             loadManittoTab();
@@ -368,6 +378,7 @@ async function checkAuth() {
     try {
         const res = await fetch(`${API_BASE}/Auth/status`, { credentials: 'include' });
         if (res.ok) {
+            
         const data = await res.json();
         window.currentAdminUser = data.username; // Save for permission checks
         if (loginOverlay) loginOverlay.style.display = 'none';
@@ -413,6 +424,7 @@ async function doLogin() {
         });
 
         if (res.ok) {
+            
             location.reload();
         } else {
             await alert('로그인 실패: 비밀번호가 올바르지 않습니다.');
@@ -487,6 +499,7 @@ async function deleteSelectedMissions() {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             await alert('✅ 선택한 미션이 삭제되었습니다.');
             const selectAll = document.getElementById('selectAllMissions');
             if (selectAll) selectAll.checked = false;
@@ -514,6 +527,7 @@ async function addMissions() {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             await alert('✅ 미션이 성공적으로 등록되었습니다.');
             document.getElementById('new-missions').value = '';
             loadMissions();
@@ -599,6 +613,7 @@ async function updateManittoAssignmentLocal(participantId, field, value, index =
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             // Update local state and re-render subtly if needed, or just reload
             const updatedIdx = window.currentAssignments.findIndex(a => a.id === participantId);
             const resData = await fetch(`${API_BASE}/Management/manitto/assignments`, { credentials: 'include' });
@@ -630,6 +645,7 @@ async function resetManitto() {
             return;
         }
         if (res.ok) {
+            
             await alert('✅ 마니또 배정 정보가 초기화되었습니다.');
             loadAssignments();
         } else {
@@ -656,6 +672,7 @@ async function matchManitto() {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             const result = await res.json();
             await alert(`🎉 성공: ${result.message}`);
             loadAssignments();
@@ -677,6 +694,7 @@ async function loadCookingTab() {
     try {
         const res = await fetch(`${API_BASE}/Management/status`, { credentials: 'include' });
         if (res.ok) {
+            
             const data = await res.json();
             const cb = data.cookingBattle;
             if (cb) {
@@ -695,6 +713,7 @@ async function loadCookingTab() {
     try {
         const res = await fetch(`${API_BASE}/Management/cooking-battle/assignments`, { credentials: 'include' });
         if (res.ok) {
+            
             const assignments = await res.json();
             const blackList = document.getElementById('admin-cooking-black-team');
             const whiteList = document.getElementById('admin-cooking-white-team');
@@ -846,6 +865,7 @@ async function updateCookingUI() {
     try {
         const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
         if (res.ok) {
+            
             const s = await res.json();
             window.currentSettings = s;
             const btnPub = document.getElementById('btnToggleCookingPublic');
@@ -918,6 +938,7 @@ async function toggleCookingChefVisibility() {
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             window.currentSettings.isCookingBattleChefPublic = newStatus;
             updateCookingUI();
             await alert(newStatus ? '✅ 셰프 명단이 선공개되었습니다.' : '🔒 셰프 명단이 비공개 처리되었습니다.');
@@ -947,6 +968,7 @@ async function assignCookingTeams() {
             credentials: 'include'
         });
         if (res.ok) {
+            
             await alert('✅ 팀 배정이 완료되었습니다.');
             loadCookingTab();
         } else {
@@ -989,6 +1011,7 @@ async function updateCookingAssignment(id, el) {
             credentials: 'include'
         });
         if (res.ok) {
+            
             loadCookingTab();
         }
     } catch (e) { console.error(e); }
@@ -1002,6 +1025,7 @@ async function deleteCookingAssignment(id) {
             credentials: 'include'
         });
         if (res.ok) {
+            
             loadCookingTab();
         }
     } catch (e) { console.error(e); }
@@ -1015,6 +1039,7 @@ async function deleteCookingComment(id) {
             credentials: 'include'
         });
         if (res.ok) {
+            
             loadCookingTab();
         } else {
             const msg = await res.text();
@@ -1041,6 +1066,7 @@ async function resetCookingTeams() {
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             await alert('✅ 팀 배정 정보가 초기화되었습니다. (오더 셰프 유지)');
             loadCookingTab();
         } else {
@@ -1067,6 +1093,7 @@ async function resetCookingBattle() {
             return;
         }
         if (res.ok) {
+            
             await alert('✅ 초기화 완료');
             loadCookingTab();
         } else {
@@ -1137,6 +1164,7 @@ async function addFee() {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             document.getElementById('fee-desc').value = '';
             document.getElementById('fee-amt').value = '';
             loadFees();
@@ -1314,6 +1342,7 @@ async function saveParticipantEdit() {
             credentials: 'include'
         });
         if (res.ok) {
+            
             closeEditModal();
             loadParticipants();
         } else {
@@ -1332,6 +1361,7 @@ async function resetPassword() {
             credentials: 'include'
         });
         if (res.ok) {
+            
             const result = await res.json();
             await alert(result.message);
         } else {
@@ -1348,6 +1378,7 @@ async function toggleWaitlist(id) {
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             loadParticipants();
         } else {
             const msg = await res.text();
@@ -1386,7 +1417,8 @@ async function approveCancel(id) {
             method: 'POST',
             credentials: 'include'
         });
-        if (res.ok) { 
+        if (res.ok) {
+             
             await alert('취소가 승인되었습니다.'); 
             if (typeof loadParticipants === 'function' && document.getElementById('participantList')) loadParticipants();
             if (typeof loadRegisteredData === 'function' && document.getElementById('regTableBody')) loadRegisteredData();
@@ -1402,7 +1434,8 @@ async function rejectCancel(id) {
             method: 'POST',
             credentials: 'include'
         });
-        if (res.ok) { 
+        if (res.ok) {
+             
             await alert('취소 요청이 반려되었습니다.'); 
             if (typeof loadParticipants === 'function' && document.getElementById('participantList')) loadParticipants();
             if (typeof loadRegisteredData === 'function' && document.getElementById('regTableBody')) loadRegisteredData();
@@ -1432,6 +1465,7 @@ async function uploadCsv() {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             const result = await res.json();
             await alert(`✅ 성공: ${result.message}`);
             switchTab('members');
@@ -1549,6 +1583,7 @@ async function saveSettings() {
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             await alert('✅ 저장되었습니다!');
         } else {
             const msg = await res.text();
@@ -1612,6 +1647,7 @@ async function importSettings(input) {
             if (res.status === 401) return logout(true);
             
             if (res.ok) {
+            
                 await alert('✅ 설정을 성공적으로 불러왔습니다.');
                 loadSettings(); // UI 갱신
             } else {
@@ -1858,6 +1894,7 @@ async function resetSettings() {
             return;
         }
         if (res.ok) {
+            
             await alert('✅ 설정이 안전하게 초기화되었습니다.');
             loadSettings();
         } else {
@@ -1883,6 +1920,7 @@ async function resetParticipants() {
             return;
         }
         if (res.ok) {
+            
             await alert('✅ 모든 참가 정보가 안전하게 초기화되었습니다.');
             loadParticipants();
             if (document.getElementById('manittoAssignmentList')) loadAssignments();
@@ -1905,6 +1943,7 @@ async function loadVehicleTab() {
     try {
         const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
         if (res.ok) {
+            
             const settings = await res.json();
             updateVehiclePublicUI(settings.isVehicleAssignmentPublic);
         }
@@ -1980,6 +2019,7 @@ async function generateVehicleAssignments() {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             await alert('✅ 랜덤 배정이 완료되었습니다.');
             fetchAdminVehicleList();
         } else {
@@ -2168,6 +2208,7 @@ async function silentSaveVehicleAssignments(showSuccess = false) {
 
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             if (showSuccess) await alert('✅ 차량 배정 정보가 저장되었습니다.');
             // Only fetch again if NOT silent to avoid dropdown reset during editing
             if (showSuccess) fetchAdminVehicleList();
@@ -2198,6 +2239,7 @@ async function resetVehicleAssignments() {
             return logout(true);
         }
         if (res.ok) {
+            
             await alert('✅ 초기화 완료');
             fetchAdminVehicleList();
         } else {
@@ -2215,6 +2257,7 @@ async function toggleVehiclePublic() {
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             const data = await res.json();
             updateVehiclePublicUI(data.isPublic);
             await alert(data.isPublic ? "✅ 차량 배정표가 공개되었습니다." : "🔒 차량 배정표가 비공개 처리되었습니다.");
@@ -2483,6 +2526,7 @@ async function addPhotoSession() {
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
+            
             titleInp.value = '';
             fetchPhotoSessions();
         } else {
@@ -2512,20 +2556,21 @@ async function addPhotoToSession(sessionId) {
 
     if (!files || files.length === 0) return alert('업로드할 파일을 선택해주세요.');
 
+    const overlay = document.getElementById('loadingOverlay');
+    if (overlay) overlay.style.display = 'flex';
+
     const formData = new FormData();
     for (let i = 0; i < files.length; i++) {
         formData.append('files', files[i]);
     }
     if (description) formData.append('description', description);
 
-    console.log(`Uploading ${files.length} files for session ${sessionId}...`);
     try {
         const res = await fetch(`${API_BASE}/Photo/sessions/${sessionId}/upload`, {
             method: 'POST',
             body: formData,
             credentials: 'include'
         });
-        console.log('Upload response status:', res.status);
         if (res.status === 401) return logout(true);
         if (res.ok) {
             fileInp.value = '';
@@ -2535,7 +2580,11 @@ async function addPhotoToSession(sessionId) {
             const msg = await res.text();
             alert(`업로드 실패: ${msg}`);
         }
-    } catch (e) { alert('서버 오류'); }
+    } catch (e) {
+        alert('서버 오류');
+    } finally {
+        if (overlay) overlay.style.display = 'none';
+    }
 }
 
 async function deletePhoto(id) {
