@@ -2218,7 +2218,7 @@ async function updatePhotoSection() {
       const thumb = p.thumbnailUrl || p.ThumbnailUrl || url;
       return `
       <div class="marquee-item" style="width: 120px; height: 120px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: var(--bg2); border: 1px solid var(--border);">
-        <img src="${IMAGE_BASE}${thumb}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/120?text=Error'">
+        <img draggable="false" src="${IMAGE_BASE}${thumb}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/120?text=Error'">
       </div>
     `}).join('');
     
@@ -2263,8 +2263,8 @@ async function openPhotoModal() {
         <div class="photo-scroll-container" style="display: flex; gap: 12px; overflow-x: auto; padding: 12px 0; scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; cursor: grab; user-select: none;">
           ${s.photos && s.photos.length > 0 
             ? s.photos.map(p => `
-                <div class="card" style="padding: 0; overflow: hidden; width: 160px; height: 160px; flex-shrink: 0; position: relative; border: 1px solid var(--border); border-radius: 14px; cursor: pointer;">
-                  <img onclick="openFullPhoto('${IMAGE_BASE}${p.url}')" src="${IMAGE_BASE}${p.thumbnailUrl || p.url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/160?text=Error'">
+                <div class="card" data-full-url="${IMAGE_BASE}${p.url}" style="padding: 0; overflow: hidden; width: 160px; height: 160px; flex-shrink: 0; position: relative; border: 1px solid var(--border); border-radius: 14px; cursor: pointer;">
+                  <img draggable="false" src="${IMAGE_BASE}${p.thumbnailUrl || p.url}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/160?text=Error'">
                   ${p.description ? `<div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.5); color: white; padding: 6px 8px; font-size: 10px; backdrop-filter: blur(4px); border-radius: 0 0 14px 14px;">${escapeHTML(p.description)}</div>` : ''}
                 </div>
               `).join('')
@@ -2280,9 +2280,11 @@ async function openPhotoModal() {
       let isDown = false;
       let startX;
       let scrollLeft;
+      let isMoved = false;
 
       el.addEventListener('mousedown', (e) => {
         isDown = true;
+        isMoved = false;
         el.style.cursor = 'grabbing';
         startX = e.pageX - el.offsetLeft;
         scrollLeft = el.scrollLeft;
@@ -2293,17 +2295,36 @@ async function openPhotoModal() {
         el.style.cursor = 'grab';
       });
 
-      el.addEventListener('mouseup', () => {
+      el.addEventListener('mouseup', (e) => {
         isDown = false;
         el.style.cursor = 'grab';
       });
 
       el.addEventListener('mousemove', (e) => {
         if (!isDown) return;
-        e.preventDefault();
         const x = e.pageX - el.offsetLeft;
         const walk = (x - startX) * 2; // Scroll speed
-        el.scrollLeft = scrollLeft - walk;
+        
+        if (Math.abs(x - startX) > 5) {
+          isMoved = true;
+        }
+
+        if (isMoved) {
+          e.preventDefault();
+          el.scrollLeft = scrollLeft - walk;
+        }
+      });
+
+      // Event delegation for clicks to avoid conflict with drag
+      el.addEventListener('click', (e) => {
+        if (isMoved) {
+          e.preventDefault();
+          return;
+        }
+        const card = e.target.closest('.card');
+        if (card && card.dataset.fullUrl) {
+          openFullPhoto(card.dataset.fullUrl);
+        }
       });
     });
 
