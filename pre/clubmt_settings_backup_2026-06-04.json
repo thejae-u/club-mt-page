@@ -1,0 +1,23 @@
+{
+  "title": "제 5회 빅이큐 총동문 MT",
+  "subtitle": "개꿀잼 보장 빅이큐 mt ~.~",
+  "eventDateRange": "2026.07.24.금 ~ 2026.07.26.일",
+  "dDayTargetDate": "2026-07-24T00:00:00",
+  "registrationDeadline": "2026-06-23T00:00:00",
+  "location": "청평다온펜션",
+  "locationDetail": "경기 가평군 청평면 청평역로 17",
+  "mapLink": "https://naver.me/5r9zFvs0 ",
+  "registrationFee": 120000,
+  "maxGeneralCapacity": 21,
+  "maxMilitaryCapacity": 4,
+  "scheduleDataJson": "[{\"day\":1,\"emoji\":\"☀️\",\"date\":\"7월 24일 금요일\",\"summary\":\"일정\",\"timeline\":[{\"time\":\"14:40\",\"title\":\"집합\",\"desc\":\"\"},{\"time\":\"15:00\",\"title\":\"일정 안내 및 자기소개\",\"desc\":\"\"},{\"time\":\"16:00\",\"title\":\"물놀이\",\"desc\":\"\"},{\"time\":\"18:40\",\"title\":\"요리 배틀\",\"desc\":\"\"},{\"time\":\"20:00\",\"title\":\"저녁 식사 및 술파티\",\"desc\":\"\"}]},{\"day\":2,\"emoji\":\"🌕\",\"date\":\"7월 25일 토요일\",\"summary\":\"일정\",\"timeline\":[{\"time\":\"~12:10\",\"title\":\"점심 식사\",\"desc\":\"\"},{\"time\":\"13:00\",\"title\":\"배구 경기\",\"desc\":\"\"},{\"time\":\"19:30\",\"title\":\"바베큐\",\"desc\":\"\"},{\"time\":\"21:30\",\"title\":\"마니또 발표 및 술파티\",\"desc\":\"\"}]},{\"day\":3,\"emoji\":\"🫧\",\"date\":\"7월 26일 일요일\",\"summary\":\"일정\",\"timeline\":[{\"time\":\"10:00\",\"title\":\"점심 식사\",\"desc\":\"\"},{\"time\":\"11:00\",\"title\":\"퇴실 및 단체사진 촬영\",\"desc\":\"\"},{\"time\":\"~\",\"title\":\"해산\",\"desc\":\"\"}]}]",
+  "commonChecklistJson": "[\"회비 입금하기\",\"마니또 선물 준비하기\",\"신분증 챙기기 (혹시 모를 상황 대비)\",\"개인 세면도구 챙기기 (칫솔,치약,수건 등)\",\"물놀이용 옷, 신발 챙기기\",\"배구 경기용 개인 준비물 챙기기 (보호대, 운동복 등)\"]",
+  "isManittoPublic": false,
+  "manittoMissionCount": 3,
+  "isCookingBattlePublic": false,
+  "isCookingBattleChefPublic": false,
+  "isCookingBattleVotingActive": false,
+  "isVehicleAssignmentPublic": false,
+  "maxCheerPerPerson": 5,
+  "updatedAt": "2026-05-29T01:30:35.713589"
+}

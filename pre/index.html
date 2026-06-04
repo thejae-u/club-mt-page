@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <title>빅이큐 MT</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
+    <link
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .letter-tooltip {
+            position: absolute;
+            background: var(--blue-deep);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: 0 10px 25px rgba(45, 70, 141, 0.3);
+            white-space: nowrap;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            transform: translate(-50%, 0) scale(0.6);
+            transform-origin: bottom center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .letter-tooltip.active {
+            opacity: 1;
+            transform: translate(-50%, -100%) scale(1);
+            margin-top: -12px;
+        }
+
+        .letter-tooltip::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0 6px;
+            border-style: solid;
+            border-color: var(--blue-deep) transparent transparent transparent;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="header-inner">
+            <span class="logo-text">☀️ 2026 빅이큐 MT</span>
+            <button class="theme-btn" id="themeBtn">🌙</button>
+        </div>
+    </header>
+
+
+    <main>
+
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-badge">✨ 5th 총동문 MT</div>
+            <h1>제 0회 빅이큐<br><span>총동문 MT</span></h1>
+            <p class="hero-sub"></p>
+            <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:22px;">
+                <div class="dday-block" id="mtDDayBlock" style="margin-bottom:0; display:none;">
+                    <span class="dday-label">MT까지 D-</span>
+                    <span class="dday-num" id="ddayNum">--</span>
+                    <span class="dday-unit">일</span>
+                </div>
+                <div class="dday-block" id="deadlineBlock" style="margin-bottom:0; border-color:#E5484D; display:none;">
+                    <span class="dday-label" style="color:#E5484D;">신청마감 D-</span>
+                    <span class="dday-num" id="ddayDeadline" style="color:#E5484D;">--</span>
+                    <span class="dday-unit" style="color:#E5484D;">일</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-chip">📅 2025년 8월 22일 (금) ~ 24일 (일)</div>
+                <div class="info-chip" onclick="openLocationModal()" title="클릭하여 장소 상세 보기">📍 OO 리조트 <span
+                        style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span></div>
+                <div class="info-chip" onclick="openFeeModal()" title="클릭하여 회비 사용 내역 보기">💳 회비 0원 <span
+                        style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span></div>
+            </div>
+            <div class="hero-actions" id="heroActions"
+                style="display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap;">
+                <button id="btnApply" class="btn-apply" onclick="showPreviewNotice()">✍️ 신청하기</button>
+                <button id="btnLoginOpen" class="btn-apply secondary" onclick="showPreviewNotice()">🔐 로그인/수정</button>
+            </div>
+        </section>
+
+
+        <!-- 기대평 -->
+        <section id="expectationSection" style="display: none;">
+            <div class="section-title">기대평</div>
+            <div class="marquee-outer">
+                <div class="marquee-track" id="marqueeTrack"></div>
+            </div>
+        </section>
+
+        <!-- 신청 현황 -->
+        <section>
+            <div class="section-title">실시간 신청 현황</div>
+            <div class="card">
+                <div class="status-header">
+                    <div>
+                        <div style="font-size:12px;color:var(--text3);margin-bottom:2px">총 신청 인원</div>
+                        <span class="status-count" id="totalCount">0명</span>
+                        <span style="font-size:13px;color:var(--text3)" id="totalCapacityLabel"> / 0명 정원</span>
+                    </div>
+                </div>
+                <div class="bar-wrap">
+                    <div class="bar-label"><span>🙋 일반 신청</span><span style="font-weight:700;color:var(--blue)"
+                            id="genLabel">0명 /
+                            0명</span></div>
+                    <div class="bar-track">
+                        <div class="bar-fill" id="barGen"></div>
+                    </div>
+                </div>
+                <div class="bar-wrap">
+                    <div class="bar-label"><span>🫡 군인 우선 예약</span><span style="font-weight:700;color:var(--army)"
+                            id="armyLabel">0명 / 0명</span></div>
+                    <div class="bar-track">
+                        <div class="bar-fill army-bar" id="barArmy"></div>
+                    </div>
+                </div>
+                <button class="btn-detail" onclick="showPreviewNotice()">📊 자세히 보기 →</button>
+            </div>
+        </section>
+
+        <!-- 일정 한줄 3칸 -->
+        <section>
+            <div class="section-title">일정</div>
+            <div class="schedule-row" id="scheduleCards">
+                <!-- Dynamic Content -->
+            </div>
+        </section>
+
+        <!-- 프로그램 -->
+        <section>
+            <div class="section-title">프로그램</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="card" style="cursor:pointer; padding:16px;" onclick="showPreviewNotice()">
+                    <div class="cohort-card">
+                        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">👥</div>
+                        <div class="cohort-text">
+                            <h3 style="font-size:14px;">기수/동기 확인</h3>
+                            <p style="font-size:11px;">동문 명단 검색</p>
+                        </div>
+                        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                    </div>
+                </div>
+                <div class="card" style="cursor:pointer; padding:16px;" onclick="showPreviewNotice()">
+                    <div class="cohort-card">
+                        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">🎁</div>
+                        <div class="cohort-text">
+                            <h3 style="font-size:14px;">마니또 확인</h3>
+                            <p style="font-size:11px;">내 마니또와 미션</p>
+                        </div>
+                        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                    </div>
+                </div>
+                <div class="card" style="cursor:pointer; padding:16px;" onclick="showPreviewNotice()">
+                    <div class="cohort-card">
+                        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">🍳</div>
+                        <div class="cohort-text">
+                            <h3 style="font-size:14px;">요리 배틀</h3>
+                            <p style="font-size:11px;">팀 확인 및 응원</p>
+                        </div>
+                        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                    </div>
+                </div>
+                <div class="card" style="cursor:pointer; padding:16px;" onclick="showPreviewNotice()">
+                    <div class="cohort-card">
+                        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">🚗</div>
+                        <div class="cohort-text">
+                            <h3 style="font-size:14px;">차량 배정</h3>
+                            <p style="font-size:11px;">이동수단 및 현황</p>
+                        </div>
+                        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 군인 우대 (제거됨) -->
+
+        <!-- PHOTO STUDIO -->
+        <section id="photoSection" style="display: none;">
+            <div class="section-title">그땐 그랬지...</div>
+            <div class="marquee-outer" style="cursor: pointer;" onclick="openPhotoModal()">
+                <div class="marquee-track" id="photoMarqueeTrack"></div>
+            </div>
+        </section>
+
+        <!-- 배구 MBTI -->
+        <section>
+            <div class="section-title">재미로 보는 배구 MBTI</div>
+            <div class="card card-mbti-entry" style="cursor: pointer;" onclick="openMBTIModal()">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="mbti-icon-box"
+                        style="width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow-sm);">
+                        🏐</div>
+                    <div style="flex: 1;">
+                        <h3 style="font-size: 16px; font-weight: 800; color: var(--blue-deep); margin-bottom: 4px;">나의
+                            배구 MBTI 알아보기
+                        </h3>
+                        <p style="font-size: 12px; color: var(--text3); line-height: 1.4;">질문을 통해 나의 배구 스타일을 알아보세요!</p>
+                    </div>
+                    <div
+                        style="width: 32px; height: 32px; border-radius: 50%; background: var(--blue-deep); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                        →</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer style="padding: 40px 20px 60px; text-align: center; background: var(--bg2); border-top: 1px solid var(--border); margin-top: 40px;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 8px;">빅이큐 총동문 MT 시스템</div>
+            <div style="font-size: 11px; color: var(--text3); line-height: 1.6;">
+                © 2026 빅이큐 총동문 MT. All rights reserved.<br>
+                문의: <a href="mailto:contact@thejaeu.com" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">contact@thejaeu.com</a><br>
+                <span style="opacity: 0.5;">Powered by thejaeu, Assisted by AI Agent</span>
+            </div>
+        </footer>
+    </main>
+
+    <!-- ====== MODALS ====== -->
+    <div id="dynamicModals"></div>
+
+    <!-- MBTI MODAL -->
+    <div class="modal-overlay" id="modal-mbti" onclick="closeBg(event,'mbti')">
+        <div class="modal-sheet" style="max-height: 85vh;">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('mbti')">✕</button>
+            <div class="modal-title" style="text-align: center;">🏐 빅이큐 V-MBTI</div>
+
+            <div id="mbti-start" style="text-align: center; padding: 20px 0;">
+                <div style="font-size: 64px; margin-bottom: 20px;">🏐</div>
+                <div style="font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text);">나의 배구 포지션은?
+                </div>
+                <p style="font-size: 14px; color: var(--text3); line-height: 1.6; margin-bottom: 30px;">
+                    경기 스타일부터 술자리 성향까지!<br>
+                    간단한 5가지 질문으로 알아보는<br>
+                    빅이큐 전용 배구 MBTI 테스트
+                </p>
+                <button class="btn-submit" onclick="startMBTI()" style="background: var(--blue-deep); color: white;">테스트
+                    시작하기</button>
+            </div>
+
+            <div id="mbti-quiz" style="display: none; padding: 10px 0;">
+                <div
+                    style="background: var(--bg2); border-radius: 12px; height: 6px; margin-bottom: 24px; overflow: hidden;">
+                    <div id="mbti-progress"
+                        style="height: 100%; background: var(--blue); width: 0%; transition: width 0.3s;">
+                    </div>
+                </div>
+                <div id="mbti-q-num" style="font-size: 12px; font-weight: 800; color: var(--blue); margin-bottom: 8px;">
+                    Q1.
+                </div>
+                <div id="mbti-question"
+                    style="font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 24px; line-height: 1.4;">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button class="btn-detail" onclick="selectMBTIAnswer('A')" id="mbti-opt-a"
+                        style="text-align: left; padding: 20px; font-size: 15px; border-width: 1.5px; white-space: normal; height: auto; justify-content: flex-start;"></button>
+                    <button class="btn-detail" onclick="selectMBTIAnswer('B')" id="mbti-opt-b"
+                        style="text-align: left; padding: 20px; font-size: 15px; border-width: 1.5px; white-space: normal; height: auto; justify-content: flex-start;"></button>
+                </div>
+            </div>
+
+            <div id="mbti-result" style="display: none; text-align: center; padding: 15px 0;">
+                <div style="font-size: 14px; font-weight: 700; color: var(--text3); margin-bottom: 12px;">당신의 V-MBTI
+                    결과는?</div>
+                <div id="res-mbti-code"
+                    style="font-size: 12px; font-weight: 800; color: var(--blue); margin-bottom: 12px; letter-spacing: 2px; position: relative;">
+                    APLS
+                </div>
+                <div id="res-title" style="font-size: 24px; font-weight: 900; color: var(--text); margin-bottom: 24px;">
+                    전술적 폭격기형</div>
+
+                <div class="card mbti-res-card-blue" style="text-align: left; border: none; margin-bottom: 20px;">
+                    <div style="font-weight: 800; font-size: 14px; color: var(--blue-deep); margin-bottom: 8px;">🏐 배구
+                        스타일</div>
+                    <p id="res-desc" style="font-size: 14px; line-height: 1.6; color: var(--text);"></p>
+                </div>
+
+                <div class="card mbti-res-card-red" style="text-align: left; border: none; margin-bottom: 16px;">
+                    <div style="font-weight: 800; font-size: 14px; color: #E5484D; margin-bottom: 8px;">🍺 MT 성향</div>
+                    <p id="res-mt" style="font-size: 14px; line-height: 1.6; color: var(--text);"></p>
+                </div>
+
+                <p
+                    style="font-size: 11px; color: var(--text3); line-height: 1.5; margin-bottom: 28px; word-break: keep-all;">
+                    ⚠️ 주의: 5문항짜리 초간단 테스트이니 재미로만 즐겨주기!<br>안 맞으면 한 번 더 해보세요 :)
+                </p>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-submit" onclick="startMBTI()"
+                        style="flex: 1; background: var(--bg2); color: var(--text2);">다시 하기</button>
+                    <button class="btn-submit" onclick="saveMBTIResult()" id="btnSaveMbti"
+                        style="flex: 1.5; background: #22C55E; color: white;">저장하기</button>
+                    <button class="btn-submit" onclick="closeModal('mbti')" style="flex: 1;">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM POPUP -->
+    <div class="modal-overlay" id="modal-alert" style="z-index: 9999;">
+        <div class="modal-sheet" style="max-width: 400px; padding-bottom: 24px;">
+            <div class="modal-handle"></div>
+            <div class="modal-title" id="alert-title">알림</div>
+            <div class="modal-sub" id="alert-message" style="white-space: pre-wrap; line-height: 1.5;"></div>
+            <div id="alert-buttons" style="display: flex; gap: 12px; margin-top: 20px;">
+                <button class="btn-submit" id="btn-alert-confirm" style="margin-top: 0;">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOCATION MODAL -->
+    <div class="modal-overlay" id="modal-location" onclick="closeBg(event,'location')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('location')">✕</button>
+            <div class="modal-title">📍 장소 안내</div>
+            <div id="location-name"
+                style="font-size:18px; font-weight:800; color:var(--blue-deep); margin-bottom:10px;">장소 이름
+            </div>
+            <div id="location-detail"
+                style="font-size:14px; line-height:1.6; color:var(--text); margin-bottom:24px; white-space:pre-wrap;">장소
+                상세 설명이
+                여기에 표시됩니다.</div>
+
+            <a id="btnOpenMap" href="#" target="_blank" rel="noopener noreferrer" class="btn-submit"
+                style="display:block; text-align:center; text-decoration:none;">네이버 지도에서 보기</a>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script src="js/app.js?v=5"></script>
+</body>
+
+</html>

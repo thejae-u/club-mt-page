@@ -1,0 +1,151 @@
+:root {
+    --blue: #76aed9;
+    --blue-deep: #2e7ab0;
+    --blue-soft: #EEF4FB;
+    --text: #0A141A;
+    --text-light: #6A9BB5;
+    --border: rgba(118, 174, 217, 0.18);
+    --bg: #EEF5FB;
+}
+body { font-family: 'Pretendard Variable', Pretendard, -apple-system, sans-serif; padding: 15px; max-width: 900px; margin: 0 auto; background: var(--bg); color: var(--text); }
+.card { background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(118,174,217,0.1); margin-bottom: 20px; border: 1px solid var(--border); }
+h1 { font-size: 18px; margin-bottom: 20px; color: var(--blue-deep); display: flex; align-items: center; gap: 8px; }
+.form-group { margin-bottom: 20px; }
+label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 8px; color: var(--text-light); }
+input, textarea, select { width: 100%; padding: 12px; border: 1.5px solid rgba(118,174,217,0.2); border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s; background: #fff; color: var(--text); }
+input:focus, textarea:focus, select:focus { border-color: var(--blue); }
+button { width: 100%; padding: 14px; background: var(--blue); color: var(--text); border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 15px; transition: all 0.2s; box-shadow: 0 4px 12px rgba(118,174,217,0.2); margin-top: 10px; }
+@media (hover: hover) { button:hover { background: var(--blue-deep); color: #fff; } }
+
+/* Custom Alert Modal Centering for Admin */
+#modal-alert .card {
+  text-align: center;
+}
+#modal-alert h1 {
+  display: block;
+  text-align: center;
+  margin-bottom: 12px;
+}
+#alert-input, #alert-input-new {
+  text-align: center;
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid rgba(118, 174, 217, 0.2);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+  margin-bottom: 12px;
+}
+#alert-input-new {
+  margin-bottom: 20px;
+}
+
+.nav { margin-bottom: 15px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; }
+.nav a { color: var(--blue-deep); text-decoration: none; font-weight: 600; }
+
+/* TABS */
+.tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+.tab-btn { flex: 1; padding: 12px; background: white; border: 1px solid var(--border); border-radius: 12px; font-size: 14px; font-weight: 700; color: var(--text-light); cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: none; }
+.tab-btn.active { background: var(--blue-deep); color: white; border-color: var(--blue-deep); }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Table Responsive */
+.table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -5px; }
+table { width: 100%; border-collapse: collapse; min-width: 700px; }
+th { background: var(--bg); padding: 12px 10px; text-align: left; font-size: 12px; color: var(--text-light); border-bottom: 2px solid rgba(118,174,217,0.1); }
+td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+
+.badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+.badge-income { background: #E6F2EC; color: #3D7A5A; }
+/* CUSTOM CHECKBOX STYLING */
+input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 1.5px solid var(--blue);
+    border-radius: 6px;
+    background: #fff;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+input[type="checkbox"]:checked {
+    background: var(--blue);
+}
+input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 14px;
+    font-weight: 800;
+}
+input[type="checkbox"]:focus {
+    box-shadow: 0 0 0 3px rgba(118, 174, 217, 0.2);
+}
+
+.mission-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    gap: 12px;
+}
+.mission-item:last-child {
+    border-bottom: none;
+}
+.mission-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+.mission-text {
+    font-size: 13px;
+    line-height: 1.5;
+    word-break: break-all;
+}
+
+@media (max-width: 600px) {
+    body { padding: 10px; }
+    .card { padding: 15px; }
+    h1 { font-size: 16px; }
+    
+    .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
+    .flex-row { flex-direction: column !important; }
+    .flex-row-mobile-col { flex-direction: column !important; }
+    
+    .nav { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .tabs { flex-wrap: wrap; }
+    .tab-btn { flex: 1 1 calc(50% - 4px); padding: 10px 5px; font-size: 12px; white-space: normal; line-height: 1.3; }
+    
+    /* Make inline grids and flexes collapse on mobile */
+    div[style*="display:grid; grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+    div[style*="display:grid; grid-template-columns: 2fr 1fr 1fr"] { grid-template-columns: 1fr !important; }
+    div[style*="display:flex; gap:10px; margin-top:20px"] { flex-direction: column !important; }
+    #alert-buttons { flex-direction: column !important; }
+}
+
+/* ADMIN DETAIL SPECIFIC */
+.admin-detail-container { max-width: 100%; margin: 0 auto; }
+#regTable th:nth-child(1) { width: 80px; }  /* 이름 */
+#regTable th:nth-child(2) { width: 60px; }  /* 기수 */
+#regTable th:nth-child(3) { width: 80px; }  /* 구분 */
+#regTable th:nth-child(4) { width: 110px; } /* 연락처 */
+#regTable th:nth-child(5) { width: 100px; } /* 학번 */
+#regTable th:nth-child(6) { width: 60px; }  /* 입금 */
+#regTable th:nth-child(7) { width: 90px; }  /* 이동수단 */
+#regTable th:nth-child(8) { width: 70px; }  /* 카풀 */
+#regTable th:nth-child(9) { width: 100px; } /* 출발지 */
+#regTable th:nth-child(10) { width: 100px; } /* 알레르기 */
+#regTable th:nth-child(11) { width: 150px; } /* 메모/요청 */
+#regTable th:nth-child(12) { width: 100px; } /* 등록일 */
