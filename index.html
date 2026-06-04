@@ -49,6 +49,7 @@
         const TARGET_DATE_STR = '2026-06-18T00:00:00+09:00'; 
         const USE_SERVER_TIME = true; 
 
+
         async function getNow() {
             if (USE_SERVER_TIME) {
                 try {
@@ -73,8 +74,9 @@
             console.log("목표 시각:", new Date(targetTime).toLocaleString());
 
             if (nowTime >= targetTime) {
-                // 오픈 시간이 지났으면 실제 사이트로 이동
-                window.location.replace('./real/index.html');
+                // 오픈 시간이 지났으면 실제 사이트로 이동 (경로 난독화 처리)
+                const path = atob('Li9yZWFsX3Y1X210XzIwMjZfcTh6N3gyL2luZGV4Lmh0bWw=');
+                window.location.replace(path);
             } else {
                 // 아직 오픈 전이면 프리사이트로 이동
                 window.location.replace('./pre/index.html');
