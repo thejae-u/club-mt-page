@@ -1484,6 +1484,22 @@ async function loadSettings() {
         if (!res.ok) return;
         const s = await res.json();
         window.currentSettings = s;
+        
+        // Service Opening Settings
+        if (s.openingDate) {
+            let dateStr = s.openingDate;
+            // 만약 서버에서 온 시간에 시간대 정보(Z)가 없다면 붙여줍니다. (UTC 보장)
+            if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+                dateStr += 'Z';
+            }
+            const d = new Date(dateStr);
+            const pad = (n) => String(n).padStart(2, '0');
+            const localStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            document.getElementById('openingDate').value = localStr;
+        }
+        document.getElementById('isServiceOpen').checked = s.isServiceOpen;
+        document.getElementById('isRegistrationActive').checked = s.isRegistrationActive;
+
         document.getElementById('title').value = s.title;
         document.getElementById('subtitle').value = s.subtitle;
         document.getElementById('eventDateRange').value = s.eventDateRange;
@@ -1554,7 +1570,13 @@ function removeTimeline(dIdx, tIdx) { currentSchedule[dIdx].timeline.splice(tIdx
 function syncRawJson() { const jsonEl = document.getElementById('scheduleDataJson'); if (jsonEl) jsonEl.value = JSON.stringify(currentSchedule, null, 2); }
 
 async function saveSettings() {
+    const openingDateValue = document.getElementById('openingDate').value;
+    const openingDateObj = openingDateValue ? new Date(openingDateValue).toISOString() : new Date().toISOString();
+
     const payload = {
+        openingDate: openingDateObj,
+        isServiceOpen: document.getElementById('isServiceOpen').checked,
+        isRegistrationActive: document.getElementById('isRegistrationActive').checked,
         title: document.getElementById('title').value,
         subtitle: document.getElementById('subtitle').value,
         eventDateRange: document.getElementById('eventDateRange').value,

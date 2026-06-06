@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>빅이큐 MT - 접속 중...</title>
     <style>
+        :root {
+            --bg: #f4f6fb;
+            --text: #212529;
+            --text3: #868e96;
+            --blue-deep: #2d468d;
+        }
         body {
             margin: 0;
             padding: 0;
@@ -12,16 +18,16 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f4f6fb;
+            background-color: var(--bg);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #2d468d;
+            color: var(--blue-deep);
         }
         .loader-container {
             text-align: center;
         }
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #2d468d;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid var(--blue-deep);
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -32,49 +38,87 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        #globalError {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--bg);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .error-btn {
+            padding: 16px 40px;
+            background: var(--blue-deep);
+            color: white;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(45,70,141,0.25);
+            transition: transform 0.2s;
+        }
     </style>
 </head>
 <body>
-    <div class="loader-container">
+    <div class="loader-container" id="loaderContainer">
         <div class="loader"></div>
         <p id="status-text">잠시만 기다려 주세요...</p>
     </div>
 
+    <!-- ERROR OVERLAY -->
+    <div id="globalError">
+        <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
+        <h1 style="font-size: 24px; font-weight: 900; color: var(--text); margin-bottom: 12px; letter-spacing: -0.5px;">
+            서버와 통신에 실패하였습니다</h1>
+        <p style="font-size: 15px; color: var(--text3); line-height: 1.6; margin-bottom: 32px;">관리자에게 문의해주세요.<br>잠시 후 다시 시도해보시기 바랍니다.</p>
+        <button class="error-btn" onclick="location.reload()">🔄 페이지 새로고침</button>
+    </div>
+
     <script>
-        /**
-         * 설정 가이드:
-         * 1. TARGET_DATE_STR: 사이트가 자동으로 전환될 날짜와 시간을 입력하세요. (ISO 8601 형식)
-         * 2. USE_SERVER_TIME: 사용자의 컴퓨터 시간 대신 서버 시간을 사용할지 여부 (true 권장)
-         */
         const TARGET_DATE_STR = '2026-06-18T00:00:00+09:00'; 
-        const USE_SERVER_TIME = true; 
-
-
-        async function getNow() {
-            if (USE_SERVER_TIME) {
-                try {
-                    const response = await fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul');
-                    if (response.ok) {
-                        const data = await response.json();
-                        return new Date(data.datetime).getTime();
-                    }
-                } catch (e) {
-                    console.warn("서버 시간을 가져올 수 없어 로컬 시간을 사용합니다.", e);
-                }
-            }
-            return new Date().getTime();
-        }
+        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
+        const API_STATUS_URL = `${API_BASE}/Settings/open-status`;
 
         async function route() {
-            const targetTime = new Date(TARGET_DATE_STR).getTime();
-            const nowTime = await getNow();
+            let isServiceOpen = false;
+            let openingDate = new Date(TARGET_DATE_STR).getTime();
+            let nowTime = new Date().getTime();
+            let apiFetchSuccess = false;
 
-            // 테스트를 위한 로그 (개발자 도구 콘솔에서 확인 가능)
-            console.log("현재 시각:", new Date(nowTime).toLocaleString());
-            console.log("목표 시각:", new Date(targetTime).toLocaleString());
+            try {
+                // 1. 서버에서 현재 오픈 설정 가져오기
+                const response = await fetch(API_STATUS_URL);
+                if (response.ok) {
+                    const status = await response.json();
+                    isServiceOpen = status.isServiceOpen;
+                    openingDate = new Date(status.openingDate).getTime();
+                    apiFetchSuccess = true;
+                }
 
-            if (nowTime >= targetTime) {
-                // 오픈 시간이 지났으면 실제 사이트로 이동 (경로 난독화 처리)
+                // 2. 서버 시간 가져오기 시도
+                const timeRes = await fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul');
+                if (timeRes.ok) {
+                    const timeData = await timeRes.json();
+                    nowTime = new Date(timeData.datetime).getTime();
+                }
+            } catch (e) {
+                console.warn("서버 통신 실패", e);
+            }
+
+            // [조건]: 오픈 시간이 지났고 강제오픈도 아닌데 API 통신이 실패했다면 에러 표시
+            if (!apiFetchSuccess && nowTime >= openingDate && !isServiceOpen) {
+                document.getElementById('loaderContainer').style.display = 'none';
+                document.getElementById('globalError').style.display = 'flex';
+                return;
+            }
+
+            if (isServiceOpen || nowTime >= openingDate) {
+                // 실제 사이트로 이동 (경로 난독화 처리)
                 const path = atob('Li9yZWFsX3Y1X210XzIwMjZfcTh6N3gyL2luZGV4Lmh0bWw=');
                 window.location.replace(path);
             } else {
@@ -83,7 +127,6 @@
             }
         }
 
-        // 실행
         route();
     </script>
 </body>

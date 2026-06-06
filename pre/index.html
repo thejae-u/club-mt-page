@@ -228,6 +228,18 @@
                 문의: <a href="mailto:contact@thejaeu.com" style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">contact@thejaeu.com</a><br>
                 <span style="opacity: 0.5;">Powered by thejaeu, Assisted by AI Agent</span>
             </div>
+            <button class="btn-detail" id="btnRefresh" onclick="handleRefresh(this)" style="max-width: 200px; margin: 20px auto 0; background: var(--card);">데이터 새로고침</button>
+            <script>
+                function handleRefresh(btn) {
+                    btn.disabled = true;
+                    btn.innerText = '로딩 중...';
+                    window.location.href = '/';
+                    setTimeout(() => { 
+                        btn.disabled = false; 
+                        btn.innerText = '데이터 새로고침';
+                    }, 2000);
+                }
+            </script>
         </footer>
     </main>
 
