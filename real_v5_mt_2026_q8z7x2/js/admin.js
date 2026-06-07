@@ -1,6 +1,18 @@
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
 const IMAGE_BASE = API_BASE.replace(/\/api$/, '');
 
+// ===== MESSAGE CONSTANTS =====
+const MSG = {
+    SERVER_ERROR: "서버 오류",
+    DELETE_SUCCESS: "✅ 삭제되었습니다.",
+    DELETE_FAILED: "삭제 실패",
+    SAVE_SUCCESS: "✅ 저장되었습니다.",
+    SAVE_FAILED: "저장 실패",
+    PERMISSION_DENIED: "삭제 권한이 없습니다. (본인만 삭제 가능)",
+    INPUT_REQUIRED: "필수인 항목을 모두 입력해주세요.",
+    SESSION_EXPIRED: "세션이 만료되었습니다. 다시 로그인해주세요.",
+};
+
 const escapeHTML = (str) => {
   if (!str) return '';
   return String(str).replace(/[&<>'"]/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[match] || match));
@@ -30,7 +42,7 @@ async function loadBoard() {
     if (!tbody) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Manitto/reports`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Manitto/reports`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.status === 401) return logout(true);
         if (!res.ok) throw new Error();
 
@@ -65,7 +77,7 @@ async function loadBoard() {
 async function deleteReport(id) {
     if (!await confirm('이 제보를 삭제하시겠습니까?')) return;
     try {
-        const res = await fetch(`${API_BASE}/Manitto/reports/${id}`, { 
+        const res = await fetch(`${API_BASE}/Manitto/reports/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' }, 
             method: 'DELETE',
             credentials: 'include'
         });
@@ -74,9 +86,9 @@ async function deleteReport(id) {
             
             loadBoard();
         } else {
-            await alert('삭제 실패');
+            await alert(MSG.DELETE_FAILED);
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 // --- MODIFICATION MANAGEMENT (TODO) ---
@@ -85,7 +97,7 @@ async function loadModifications() {
     if (!tbody) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Modification`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Modification`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.status === 401) return logout(true);
         if (!res.ok) throw new Error();
 
@@ -158,9 +170,7 @@ async function addModificationComment(taskId) {
     if (!content) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Modification/${taskId}/comments`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Modification/${taskId}/comments`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify(content),
             credentials: 'include'
         });
@@ -173,27 +183,27 @@ async function addModificationComment(taskId) {
             const err = await res.text();
             await alert(`댓글 등록 실패: ${err}`);
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function deleteModificationComment(commentId, taskId) {
     if (!await confirm('댓글을 삭제하시겠습니까?')) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Modification/comments/${commentId}`, {
+        const res = await fetch(`${API_BASE}/Modification/comments/${commentId}`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'DELETE',
             credentials: 'include'
         });
 
         if (res.status === 401) return logout(true);
-        if (res.status === 403) return await alert('삭제 권한이 없습니다. (본인만 삭제 가능)');
+        if (res.status === 403) return await alert(MSG.PERMISSION_DENIED);
         if (res.ok) {
             
             loadModifications();
         } else {
             await alert('댓글 삭제 실패');
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function addModification() {
@@ -203,9 +213,7 @@ async function addModification() {
     if (!title.trim()) return await alert('제목을 입력해주세요.');
 
     try {
-        const res = await fetch(`${API_BASE}/Modification`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Modification`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ title, description }),
             credentials: 'include'
         });
@@ -219,14 +227,12 @@ async function addModification() {
         } else {
             await alert('등록 실패');
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function updateModificationStatus(id, status) {
     try {
-        const res = await fetch(`${API_BASE}/Modification/${id}/status`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Modification/${id}/status`, { method: 'PATCH', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify(status),
             credentials: 'include'
         });
@@ -238,13 +244,13 @@ async function updateModificationStatus(id, status) {
         } else {
             await alert('상태 변경 실패');
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function deleteModification(id) {
     if (!await confirm('이 요청을 삭제하시겠습니까?')) return;
     try {
-        const res = await fetch(`${API_BASE}/Modification/${id}`, {
+        const res = await fetch(`${API_BASE}/Modification/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'DELETE',
             credentials: 'include'
         });
@@ -253,9 +259,9 @@ async function deleteModification(id) {
             
             loadModifications();
         } else {
-            await alert('삭제 실패');
+            await alert(MSG.DELETE_FAILED);
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 // --- ADMIN ACCOUNT MANAGEMENT ---
@@ -264,7 +270,7 @@ async function loadAdmins() {
     if (!tbody) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/admins`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Management/admins`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.status === 401) return logout(true);
         if (!res.ok) throw new Error();
 
@@ -291,9 +297,7 @@ async function addAdminAccount() {
     if (!username || !password) return await alert('아이디와 비밀번호를 모두 입력해주세요.');
 
     try {
-        const res = await fetch(`${API_BASE}/Management/admins`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/admins`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password }),
             credentials: 'include'
         });
@@ -309,26 +313,26 @@ async function addAdminAccount() {
             const err = await res.text();
             await alert(`❌ 생성 실패: ${err}`);
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function deleteAdminAccount(id, username) {
     if (!await confirm(`정말 '${username}' 관리자 계정을 삭제하시겠습니까?`)) return;
     try {
-        const res = await fetch(`${API_BASE}/Management/admins/${id}`, {
+        const res = await fetch(`${API_BASE}/Management/admins/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'DELETE',
             credentials: 'include'
         });
         if (res.status === 401) return logout(true);
         if (res.ok) {
             
-            await alert('✅ 삭제되었습니다.');
+            await alert(MSG.DELETE_SUCCESS);
             loadAdmins();
         } else {
             const err = await res.text();
             await alert(`❌ 삭제 실패: ${err}`);
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function loadManittoTab() {
@@ -337,7 +341,7 @@ async function loadManittoTab() {
     
     // Update Publish Button State
     try {
-        const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Settings`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.ok) {
             
             const s = await res.json();
@@ -357,7 +361,7 @@ async function loadManittoTab() {
 
 async function toggleManittoVisibility() {
     try {
-        const res = await fetch(`${API_BASE}/Management/manitto/toggle-visibility`, { 
+        const res = await fetch(`${API_BASE}/Management/manitto/toggle-visibility`, { headers: { 'X-ClubMT-Source': 'WebApp' }, 
             method: 'POST', 
             credentials: 'include' 
         });
@@ -368,7 +372,7 @@ async function toggleManittoVisibility() {
             await alert(data.message);
             loadManittoTab();
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function checkAuth() {
@@ -376,7 +380,7 @@ async function checkAuth() {
     const loginOverlay = document.getElementById('loginOverlay');
     
     try {
-        const res = await fetch(`${API_BASE}/Auth/status`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Auth/status`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.ok) {
             
         const data = await res.json();
@@ -416,9 +420,12 @@ async function doLogin() {
     const password = document.getElementById('login-password').value;
 
     try {
-        const res = await fetch(`${API_BASE}/Auth/login`, {
+        const res = await fetch(`${API_BASE}/Auth/login`, { 
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-ClubMT-Source': 'WebApp'
+            },
             body: JSON.stringify({ username, password }),
             credentials: 'include'
         });
@@ -441,7 +448,7 @@ async function logout(isAuto = false) {
         if (!await confirm('로그아웃 하시겠습니까?')) return;
     }
     try {
-        await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' });
+        await fetch(`${API_BASE}/auth/logout`, { headers: { 'X-ClubMT-Source': 'WebApp' }, method: 'POST', credentials: 'include' });
     } catch (e) {}
     location.href = 'manager-hq';
 }
@@ -452,7 +459,7 @@ async function loadMissions() {
     if (!container) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/manitto/missions`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Management/manitto/missions`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.status === 401) return logout(true);
         if (!res.ok) throw new Error();
 
@@ -490,9 +497,7 @@ async function deleteSelectedMissions() {
     if (!await confirm(`${selectedIds.length}개의 미션을 삭제하시겠습니까?`)) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/manitto/missions/delete-batch`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/manitto/missions/delete-batch`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify(selectedIds),
             credentials: 'include'
         });
@@ -505,9 +510,9 @@ async function deleteSelectedMissions() {
             if (selectAll) selectAll.checked = false;
             loadMissions();
         } else {
-            await alert('삭제 실패');
+            await alert(MSG.DELETE_FAILED);
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function addMissions() {
@@ -518,9 +523,7 @@ async function addMissions() {
     if (missionList.length === 0) return await alert('유효한 미션이 없습니다.');
 
     try {
-        const res = await fetch(`${API_BASE}/Management/manitto/missions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/manitto/missions`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify(missionList),
             credentials: 'include'
         });
@@ -534,19 +537,19 @@ async function addMissions() {
         } else {
             await alert('등록 실패');
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function deleteMission(id) {
     if (!await confirm('미션을 삭제하시겠습니까?')) return;
     try {
-        const res = await fetch(`${API_BASE}/Management/manitto/missions/${id}`, {
+        const res = await fetch(`${API_BASE}/Management/manitto/missions/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'DELETE',
             credentials: 'include'
         });
         if (res.status === 401) return logout(true);
         loadMissions();
-    } catch (e) { await alert('삭제 실패'); }
+    } catch (e) { await alert(MSG.DELETE_FAILED); }
 }
 
 async function loadAssignments() {
@@ -554,7 +557,7 @@ async function loadAssignments() {
     if (!tbody) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/manitto/assignments`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Management/manitto/assignments`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.status === 401) return logout(true);
         const list = await res.json();
 
@@ -604,9 +607,7 @@ async function updateManittoAssignmentLocal(participantId, field, value, index =
     }
 
     try {
-        const res = await fetch(`${API_BASE}/Management/manitto/assignments/${participantId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/manitto/assignments/${participantId}`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
             credentials: 'include'
         });
@@ -616,7 +617,7 @@ async function updateManittoAssignmentLocal(participantId, field, value, index =
             
             // Update local state and re-render subtly if needed, or just reload
             const updatedIdx = window.currentAssignments.findIndex(a => a.id === participantId);
-            const resData = await fetch(`${API_BASE}/Management/manitto/assignments`, { credentials: 'include' });
+            const resData = await fetch(`${API_BASE}/Management/manitto/assignments`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
             if (resData.ok) {
                 window.currentAssignments = await resData.json();
                 loadAssignments();
@@ -634,9 +635,7 @@ async function resetManitto() {
     if (!password) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/reset-manitto`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/reset-manitto`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ password }),
             credentials: 'include'
         });
@@ -651,7 +650,7 @@ async function resetManitto() {
         } else {
             await alert('초기화 실패');
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 
@@ -663,9 +662,7 @@ async function matchManitto() {
     if (loadingOverlay) loadingOverlay.style.display = 'flex';
 
     try {
-        const res = await fetch(`${API_BASE}/Management/manitto/match`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/manitto/match`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify(missionCount),
             credentials: 'include'
         });
@@ -692,7 +689,7 @@ async function loadCookingTab() {
 
     // Fetch Cooking Battle Stats
     try {
-        const res = await fetch(`${API_BASE}/Management/status`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Management/status`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.ok) {
             
             const data = await res.json();
@@ -711,7 +708,7 @@ async function loadCookingTab() {
 
     // Fetch Cooking Battle Assignments
     try {
-        const res = await fetch(`${API_BASE}/Management/cooking-battle/assignments`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/assignments`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.ok) {
             
             const assignments = await res.json();
@@ -813,7 +810,7 @@ async function loadCookingTab() {
 
         // Auto-select current chefs
         try {
-            const resA = await fetch(`${API_BASE}/Management/cooking-battle/assignments`, { credentials: 'include' });
+            const resA = await fetch(`${API_BASE}/Management/cooking-battle/assignments`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
             if (resA.ok) {
                 const assignments = await resA.ok ? await resA.json() : [];
                 const bChef = assignments.find(a => a.team === 'Black' && a.role === 'OrderChef');
@@ -840,7 +837,7 @@ async function loadCookingApplications() {
     if (!tbody) return [];
 
     try {
-        const res = await fetch(`${API_BASE}/Management/cooking-battle/applications`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/applications`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.status === 401) { logout(true); return []; }
         const apps = await res.json();
         
@@ -863,7 +860,7 @@ async function loadCookingApplications() {
 
 async function updateCookingUI() {
     try {
-        const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Settings`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.ok) {
             
             const s = await res.json();
@@ -930,9 +927,7 @@ async function toggleCookingChefVisibility() {
     
     const payload = { ...window.currentSettings, isCookingBattleChefPublic: newStatus };
     try {
-        const res = await fetch(`${API_BASE}/Settings`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Settings`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
             credentials: 'include'
         });
@@ -943,7 +938,7 @@ async function toggleCookingChefVisibility() {
             updateCookingUI();
             await alert(newStatus ? '✅ 셰프 명단이 선공개되었습니다.' : '🔒 셰프 명단이 비공개 처리되었습니다.');
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function toggleCookingVoteStatus() {
@@ -961,9 +956,7 @@ async function assignCookingTeams() {
     if (!await confirm('팀 배정을 진행하시겠습니까? 기존 배정 정보는 삭제됩니다.')) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/cooking-battle/assign-teams`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/assign-teams`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ blackChefId, whiteChefId, excludedParticipantIds: excludedIds }),
             credentials: 'include'
         });
@@ -974,7 +967,7 @@ async function assignCookingTeams() {
         } else {
             alert('배정 실패');
         }
-    } catch (e) { alert('서버 오류'); }
+    } catch (e) { alert(MSG.SERVER_ERROR); }
 }
 
 async function updateCookingAssignment(id, el) {
@@ -1001,9 +994,7 @@ async function updateCookingAssignment(id, el) {
     const teamMap = { 'None': 0, 'Black': 1, 'White': 2 };
 
     try {
-        const res = await fetch(`${API_BASE}/Management/cooking-battle/assignments/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/assignments/${id}`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 team: teamMap[team], 
                 role: roleMap[role] 
@@ -1020,7 +1011,7 @@ async function updateCookingAssignment(id, el) {
 async function deleteCookingAssignment(id) {
     if (!await confirm('해당 배정을 삭제하시겠습니까?')) return;
     try {
-        const res = await fetch(`${API_BASE}/Management/cooking-battle/assignments/${id}`, {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/assignments/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'DELETE',
             credentials: 'include'
         });
@@ -1034,7 +1025,7 @@ async function deleteCookingAssignment(id) {
 async function deleteCookingComment(id) {
     if (!await confirm('이 한줄평을 삭제하시겠습니까?')) return;
     try {
-        const res = await fetch(`${API_BASE}/Management/cooking-battle/comments/${id}`, {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/comments/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'DELETE',
             credentials: 'include'
         });
@@ -1058,9 +1049,7 @@ async function resetCookingTeams() {
     if (!password) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/cooking-battle/reset-teams`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/reset-teams`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ password }),
             credentials: 'include' 
         });
@@ -1073,7 +1062,7 @@ async function resetCookingTeams() {
             const msg = await res.text();
             await alert(`❌ 초기화 실패: ${msg || '알 수 없는 오류'}`);
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function resetCookingBattle() {
@@ -1082,9 +1071,7 @@ async function resetCookingBattle() {
     if (!password) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/cooking-battle/reset`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/reset`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ password }),
             credentials: 'include' 
         });
@@ -1099,15 +1086,15 @@ async function resetCookingBattle() {
         } else {
             await alert('초기화 실패');
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 // --- FEE MANAGEMENT ---
 async function loadFees() {
     try {
         const [resList, resSummary] = await Promise.all([
-            fetch(`${API_BASE}/Fee`, { credentials: 'include' }),
-            fetch(`${API_BASE}/Fee/summary`, { credentials: 'include' })
+            fetch(`${API_BASE}/Fee`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' }),
+            fetch(`${API_BASE}/Fee/summary`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' })
         ]);
         
         if (!resList.ok || !resSummary.ok) {
@@ -1155,9 +1142,7 @@ async function addFee() {
     const amount = -Math.abs(rawAmount);
 
     try {
-        const res = await fetch(`${API_BASE}/Fee`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Fee`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ description, amount, category }),
             credentials: 'include'
         });
@@ -1175,25 +1160,25 @@ async function addFee() {
 async function deleteFee(id) {
     if (!await confirm('정말 삭제하시겠습니까?')) return;
     try {
-        const res = await fetch(`${API_BASE}/Fee/${id}`, {
+        const res = await fetch(`${API_BASE}/Fee/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'DELETE',
             credentials: 'include'
         });
         if (res.status === 401) return logout(true);
         loadFees();
-    } catch (e) { await alert('삭제 실패'); }
+    } catch (e) { await alert(MSG.DELETE_FAILED); }
 }
 
 // --- PARTICIPANT MANAGEMENT ---
 const typeLabels = ['재학생', '졸업생', '휴학생', '군인', '기타'];
 async function loadParticipants() {
     try {
-        const sRes = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        const sRes = await fetch(`${API_BASE}/Settings`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         const settings = await sRes.json();
         const MAX_GEN = settings.maxGeneralCapacity || 16;
         const MAX_ARMY = settings.maxMilitaryCapacity || 4;
 
-        const res = await fetch(`${API_BASE}/Participants`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Participants`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.status === 401) return logout(true);
         const list = await res.json();
         // Sort by CreatedAt Ascending
@@ -1279,7 +1264,7 @@ async function loadParticipants() {
 
 async function openEditModal(id) {
     try {
-        const res = await fetch(`${API_BASE}/Participants/${id}`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Participants/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (!res.ok) return;
         const p = await res.json();
         
@@ -1335,9 +1320,7 @@ async function saveParticipantEdit() {
     };
 
     try {
-        const res = await fetch(`${API_BASE}/Participants/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Participants/${id}`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
             credentials: 'include'
         });
@@ -1356,7 +1339,7 @@ async function resetPassword() {
     if (!await confirm('비밀번호를 \'mt + 휴대폰 번호 뒷 4자리 + !!\' 패턴으로 초기화하시겠습니까? (예: mt1234!!)')) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Participants/${id}/reset-password`, {
+        const res = await fetch(`${API_BASE}/Participants/${id}/reset-password`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'POST',
             credentials: 'include'
         });
@@ -1372,7 +1355,7 @@ async function resetPassword() {
 
 async function toggleWaitlist(id) {
     try {
-        const res = await fetch(`${API_BASE}/Participants/${id}/toggle-waitlist`, { 
+        const res = await fetch(`${API_BASE}/Participants/${id}/toggle-waitlist`, { headers: { 'X-ClubMT-Source': 'WebApp' }, 
             method: 'POST',
             credentials: 'include'
         });
@@ -1389,7 +1372,7 @@ async function toggleWaitlist(id) {
 
 async function toggleDeposit(id) {
     try {
-        const res = await fetch(`${API_BASE}/Participants/${id}/toggle-deposit`, { 
+        const res = await fetch(`${API_BASE}/Participants/${id}/toggle-deposit`, { headers: { 'X-ClubMT-Source': 'WebApp' }, 
             method: 'POST',
             credentials: 'include'
         });
@@ -1401,19 +1384,19 @@ async function toggleDeposit(id) {
 async function deleteParticipant(id) {
     if (!await confirm('정말 삭제하시겠습니까?')) return;
     try {
-        const res = await fetch(`${API_BASE}/Participants/${id}`, { 
+        const res = await fetch(`${API_BASE}/Participants/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' }, 
             method: 'DELETE',
             credentials: 'include'
         });
         if (res.status === 401) return logout(true);
         loadParticipants();
-    } catch (e) { await alert('삭제 실패'); }
+    } catch (e) { await alert(MSG.DELETE_FAILED); }
 }
 
 async function approveCancel(id) {
     if (!await confirm('해당 참가자의 취소 요청을 승인하시겠습니까? 신청 내역이 초기화됩니다.')) return;
     try {
-        const res = await fetch(`${API_BASE}/Participants/${id}/cancel`, {
+        const res = await fetch(`${API_BASE}/Participants/${id}/cancel`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'POST',
             credentials: 'include'
         });
@@ -1424,13 +1407,13 @@ async function approveCancel(id) {
             if (typeof loadRegisteredData === 'function' && document.getElementById('regTableBody')) loadRegisteredData();
         }
         else { await alert('취소 승인 실패'); }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function rejectCancel(id) {
     if (!await confirm('해당 참가자의 취소 요청을 반려하시겠습니까? 정상 신청 상태로 복구됩니다.')) return;
     try {
-        const res = await fetch(`${API_BASE}/Participants/${id}/reject-cancel`, {
+        const res = await fetch(`${API_BASE}/Participants/${id}/reject-cancel`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'POST',
             credentials: 'include'
         });
@@ -1441,7 +1424,7 @@ async function rejectCancel(id) {
             if (typeof loadRegisteredData === 'function' && document.getElementById('regTableBody')) loadRegisteredData();
         }
         else { await alert('취소 반려 실패'); }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function uploadCsv() {
@@ -1457,7 +1440,7 @@ async function uploadCsv() {
     formData.append('file', fileInput.files[0]);
 
     try {
-        const res = await fetch(`${API_BASE}/Management/import-csv`, {
+        const res = await fetch(`${API_BASE}/Management/import-csv`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'POST',
             body: formData,
             credentials: 'include'
@@ -1480,7 +1463,7 @@ async function uploadCsv() {
 // --- SETTINGS MANAGEMENT ---
 async function loadSettings() {
     try {
-        const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Settings`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (!res.ok) return;
         const s = await res.json();
         window.currentSettings = s;
@@ -1597,9 +1580,7 @@ async function saveSettings() {
         scheduleDataJson: JSON.stringify(currentSchedule)
     };
     try {
-        const res = await fetch(`${API_BASE}/Settings`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Settings`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
             credentials: 'include'
         });
@@ -1616,7 +1597,7 @@ async function saveSettings() {
 
 async function exportSettings() {
     try {
-        const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Settings`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (!res.ok) {
             if (res.status === 401) return logout(true);
             throw new Error();
@@ -1659,9 +1640,7 @@ async function importSettings(input) {
         try {
             const settings = JSON.parse(e.target.result);
             
-            const res = await fetch(`${API_BASE}/Settings`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+            const res = await fetch(`${API_BASE}/Settings`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
                 body: JSON.stringify(settings),
                 credentials: 'include'
             });
@@ -1706,8 +1685,8 @@ let sortConfig = { key: 'createdAt', direction: 'asc' };
 async function fetchData() {
     try {
         const [resParticipants, resMembers] = await Promise.all([
-            fetch(`${API_BASE}/Participants`, { credentials: 'include' }),
-            fetch(`${API_BASE}/Management/members`, { credentials: 'include' })
+            fetch(`${API_BASE}/Participants`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' }),
+            fetch(`${API_BASE}/Management/members`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' })
         ]);
 
         if (resParticipants.status === 401) return logout(true);
@@ -1905,9 +1884,7 @@ async function resetSettings() {
     if (!password) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/reset-settings`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/reset-settings`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ password }),
             credentials: 'include'
         });
@@ -1922,7 +1899,7 @@ async function resetSettings() {
         } else {
             await alert('초기화 실패');
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function resetParticipants() {
@@ -1931,9 +1908,7 @@ async function resetParticipants() {
     if (!password) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Management/reset-participants`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Management/reset-participants`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ password }),
             credentials: 'include'
         });
@@ -1949,7 +1924,7 @@ async function resetParticipants() {
         } else {
             await alert('초기화 실패');
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 window.filterData = filterData;
 window.fetchData = fetchData;
@@ -1963,7 +1938,7 @@ async function loadVehicleTab() {
     
     // Load current public status from settings
     try {
-        const res = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Settings`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.ok) {
             
             const settings = await res.json();
@@ -2032,9 +2007,7 @@ async function generateVehicleAssignments() {
     }));
 
     try {
-        const res = await fetch(`${API_BASE}/Vehicle/admin/generate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Vehicle/admin/generate`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ vehicles }),
             credentials: 'include'
         });
@@ -2047,7 +2020,7 @@ async function generateVehicleAssignments() {
         } else {
             await alert('❌ 배정 실패');
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function fetchAdminVehicleList() {
@@ -2057,7 +2030,7 @@ async function fetchAdminVehicleList() {
     try {
         if (participants.length === 0) await fetchData();
 
-        const res = await fetch(`${API_BASE}/Vehicle/all`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Vehicle/all`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.status === 401) return logout(true);
         if (!res.ok) throw new Error('Failed to fetch vehicles');
 
@@ -2221,9 +2194,7 @@ async function silentSaveVehicleAssignments(showSuccess = false) {
     });
 
     try {
-        const res = await fetch(`${API_BASE}/Vehicle/admin/update`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Vehicle/admin/update`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify(updates),
             credentials: 'include'
         });
@@ -2246,9 +2217,7 @@ async function resetVehicleAssignments() {
     if (!password) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Vehicle/admin/reset`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Vehicle/admin/reset`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ password }),
             credentials: 'include'
         });
@@ -2268,12 +2237,12 @@ async function resetVehicleAssignments() {
             const msg = await res.text();
             await alert(`❌ 초기화 실패: ${msg || '알 수 없는 오류'}`);
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 async function toggleVehiclePublic() {
     try {
-        const res = await fetch(`${API_BASE}/Vehicle/admin/toggle-public`, {
+        const res = await fetch(`${API_BASE}/Vehicle/admin/toggle-public`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'POST',
             credentials: 'include'
         });
@@ -2284,7 +2253,7 @@ async function toggleVehiclePublic() {
             updateVehiclePublicUI(data.isPublic);
             await alert(data.isPublic ? "✅ 차량 배정표가 공개되었습니다." : "🔒 차량 배정표가 비공개 처리되었습니다.");
         }
-    } catch (e) { await alert('서버 오류'); }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
 function updateVehiclePublicUI(isPublic) {
@@ -2458,7 +2427,7 @@ async function fetchPhotoSessions() {
     if (!list) return;
 
     try {
-        const res = await fetch(`${API_BASE}/Photo/sessions`, { credentials: 'include' });
+        const res = await fetch(`${API_BASE}/Photo/sessions`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.status === 401) return logout(true);
         if (!res.ok) throw new Error();
         const sessions = await res.json();
@@ -2520,9 +2489,7 @@ async function fetchPhotoSessions() {
             }));
             
             try {
-                const res = await fetch(`${API_BASE}/Photo/sessions/reorder`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const res = await fetch(`${API_BASE}/Photo/sessions/reorder`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
                     body: JSON.stringify(updates),
                     credentials: 'include'
                 });
@@ -2540,9 +2507,7 @@ async function addPhotoSession() {
     if (!title) return alert('회차 제목을 입력해주세요.');
 
     try {
-        const res = await fetch(`${API_BASE}/Photo/sessions`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const res = await fetch(`${API_BASE}/Photo/sessions`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
             body: JSON.stringify({ title, order: 999 }), // Set a high default order
             credentials: 'include'
         });
@@ -2554,20 +2519,20 @@ async function addPhotoSession() {
         } else {
             alert('회차 추가 실패');
         }
-    } catch (e) { alert('서버 오류'); }
+    } catch (e) { alert(MSG.SERVER_ERROR); }
 }
 
 async function deletePhotoSession(id) {
     if (!await confirm('이 회차와 포함된 모든 사진을 삭제하시겠습니까?')) return;
     try {
-        const res = await fetch(`${API_BASE}/Photo/sessions/${id}`, {
+        const res = await fetch(`${API_BASE}/Photo/sessions/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'DELETE',
             credentials: 'include'
         });
         if (res.status === 401) return logout(true);
         if (res.ok) fetchPhotoSessions();
-        else alert('삭제 실패');
-    } catch (e) { alert('서버 오류'); }
+        else alert(MSG.DELETE_FAILED);
+    } catch (e) { alert(MSG.SERVER_ERROR); }
 }
 
 async function addPhotoToSession(sessionId) {
@@ -2588,7 +2553,7 @@ async function addPhotoToSession(sessionId) {
     if (description) formData.append('description', description);
 
     try {
-        const res = await fetch(`${API_BASE}/Photo/sessions/${sessionId}/upload`, {
+        const res = await fetch(`${API_BASE}/Photo/sessions/${sessionId}/upload`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'POST',
             body: formData,
             credentials: 'include'
@@ -2603,7 +2568,7 @@ async function addPhotoToSession(sessionId) {
             alert(`업로드 실패: ${msg}`);
         }
     } catch (e) {
-        alert('서버 오류');
+        alert(MSG.SERVER_ERROR);
     } finally {
         if (overlay) overlay.style.display = 'none';
     }
@@ -2612,14 +2577,14 @@ async function addPhotoToSession(sessionId) {
 async function deletePhoto(id) {
     if (!await confirm('이 사진을 삭제하시겠습니까?')) return;
     try {
-        const res = await fetch(`${API_BASE}/Photo/photos/${id}`, {
+        const res = await fetch(`${API_BASE}/Photo/photos/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' },
             method: 'DELETE',
             credentials: 'include'
         });
         if (res.status === 401) return logout(true);
         if (res.ok) fetchPhotoSessions();
-        else alert('삭제 실패');
-    } catch (e) { alert('서버 오류'); }
+        else alert(MSG.DELETE_FAILED);
+    } catch (e) { alert(MSG.SERVER_ERROR); }
 }
 
 window.fetchPhotoSessions = fetchPhotoSessions;

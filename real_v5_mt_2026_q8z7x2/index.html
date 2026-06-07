@@ -150,44 +150,44 @@
         <section>
             <div class="section-title">프로그램</div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-                <div class="card" style="cursor:pointer; padding:16px;" onclick="openCohortModal()">
-                    <div class="cohort-card">
-                        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">👥</div>
-                        <div class="cohort-text">
+                <div class="card" style="cursor:pointer; padding:16px;" onclick="openGenerationModal()">
+                    <div class="generation-card">
+                        <div class="generation-icon" style="width:40px; height:40px; font-size:20px;">👥</div>
+                        <div class="generation-text">
                             <h3 style="font-size:14px;">기수/동기 확인</h3>
                             <p style="font-size:11px;">동문 명단 검색</p>
                         </div>
-                        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                        <div class="generation-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
                     </div>
                 </div>
                 <div class="card" style="cursor:pointer; padding:16px;" onclick="openManittoModal()">
-                    <div class="cohort-card">
-                        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">🎁</div>
-                        <div class="cohort-text">
+                    <div class="generation-card">
+                        <div class="generation-icon" style="width:40px; height:40px; font-size:20px;">🎁</div>
+                        <div class="generation-text">
                             <h3 style="font-size:14px;">마니또 확인</h3>
                             <p style="font-size:11px;">내 마니또와 미션</p>
                         </div>
-                        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                        <div class="generation-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
                     </div>
                 </div>
                 <div class="card" style="cursor:pointer; padding:16px;" onclick="openCookingBattleModal()">
-                    <div class="cohort-card">
-                        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">🍳</div>
-                        <div class="cohort-text">
+                    <div class="generation-card">
+                        <div class="generation-icon" style="width:40px; height:40px; font-size:20px;">🍳</div>
+                        <div class="generation-text">
                             <h3 style="font-size:14px;">요리 배틀</h3>
                             <p style="font-size:11px;">팀 확인 및 응원</p>
                         </div>
-                        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                        <div class="generation-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
                     </div>
                 </div>
                 <div class="card" style="cursor:pointer; padding:16px;" onclick="openVehicleModal()">
-                    <div class="cohort-card">
-                        <div class="cohort-icon" style="width:40px; height:40px; font-size:20px;">🚗</div>
-                        <div class="cohort-text">
+                    <div class="generation-card">
+                        <div class="generation-icon" style="width:40px; height:40px; font-size:20px;">🚗</div>
+                        <div class="generation-text">
                             <h3 style="font-size:14px;">차량 배정</h3>
                             <p style="font-size:11px;">이동수단 및 현황</p>
                         </div>
-                        <div class="cohort-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                        <div class="generation-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
                     </div>
                 </div>
             </div>
@@ -559,7 +559,7 @@
                 </div>
             </div>
 
-            <table class="cohort-table" id="feeTable">
+            <table class="generation-table" id="feeTable">
                 <thead>
                     <tr>
                         <th>항목</th>
@@ -661,21 +661,21 @@
             <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('status')">✕</button>
             <div class="modal-title">📊 실시간 신청 현황</div>
             <div class="modal-sub" id="modalTotalLabel">총 정원 00명 (군인 우선 0명 포함)</div>
-            <div class="cohort-thermo-wrap" id="thermoRows"></div>
+            <div class="generation-thermo-wrap" id="thermoRows"></div>
         </div>
     </div>
 
-    <!-- COHORT -->
-    <div class="modal-overlay" id="modal-cohort" onclick="closeBg(event,'cohort')">
+    <!-- generation -->
+    <div class="modal-overlay" id="modal-generation" onclick="closeBg(event,'generation')">
         <div class="modal-sheet">
-            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cohort')">✕</button>
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('generation')">✕</button>
             <div class="modal-title">👥 기수 / 동기 확인</div>
             <div class="modal-sub">이름으로 검색하거나 기수별로 필터링해보세요</div>
 
             <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:12px; margin-bottom:20px;">
                 <div class="form-group" style="margin-bottom:0;">
                     <label style="font-size:11px; margin-bottom:4px;">기수 선택</label>
-                    <select id="cohortGenFilter" onchange="applyCohortFilter()">
+                    <select id="generationFilter" onchange="applyGenerationFilter()">
                         <option value="all">전체 기수</option>
                         <option value="1">1기</option>
                         <option value="2">2기</option>
@@ -688,11 +688,11 @@
                 </div>
                 <div class="form-group" style="margin-bottom:0;">
                     <label style="font-size:11px; margin-bottom:4px;">이름 검색</label>
-                    <input type="text" id="cohortNameFilter" placeholder="🔍 검색어 입력..." oninput="applyCohortFilter()">
+                    <input type="text" id="nameSearchFilter" placeholder="🔍 검색어 입력..." oninput="applyGenerationFilter()">
                 </div>
             </div>
 
-            <table class="cohort-table" id="cohortTable">
+            <table class="generation-table" id="generationTable">
                 <thead>
                     <tr>
                         <th style="width: 50%;">기수</th>

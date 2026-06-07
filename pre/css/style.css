@@ -149,15 +149,15 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 .schedule-tap{font-size:11px;color:var(--blue);margin-top:8px;font-weight:600;}
 [data-theme="dark"] .schedule-tap{color:#FFFFFF;}
 
-/* COHORT */
-.cohort-card{display:flex;align-items:center;gap:16px;cursor:pointer;}
-.cohort-icon{width:50px;height:50px;border-radius:14px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
-[data-theme="dark"] .cohort-icon{background:rgba(118,174,217,0.20);}
-.cohort-text h3{font-size:15px;font-weight:700;margin-bottom:3px;color:var(--text);}
-.cohort-text p{font-size:13px;color:var(--text3);}
-[data-theme="dark"] .cohort-text p{color:#FFFFFF;}
-.cohort-arrow{margin-left:auto;width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--blue);flex-shrink:0;}
-[data-theme="dark"] .cohort-arrow{color:#FFFFFF;background:rgba(107,143,212,0.3);}
+/* generation */
+.generation-card{display:flex;align-items:center;gap:16px;cursor:pointer;}
+.generation-icon{width:50px;height:50px;border-radius:14px;background:var(--blue-soft);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;}
+[data-theme="dark"] .generation-icon{background:rgba(118,174,217,0.20);}
+.generation-text h3{font-size:15px;font-weight:700;margin-bottom:3px;color:var(--text);}
+.generation-text p{font-size:13px;color:var(--text3);}
+[data-theme="dark"] .generation-text p{color:#FFFFFF;}
+.generation-arrow{margin-left:auto;width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--blue);flex-shrink:0;}
+[data-theme="dark"] .generation-arrow{color:#FFFFFF;background:rgba(107,143,212,0.3);}
 
 /* ARMY */
 .army-badge-tag{display:inline-flex;align-items:center;gap:5px;background:var(--army-soft);color:var(--army);font-size:12px;font-weight:700;padding:4px 12px;border-radius:100px;margin-bottom:10px;}
@@ -216,15 +216,15 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 [data-theme="dark"] .btn-submit{background:var(--blue);color:#0A141A;}
 
 /* STATUS (기수별 온도계) */
-.cohort-thermo-wrap{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
-.cohort-thermo-row{display:flex;align-items:center;gap:10px;}
-.cohort-thermo-label{min-width:30px;font-size:12px;font-weight:700;color:var(--blue);text-align:right;}
-[data-theme="dark"] .cohort-thermo-label{color:#FFFFFF;}
+.generation-thermo-wrap{display:flex;flex-direction:column;gap:14px;margin-bottom:20px;}
+.generation-thermo-row{display:flex;align-items:center;gap:10px;}
+.generation-thermo-label{min-width:30px;font-size:12px;font-weight:700;color:var(--blue);text-align:right;}
+[data-theme="dark"] .generation-thermo-label{color:#FFFFFF;}
 .thermo-track{flex:1;height:22px;background:var(--bg3);border-radius:100px;overflow:hidden;position:relative;}
 .thermo-fill{height:100%;border-radius:100px;transition:width .9s cubic-bezier(0.4,0,0.2,1);display:flex;align-items:center;padding-left:8px;}
 .thermo-count{font-size:11px;font-weight:700;color:#fff;white-space:nowrap;}
-.cohort-thermo-num{min-width:36px;font-size:12px;font-weight:700;color:var(--text2);text-align:left;}
-[data-theme="dark"] .cohort-thermo-num{color:#FFFFFF;}
+.generation-thermo-num{min-width:36px;font-size:12px;font-weight:700;color:var(--text2);text-align:left;}
+[data-theme="dark"] .generation-thermo-num{color:#FFFFFF;}
 
 /* 주차 및 이동수단 상세 안내 */
 .transport-note{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:8px;font-size:12px;color:var(--text3);line-height:1.6;}
@@ -244,15 +244,15 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 .tl-body p{font-size:12px;color:var(--text3);}
 [data-theme="dark"] .tl-body p{color:#FFFFFF;}
 
-/* COHORT TABLE */
-.cohort-table{width:100%;border-collapse:collapse;font-size:13px;}
-.cohort-table th{background:var(--bg3);color:var(--text2);font-weight:700;padding:9px 12px;text-align:left;}
-[data-theme="dark"] .cohort-table th{color:#FFFFFF;background:var(--bg3);}
-.cohort-table th:first-child{border-radius:8px 0 0 8px;}
-.cohort-table th:last-child{border-radius:0 8px 8px 0;}
-.cohort-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);}
-[data-theme="dark"] .cohort-table td{color:#FFFFFF;}
-.cohort-table tr:last-child td{border-bottom:none;}
+/* generation TABLE */
+.generation-table{width:100%;border-collapse:collapse;font-size:13px;}
+.generation-table th{background:var(--bg3);color:var(--text2);font-weight:700;padding:9px 12px;text-align:left;}
+[data-theme="dark"] .generation-table th{color:#FFFFFF;background:var(--bg3);}
+.generation-table th:first-child{border-radius:8px 0 0 8px;}
+.generation-table th:last-child{border-radius:0 8px 8px 0;}
+.generation-table td{padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);}
+[data-theme="dark"] .generation-table td{color:#FFFFFF;}
+.generation-table tr:last-child td{border-bottom:none;}
 
 /* ARMY BENEFIT */
 .benefit-item{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
@@ -298,19 +298,19 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 }
 
 /* Custom Alert Modal Centering */
-#modal-alert .modal-sheet, #modal-cohort .modal-sheet {
+#modal-alert .modal-sheet, #modal-generation .modal-sheet {
   text-align: center;
   width: 100%;
 }
-#modal-alert .modal-title, #modal-cohort .modal-title {
+#modal-alert .modal-title, #modal-generation .modal-title {
   display: block;
   text-align: center;
   width: 100%;
 }
-#modal-cohort .cohort-table th, #modal-cohort .cohort-table td {
+#modal-generation .generation-table th, #modal-generation .generation-table td {
   text-align: center;
 }
-#modal-cohort .form-group label {
+#modal-generation .form-group label {
   text-align: center;
 }
 #alert-input, #alert-input-new {

@@ -96,7 +96,7 @@
 
             try {
                 // Fetch 호출 시 referrerPolicy를 origin으로 명시
-                const response = await fetch(API_STATUS_URL, {
+                const response = await fetch(API_STATUS_URL, { headers: { 'X-ClubMT-Source': 'WebApp' },
                     referrerPolicy: "origin"
                 });
 

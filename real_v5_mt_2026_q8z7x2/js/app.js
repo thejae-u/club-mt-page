@@ -2,6 +2,31 @@
 const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
 const IMAGE_BASE = API_BASE.replace(/\/api$/, '');
 
+// ===== MESSAGE CONSTANTS =====
+const MSG = {
+    SESSION_EXPIRED: "세션이 만료되었습니다.\n다시 로그인해주세요.",
+    CANCEL_NOT_ALLOWED_DEPOSIT: "입금이 완료된 상태에서는 신청 취소가 불가능합니다.\n관리자에게 문의해주세요.",
+    CANCEL_NOT_ALLOWED_DEADLINE: "마감일 이후에는 신청 취소가 불가능합니다.\n관리자에게 문의해주세요.",
+    CANCEL_ALREADY_REQUESTED: "이미 취소 요청이 접수되었습니다.\n관리자의 승인을 기다려주세요.",
+    CANCEL_SUCCESS: "✅ 취소 요청이 정상적으로 접수되었습니다.\n\n취소 승인 대기 중에는 행사 도구 및 일부 서비스 이용이 제한됩니다.",
+    APPLY_REQUIRED: "MT 참가 신청 후 확인 가능합니다",
+    APPLY_REQUIRED_ALT: "MT 참가 신청 후 이용 가능합니다",
+    RESTRICTED_ACCESS: "취소 신청 상태이거나 취소된 참가자는 행사 도구를 이용할 수 없습니다.",
+    REPORT_RESTRICTED: "제보는 신청 및 로그인 후에 이용 가능합니다. 🕵️",
+    EDIT_SUCCESS: "✅ 정보가 수정되었습니다.\n다시 로그인해주세요.",
+    APPLY_SUCCESS: "🎉 신청이 완료되었습니다!",
+    PASSWORD_CHANGE_PROMPT: "현재 비밀번호와 새 비밀번호를 입력해주세요.",
+    PASSWORD_CHANGE_SUCCESS: "✅ 비밀번호가 변경되었습니다.\n다시 로그인해주세요.",
+    MBTI_SAVE_RESTRICTED: "로그인 후 결과를 저장할 수 있습니다. 🏐",
+    MBTI_EMPTY: "아직 저장된 V-MBTI 결과가 없습니다.\n테스트를 진행하고 결과를 저장해보세요! 🏐",
+    COOKING_APPLY_REQUIRED: "포부와 자신있는 요리를 입력해주세요.",
+    SERVER_ERROR: "서버 오류",
+    CHEER_EXHAUSTED: "응원하기 횟수가 소진되었습니다.",
+    VOTE_SUCCESS: "🗳️ 투표가 완료되었습니다!",
+    VEHICLE_NOT_ASSIGNED: "아직 차량이 배정되지 않았습니다.\n관리자의 배정을 기다려주세요.",
+    VEHICLE_PRIVATE: "🔒 아직 차량 배정표가 공개되지 않았습니다.",
+};
+
 const escapeHTML = (str) => {
   if (!str) return '';
   return String(str).replace(/[&<>'"]/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[match] || match));
@@ -114,17 +139,89 @@ window.curType = 'student';
 window.pendingAction = null; 
 
 // ===== DASHBOARD & UI =====
+
+function renderExpectations(expectations) {
+    const marqueeTrack = document.getElementById('marqueeTrack');
+    const expectationSection = document.getElementById('expectationSection');
+    if (!marqueeTrack || !expectationSection) return;
+
+    if (!expectations || expectations.length === 0) {
+        expectationSection.style.display = 'none';
+        return;
+    }
+
+    expectationSection.style.display = 'block';
+    const items = expectations.map(e => {
+        return '<div class="marquee-item"><span class="m-text">' + escapeHTML(e.text) + '</span><span class="m-author">' + escapeHTML(e.author) + '</span></div>';
+    });
+
+    marqueeTrack.innerHTML = items.join('') + items.join('') + items.join('');
+    
+    const totalWidth = marqueeTrack.scrollWidth;
+    const totalDuration = Math.max(20, Math.floor(totalWidth / 50));
+    marqueeTrack.style.animation = 'marquee ' + totalDuration + 's linear infinite';
+    marqueeTrack.style.setProperty('--marquee-end', '-50%');
+}
+
+function renderSettings(s) {
+  const titleEl = document.querySelector('.hero h1');
+  if (titleEl) {
+    const ft = s.title;
+    if (ft.includes("총동문")) { 
+        const p = ft.split("총동문"); 
+        titleEl.innerHTML = p[0].trim() + '<br><span>총동문 ' + p[1].trim() + '</span>'; 
+    } else { 
+        const p = ft.split(' '); 
+        const last = p.pop(); 
+        titleEl.innerHTML = p.join(' ') + '<br><span>' + last + '</span>'; 
+    }
+  }
+  const subEl = document.querySelector('.hero-sub'); if (subEl) subEl.textContent = s.subtitle;
+  
+  const chips = document.querySelectorAll('.info-chip');
+  if (chips.length >= 3) {
+    chips[0].textContent = '📅 ' + s.eventDateRange;
+    chips[1].innerHTML = '📍 ' + s.location + ' <span style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span>';
+    chips[2].innerHTML = '💳 회비 ' + s.registrationFee.toLocaleString() + '원 <span style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span>';
+  }
+
+  const mtD = document.getElementById('mtDDayBlock'); const mtDN = document.getElementById('ddayNum');
+  if (mtD && mtDN) {
+    const diff = Math.ceil((new Date(s.dDayTargetDate) - new Date().setHours(0,0,0,0)) / 86400000);
+    if (diff >= 0) { mtDN.textContent = diff === 0 ? 'DAY' : diff; mtD.style.display = 'inline-flex'; } else mtD.style.display = 'none';
+  }
+
+  const dlD = document.getElementById('deadlineBlock'); const dlDN = document.getElementById('ddayDeadline');
+  if (dlD && dlDN) {
+    const diff = Math.ceil((new Date(s.registrationDeadline) - new Date().setHours(0,0,0,0)) / 86400000);
+    if (diff >= 0) { dlDN.textContent = diff === 0 ? 'DAY' : diff; dlD.style.display = 'inline-flex'; } else dlD.style.display = 'none';
+  }
+}
+
+function thermoColor(pct) {
+  if (pct <= 0) return '#EEF4FB';
+  if (pct < 25) return '#C0EB75';
+  if (pct < 50) return '#86DB4E';
+  if (pct < 75) return '#F5A623';
+  return '#E5484D';
+}
+
+function setBarW(id, w) {
+  const el = document.getElementById(id);
+  if (el) el.style.width = w + '%';
+}
+
 async function updateDashboard() {
   const errorEl = document.getElementById('globalError');
   try {
-    const settingsRes = await fetch(`${API_BASE}/Settings`, { credentials: 'include' });
+    const settingsRes = await fetch(`${API_BASE}/Settings`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (!settingsRes.ok) throw new Error('Settings fetch failed');
     const settings = await settingsRes.json();
     window.siteSettings = settings;
     renderSettings(settings);
     renderDynamicSurveys(window.curType);
 
-    const res = await fetch(`${API_BASE}/Management/status`, { credentials: 'include' });
+    const res = await fetch(`${API_BASE}/Management/status`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (!res.ok) throw new Error('Status fetch failed');
     const data = await res.json();
     if (errorEl) errorEl.style.display = 'none';
@@ -201,37 +298,37 @@ function renderStatusModal(data, s) {
     if (modalTotalLabel) modalTotalLabel.textContent = `총 정원 ${MAX_T_VAL}명 (군인 우선 ${MAX_A_VAL}명 포함)`;
 
     let thermoHtml = `
-      <div class="cohort-thermo-row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-        <div class="cohort-thermo-label" style="min-width: 45px; font-weight: 800; color: var(--blue-deep);">전체</div>
+      <div class="generation-thermo-row" style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+        <div class="generation-thermo-label" style="min-width: 45px; font-weight: 800; color: var(--blue-deep);">전체</div>
         <div class="thermo-track" style="height: 28px;">
           <div class="thermo-fill" id="thermo-total" style="width:0%; background: var(--blue);">
             <span class="thermo-count" style="font-size: 13px; font-weight:700;">${confirmedTotal} / ${MAX_T_VAL}명</span>
           </div>
         </div>
-        <div class="cohort-thermo-num" style="min-width: 45px; font-weight: 800; color: var(--blue-deep);">${totalPct}%</div>
+        <div class="generation-thermo-num" style="min-width: 45px; font-weight: 800; color: var(--blue-deep);">${totalPct}%</div>
       </div>
     `;
 
-    // Find minimum count among cohorts to show "Cheer up!" label
-    const countsOnly = [];
-    for (let i = 1; i <= 7; i++) countsOnly.push(data.cohortCounts[i] || 0);
-    const minCount = Math.min(...countsOnly);
+    // Dynamic generation Counts from Backend
+    const gens = Object.keys(data.generationCounts).map(Number).sort((a, b) => a - b);
+    const countsOnly = gens.map(g => data.generationCounts[g]);
+    const minCount = countsOnly.length > 0 ? Math.min(...countsOnly) : 0;
 
-    for (let i = 1; i <= 7; i++) {
-      const count = data.cohortCounts[i] || 0;
-      const cPct = Math.min(100, Math.round((count / 4) * 100)); // Still base 4 for individual cohorts? Or dynamic?
+    for (const gen of gens) {
+      const count = data.generationCounts[gen] || 0;
+      const cPct = Math.min(100, Math.round((count / 4) * 100)); // Base 4 for visualization
       const color = thermoColor(cPct);
       const isLowest = count === minCount;
       
       thermoHtml += `
-        <div class="cohort-thermo-row" style="margin-bottom: 8px;">
-          <div class="cohort-thermo-label" style="min-width: 45px;">${i}기</div>
+        <div class="generation-thermo-row" style="margin-bottom: 8px;">
+          <div class="generation-thermo-label" style="min-width: 45px;">${gen}기</div>
           <div class="thermo-track">
-            <div class="thermo-fill" id="thermo-${i}" style="width:0%; background:${color}">${count > 0 ? `<span class="thermo-count">${count}명</span>` : ''}</div>
+            <div class="thermo-fill" id="thermo-${gen}" style="width:0%; background:${color}">${count > 0 ? `<span class="thermo-count">${count}명</span>` : ''}</div>
           </div>
-          <div class="cohort-thermo-num" style="min-width: 45px; display:flex; align-items:center; gap:8px;">
+          <div class="generation-thermo-num" style="min-width: 45px; display:flex; align-items:center; gap:8px;">
             ${count}명
-            ${isLowest ? '<span style="font-size:10px; color:#E5484D; font-weight:800; white-space:nowrap; background:#FFF0F0; padding:2px 6px; border-radius:4px; border:1px solid rgba(229,72,77,0.2);">분발하세요!</span>' : ''}
+            ${isLowest ? '<span onclick="goToGeneration(' + gen + '); closeModal(\'status\')" style="font-size:10px; color:#E5484D; font-weight:800; white-space:nowrap; background:#FFF0F0; padding:2px 6px; border-radius:4px; border:1px solid rgba(229,72,77,0.2); cursor:pointer;">분발하세요!</span>' : ''}
           </div>
         </div>
       `;
@@ -239,96 +336,51 @@ function renderStatusModal(data, s) {
 
     const armyPct = MAX_A_VAL > 0 ? Math.min(100, Math.round((data.counts.military / MAX_A_VAL) * 100)) : 0;
     thermoHtml += `
-      <div class="cohort-thermo-row" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
-        <div class="cohort-thermo-label" style="min-width: 45px; color: var(--army);">군인</div>
+      <div class="generation-thermo-row" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+        <div class="generation-thermo-label" style="min-width: 45px; color: var(--army);">군인</div>
         <div class="thermo-track">
-          <div class="thermo-fill" id="thermo-army" style="width:0%; background: var(--army);">
+          <div class="thermo-fill" id="thermo-military" style="width:0%; background: var(--army);">
             <span class="thermo-count">${data.counts.military || 0} / ${MAX_A_VAL}명</span>
           </div>
         </div>
-        <div class="cohort-thermo-num" style="min-width: 45px; color: var(--army);">${armyPct}%</div>
+        <div class="generation-thermo-num" style="min-width: 45px; color: var(--army);">${armyPct}%</div>
       </div>
     `;
     thermoContainer.innerHTML = thermoHtml;
 
+    // Trigger animations
     setTimeout(() => {
       const elTotal = document.getElementById('thermo-total'); if (elTotal) elTotal.style.width = `${totalPct}%`;
-      for (let i = 1; i <= 7; i++) {
-        const cPct = Math.min(Math.round(((data.cohortCounts[i] || 0) / 4) * 100), 100);
-        const el = document.getElementById(`thermo-${i}`); if (el) el.style.width = `${cPct}%`;
-      }
-      const elArmy = document.getElementById('thermo-army'); if (elArmy) elArmy.style.width = `${armyPct}%`;
+      gens.forEach(gen => {
+        const count = data.generationCounts[gen] || 0;
+        const cPct = Math.min(Math.round((count / 4) * 100), 100);
+        const el = document.getElementById(`thermo-${gen}`); if (el) el.style.width = `${cPct}%`;
+      });
+      const elArmy = document.getElementById('thermo-military'); if (elArmy) elArmy.style.width = `${armyPct}%`;
     }, 100);
 }
-
-function thermoColor(pct) {
-  if (pct <= 0) return '#EEF4FB';
-  if (pct < 25) return '#94bfe2';
-  if (pct < 50) return '#76aed9';
-  if (pct < 75) return '#F5A623';
-  return '#E5484D';
-}
-
-function goToCohort(gen) {
-    closeModal('status');
-    openCohortModal();
-    const filter = document.getElementById('cohortGenFilter');
-    if (filter) {
-        filter.value = gen;
-        applyCohortFilter();
-    }
-}
-
-function renderExpectations(expectations) {
-    const marqueeTrack = document.getElementById('marqueeTrack');
-    const expectationSection = document.getElementById('expectationSection');
-    if (!marqueeTrack) return;
-
-    const validExpectations = (expectations || []).filter(e => e.text && e.text.trim() !== '');
-
-    if (validExpectations.length === 0) {
-      if (expectationSection) expectationSection.style.display = 'none';
-      marqueeTrack.innerHTML = '';
-      return;
-    }
-    if (expectationSection) expectationSection.style.display = 'block';
-    const repeatCount = validExpectations.length < 5 ? 10 : 2; 
-    const allExp = []; for (let i = 0; i < repeatCount; i++) allExp.push(...validExpectations);
-    marqueeTrack.innerHTML = allExp.map(e => `<div class="exp-chip">${escapeHTML(e.text)}<div class="exp-author">— ${escapeHTML(e.author || '익명')}</div></div>`).join('');
-    marqueeTrack.style.animation = 'none'; marqueeTrack.offsetHeight; 
-    
-    // Maintain constant speed: Duration proportional to ACTUAL track length
-    const speedFactor = 10.0; // Seconds for one chip to pass
-    const moveCount = allExp.length / 2; // Moving half the track (50%)
-    const totalDuration = moveCount * speedFactor;
-    
-    marqueeTrack.style.animation = `marquee ${totalDuration}s linear infinite`;
-    marqueeTrack.style.setProperty('--marquee-end', `-50%`);
-}
-
-async function updateCohortTable() {
+async function updateGenerationTable() {
   if (window.cachedMembers) return renderMembers(window.cachedMembers);
   try {
-    const res = await fetch(`${API_BASE}/Management/members`, { credentials: 'include' });
+    const res = await fetch(`${API_BASE}/Management/members`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (res.ok) { window.cachedMembers = await res.json(); renderMembers(window.cachedMembers); }
     else if (res.status === 401) {
-        await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        await alert(MSG.SESSION_EXPIRED);
         logout();
     }
   } catch (err) { console.error(err); }
 }
 
 function renderMembers(members) {
-  const tableBody = document.querySelector('#cohortTable tbody');
+  const tableBody = document.querySelector('#generationTable tbody');
   if (!tableBody) return;
   if (members.length === 0) { tableBody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 20px; color: var(--text3);">등록된 동문 데이터가 없습니다.</td></tr>'; return; }
   members.sort((a, b) => a.generation - b.generation || a.name.localeCompare(b.name));
-  tableBody.innerHTML = members.map(p => `<tr data-cohort-val="${p.generation}"><td>${p.generation}기</td><td class="name-cell"><b>${p.name}</b></tr>`).join('');
+  tableBody.innerHTML = members.map(p => `<tr data-generation-val="${p.generation}"><td>${p.generation}기</td><td class="name-cell"><b>${p.name}</b></tr>`).join('');
 }
-
 async function updateFeeTable() {
   try {
-    const [resList, resSummary] = await Promise.all([fetch(`${API_BASE}/Fee`, { credentials: 'include' }), fetch(`${API_BASE}/Fee/summary`, { credentials: 'include' })]);
+    const [resList, resSummary] = await Promise.all([fetch(`${API_BASE}/Fee`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' }), fetch(`${API_BASE}/Fee/summary`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' })]);
     if (resList.ok) {
       const fees = await resList.json();
       const tbody = document.querySelector('#feeTable tbody');
@@ -454,9 +506,7 @@ async function doLogin() {
   if (!name || !gen || !password) return showToast('정보를 모두 입력해주세요.');
   
   try {
-    const res = await fetch(`${API_BASE}/Participants/login`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
+    const res = await fetch(`${API_BASE}/Participants/login`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' }, 
         body: JSON.stringify({ name, generation: parseInt(gen), password }), 
         credentials: 'include' 
     });
@@ -470,7 +520,7 @@ async function doLogin() {
         updateAuthUI(); 
         
         // Populate currentParticipant immediately after login
-        const meRes = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+        const meRes = await fetch(`${API_BASE}/Participants/me`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (meRes.ok) {
             window.currentParticipant = await meRes.json();
         }
@@ -501,7 +551,7 @@ function updateAuthUI() {
 
 async function openMyPage() {
   try {
-    const res = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+    const res = await fetch(`${API_BASE}/Participants/me`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (res.ok) {
       const p = await res.json(); window.currentParticipant = p;
       const el = document.getElementById('mypage-name-gen'); if (el) el.textContent = `${p.generation}기 ${p.name}님 안녕하세요!`;
@@ -610,7 +660,7 @@ async function openMyPage() {
       }
       renderCommonChecklist(window.siteSettings.commonChecklistJson, p.commonChecklistStatusJson); renderChecklist(p.checklistJson); openModal('mypage');
     } else { 
-        await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        await alert(MSG.SESSION_EXPIRED);
         logout(); 
     }
   } catch (err) { console.error(err); }
@@ -630,7 +680,7 @@ function renderCommonChecklist(commonJson, statusJson) {
 
 async function toggleCommonCheck(index) {
   const s = window.currentCommonStatus || {}; s[index] = !s[index]; renderCommonChecklist(window.siteSettings.commonChecklistJson, JSON.stringify(s));
-  try { await fetch(`${API_BASE}/Participants/me/common-checklist-status`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(JSON.stringify(s)), credentials: 'include' }); } catch(e) {}
+  try { await fetch(`${API_BASE}/Participants/me/common-checklist-status`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' }, body: JSON.stringify(JSON.stringify(s)), credentials: 'include' }); } catch(e) {}
 }
 
 function renderChecklist(json) {
@@ -641,7 +691,7 @@ function renderChecklist(json) {
   window.currentChecklist = list;
 }
 
-async function saveChecklist(list) { try { await fetch(`${API_BASE}/Participants/me/checklist`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(JSON.stringify(list)), credentials: 'include' }); } catch(e) {} }
+async function saveChecklist(list) { try { await fetch(`${API_BASE}/Participants/me/checklist`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' }, body: JSON.stringify(JSON.stringify(list)), credentials: 'include' }); } catch(e) {} }
 async function addChecklistItem() { const input = document.getElementById('checklist-input'); const text = input.value.trim(); if (!text) return; const list = window.currentChecklist || []; list.push({ text, done: false }); input.value = ''; renderChecklist(JSON.stringify(list)); await saveChecklist(list); }
 async function removeChecklistItem(index) { const list = window.currentChecklist; if (!list) return; list.splice(index, 1); renderChecklist(JSON.stringify(list)); await saveChecklist(list); }
 async function toggleCheck(index) { const list = window.currentChecklist; if (!list) return; list[index].done = !list[index].done; renderChecklist(JSON.stringify(list)); await saveChecklist(list); }
@@ -653,7 +703,7 @@ async function openEditFromMyPage() {
     // If data is missing (e.g. after refresh), try fetching it
     if (!p) {
         try {
-            const res = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+            const res = await fetch(`${API_BASE}/Participants/me`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
             if (res.ok) {
                 p = await res.json();
                 window.currentParticipant = p;
@@ -723,7 +773,7 @@ async function openEditFromMyPage() {
 }
 
 function logout() {
-  fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(e => {});
+  fetch(`${API_BASE}/auth/logout`, { headers: { 'X-ClubMT-Source': 'WebApp' }, method: 'POST', credentials: 'include' }).catch(e => {});
   localStorage.removeItem('participantName'); 
   window.editingPassword = null; 
   window.currentParticipant = null; 
@@ -756,7 +806,7 @@ async function undoCancelRegistration() {
 
   if (!await confirm('취소 요청을 철회하시겠습니까?')) return;
   try {
-    const res = await fetch(`${API_BASE}/Participants/${targetId}/undo-cancel`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }), credentials: 'include' });
+    const res = await fetch(`${API_BASE}/Participants/${targetId}/undo-cancel`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' }, body: JSON.stringify({ password }), credentials: 'include' });
     if (res.ok) { 
         showToast('✅ 취소 요청이 철회되었습니다. 다시 정상 신청 상태로 변경되었습니다.'); 
         setTimeout(() => location.reload(), 1000);
@@ -776,17 +826,17 @@ async function cancelRegistration() {
   const p = window.currentParticipant;
 
   if (p && p.isDepositConfirmed) {
-      await alert('입금이 완료된 상태에서는 신청 취소가 불가능합니다. 관리자에게 문의해주세요.');
+      await alert(MSG.CANCEL_NOT_ALLOWED_DEPOSIT);
       return;
   }
 
   if (isM && p && !p.isWaitlisted) {
-      await alert('마감일 이후에는 신청 취소가 불가능합니다. 관리자에게 문의해주세요.');
+      await alert(MSG.CANCEL_NOT_ALLOWED_DEADLINE);
       return;
   }
   
   if (p && p.isCancelRequested) {
-      await alert('이미 취소 요청이 접수되었습니다. 관리자의 승인을 기다려주세요.');
+      await alert(MSG.CANCEL_ALREADY_REQUESTED);
       return;
   }
 
@@ -795,9 +845,9 @@ async function cancelRegistration() {
 
   if (!await confirm(p && p.isWaitlisted ? '정말로 대기를 취소하시겠습니까?' : '정말로 신청을 취소하시겠습니까?')) return;
   try {
-    const res = await fetch(`${API_BASE}/Participants/${targetId}/cancel`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password }), credentials: 'include' });
+    const res = await fetch(`${API_BASE}/Participants/${targetId}/cancel`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' }, body: JSON.stringify({ password }), credentials: 'include' });
     if (res.ok) { 
-        await alert('✅ 취소 요청이 정상적으로 접수되었습니다.\n\n취소 승인 대기 중에는 행사 도구 및 일부 서비스 이용이 제한됩니다.'); 
+        await alert(MSG.CANCEL_SUCCESS); 
         location.reload();
     }
     else {
@@ -812,26 +862,26 @@ async function openManittoModal() {
   const name = localStorage.getItem('participantName'); 
   if (!name) { 
       window.pendingAction = openManittoModal;
-      await alert('MT 참가 신청 후 확인 가능합니다'); 
+      await alert(MSG.APPLY_REQUIRED); 
       openModal('login'); 
       return; 
   }
 
   try {
-    const meRes = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+    const meRes = await fetch(`${API_BASE}/Participants/me`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (meRes.ok) {
         const p = await meRes.json();
         if (!p.isRegistered || p.isCancelRequested) {
-            await alert('취소 신청 상태이거나 취소된 참가자는 행사 도구를 이용할 수 없습니다.');
+            await alert(MSG.RESTRICTED_ACCESS);
             return;
         }
     }
   } catch (e) {}
 
   try {
-    const res = await fetch(`${API_BASE}/Manitto/me`, { credentials: 'include' }); 
+    const res = await fetch(`${API_BASE}/Manitto/me`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' }); 
     if (res.status === 401) {
-        await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        await alert(MSG.SESSION_EXPIRED);
         logout();
         return;
     }
@@ -889,7 +939,7 @@ async function completeMission(missionId) {
     const id = missionId || 0; 
     if (!await confirm('미션을 완료하셨습니까?\n한 번 완료하면 취소할 수 없습니다.')) return;
     try { 
-        const res = await fetch(`${API_BASE}/Manitto/me/complete-mission/${id}`, { method: 'POST', credentials: 'include' }); 
+        const res = await fetch(`${API_BASE}/Manitto/me/complete-mission/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' }, method: 'POST', credentials: 'include' }); 
         if (res.ok) { 
             showToast('✅ 미션 완료! 고생하셨습니다.'); 
             openManittoModal(); // Refresh UI
@@ -900,7 +950,7 @@ async function completeMission(missionId) {
 async function loadReports() {
     const container = document.getElementById('report-container'); if (!container) return;
     try {
-        const res = await fetch(`${API_BASE}/Manitto/reports`); if (!res.ok) return;
+        const res = await fetch(`${API_BASE}/Manitto/reports`, { headers: { 'X-ClubMT-Source': 'WebApp' } }); if (!res.ok) return;
         const list = await res.json();
         if (list.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:#999; font-size:13px;">아직 올라온 제보가 없습니다.</div>'; return; }
         container.innerHTML = list.map(r => { const kstDate = new Date(new Date(r.createdAt).getTime() + (9 * 60 * 60 * 1000)); return `<div class="card" style="padding:12px; background:#fff; border:1px solid #eee;"><div style="font-size:14px; line-height:1.5;">${escapeHTML(r.content)}</div><div style="font-size:10px; color:#999; margin-top:8px;">${kstDate.toLocaleString()}</div></div>`; }).join('');
@@ -921,7 +971,7 @@ async function postReport() {
 
     const name = localStorage.getItem('participantName');
     if (!name) {
-        await alert('제보는 신청 및 로그인 후에 이용 가능합니다. 🕵️');
+        await alert(MSG.REPORT_RESTRICTED);
         openModal('login');
         return;
     }
@@ -941,15 +991,13 @@ async function postReport() {
         }
 
         const clientRequestId = Date.now().toString() + "-" + Math.random().toString(36).substring(2, 9); 
-        const res = await fetch(`${API_BASE}/Manitto/reports`, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
+        const res = await fetch(`${API_BASE}/Manitto/reports`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ content, clientRequestId }), 
             credentials: 'include' 
         }); 
 
         if (res.status === 401) {
-            await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+            await alert(MSG.SESSION_EXPIRED);
             logout();
             return;
         }
@@ -1047,17 +1095,17 @@ async function submitApplication(formId) {
 
   try {
     const isEdit = !!window.editingParticipantId;
-    const res = await fetch(isEdit ? `${API_BASE}/Participants/${window.editingParticipantId}` : `${API_BASE}/Participants`, { method: isEdit ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), credentials: 'include' });
+    const res = await fetch(isEdit ? `${API_BASE}/Participants/${window.editingParticipantId}` : `${API_BASE}/Participants`, { method: isEdit ? 'PUT' : 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' }, body: JSON.stringify(payload), credentials: 'include' });
     
     if (res.status === 401) {
-        await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        await alert(MSG.SESSION_EXPIRED);
         logout();
         return;
     }
 
     if (res.ok) {
-      if (isEdit) { await alert('✅ 정보가 수정되었습니다. 다시 로그인해주세요.'); logout(); }
-      else { await alert((await res.json()).message || '🎉 신청이 완료되었습니다!'); location.reload(); }
+      if (isEdit) { await alert(MSG.EDIT_SUCCESS); logout(); }
+      else { await alert((await res.json()).message || MSG.APPLY_SUCCESS); location.reload(); }
     } else showToast(`❌ 오류: ${await res.text()}`);
   } catch (err) { showToast('서버 연결 오류가 발생했습니다.'); }
 }
@@ -1164,27 +1212,27 @@ async function updateLocationModal() {
   if (btnM) { if (s.mapLink) { btnM.href = s.mapLink; btnM.style.display = 'block'; } else btnM.style.display = 'none'; }
 }
 
-async function openCohortModal() {
+async function openGenerationModal() {
   const name = localStorage.getItem('participantName');
   if (!name) { 
-      window.pendingAction = openCohortModal;
-      await alert('MT 참가 신청 후 확인 가능합니다'); 
+      window.pendingAction = openGenerationModal;
+      await alert(MSG.APPLY_REQUIRED); 
       openModal('login'); 
       return; 
   }
 
   try {
-    const meRes = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+    const meRes = await fetch(`${API_BASE}/Participants/me`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (meRes.ok) {
         const p = await meRes.json();
         if (!p.isRegistered || p.isCancelRequested) {
-            await alert('취소 신청 상태이거나 취소된 참가자는 행사 도구를 이용할 수 없습니다.');
+            await alert(MSG.RESTRICTED_ACCESS);
             return;
         }
     }
   } catch (e) {}
 
-  openModal('cohort'); updateCohortTable();
+  openModal('generation'); updateGenerationTable();
 }
 
 function openModal(id) {
@@ -1215,9 +1263,9 @@ function switchType(btn, type) { window.curType = type; btn.closest('.type-btns'
 function openApplyArmy() { openModal('apply'); const btns = document.querySelectorAll('.type-btn'); if (btns.length >= 4) switchType(btns[3], 'army'); }
 function openFeeModal() { openModal('fee'); updateFeeTable(); }
 function openLocationModal() { openModal('location'); updateLocationModal(); }
-function applyCohortFilter() {
-  const gen = document.getElementById('cohortGenFilter').value; const name = document.getElementById('cohortNameFilter').value.toLowerCase();
-  document.querySelectorAll('#cohortTable tbody tr').forEach(r => { const genM = (gen === 'all' || r.getAttribute('data-cohort-val') === gen); const nameM = r.querySelector('.name-cell').textContent.toLowerCase().includes(name); r.style.display = (genM && nameM) ? '' : 'none'; });
+function applyGenerationFilter() {
+  const gen = document.getElementById('generationFilter').value; const name = document.getElementById('generationNameFilter').value.toLowerCase();
+  document.querySelectorAll('#generationTable tbody tr').forEach(r => { const genM = (gen === 'all' || r.getAttribute('data-generation-val') === gen); const nameM = r.querySelector('.name-cell').textContent.toLowerCase().includes(name); r.style.display = (genM && nameM) ? '' : 'none'; });
 }
 function openEditFromHome() { const name = localStorage.getItem('participantName'); if (name) openEditFromMyPage(); else openModal('login'); }
 
@@ -1248,7 +1296,7 @@ function showPopup(title, message, type = 'alert') {
 }
 
 async function openChangePasswordPopup() {
-    const res = await showPopup('비밀번호 변경', '현재 비밀번호와 새 비밀번호를 입력해주세요.', 'passwordChange'); 
+    const res = await showPopup('비밀번호 변경', MSG.PASSWORD_CHANGE_PROMPT, 'passwordChange'); 
     if (!res) return; 
     
     if (!res.new) return showToast('새 비밀번호를 입력해주세요.');
@@ -1259,14 +1307,24 @@ async function openChangePasswordPopup() {
 
     const p = window.currentParticipant; if (!p) return;
     try {
-        const ur = await fetch(`${API_BASE}/Participants/${p.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...p, currentPassword: res.old, password: res.new, name: p.name, phoneNumber: p.phoneNumber, studentId: p.studentId }), credentials: 'include' });
-        if (ur.ok) { await alert('✅ 비밀번호가 변경되었습니다. 다시 로그인해주세요.'); logout(); } else showToast(`❌ 변경 실패: ${await ur.text()}`);
+        const ur = await fetch(`${API_BASE}/Participants/${p.id}`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' }, body: JSON.stringify({ ...p, currentPassword: res.old, password: res.new, name: p.name, phoneNumber: p.phoneNumber, studentId: p.studentId }), credentials: 'include' });
+        if (ur.ok) { await alert(MSG.PASSWORD_CHANGE_SUCCESS); logout(); } else showToast(`❌ 변경 실패: ${await ur.text()}`);
     } catch (e) { showToast('서버 오류가 발생했습니다.'); }
+}
+
+
+function goToGeneration(gen) {
+    openModal('generation');
+    const filterEl = document.getElementById('generationFilter');
+    if (filterEl) {
+        filterEl.value = gen;
+        applyGenerationFilter();
+    }
 }
 
 // Global Exports
 window.alert = (msg) => showPopup('알림', msg, 'alert'); window.confirm = (msg) => showPopup('확인', msg, 'confirm'); window.prompt = (msg) => showPopup('확인', msg, 'prompt');
-window.openModal = openModal; window.closeModal = closeModal; window.closeBg = closeBg; window.switchType = switchType; window.openApplyArmy = openApplyArmy; window.openFeeModal = openFeeModal; window.openLocationModal = openLocationModal; window.openCohortModal = openCohortModal; window.toggleSchedule = toggleSchedule; window.applyCohortFilter = applyCohortFilter; window.openEditFromHome = openEditFromHome; window.showPopup = showPopup; window.setSurveyData = setSurveyData; window.openChangePasswordPopup = openChangePasswordPopup; window.submitApplication = submitApplication; window.doSubmit = submitApplication; window.toggleTransport = toggleTransport; window.toggleLicense = toggleLicense; window.goToCohort = goToCohort;
+window.openModal = openModal; window.closeModal = closeModal; window.closeBg = closeBg; window.switchType = switchType; window.openApplyArmy = openApplyArmy; window.openFeeModal = openFeeModal; window.openLocationModal = openLocationModal; window.openGenerationModal = openGenerationModal; window.toggleSchedule = toggleSchedule; window.applyGenerationFilter = applyGenerationFilter; window.openEditFromHome = openEditFromHome; window.showPopup = showPopup; window.setSurveyData = setSurveyData; window.openChangePasswordPopup = openChangePasswordPopup; window.submitApplication = submitApplication; window.doSubmit = submitApplication; window.toggleTransport = toggleTransport; window.toggleLicense = toggleLicense; window.goToGeneration = goToGeneration;
 
 // ===== V-MBTI LOGIC =====
 const MBTI_QUESTIONS = [
@@ -1537,7 +1595,7 @@ function showMBTIResultByCode(code) {
 async function saveMBTIResult() {
   if (!window.currentParticipant) {
     window.pendingAction = saveMBTIResult;
-    await alert('로그인 후 결과를 저장할 수 있습니다. 🏐');
+    await alert(MSG.MBTI_SAVE_RESTRICTED);
     openModal('login');
     return;
   }
@@ -1545,15 +1603,13 @@ async function saveMBTIResult() {
   if (!currentMbtiResultCode) return;
   
   try {
-    const res = await fetch(`${API_BASE}/Participants/me/mbti`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch(`${API_BASE}/Participants/me/mbti`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
       body: JSON.stringify(currentMbtiResultCode),
       credentials: 'include'
     });
     
     if (res.status === 401) {
-        await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        await alert(MSG.SESSION_EXPIRED);
         logout();
         return;
     }
@@ -1581,7 +1637,7 @@ async function viewMBTIFromMyPage() {
     showMBTIResultByCode(window.currentParticipant.mbtiResult);
     openModal('mbti');
   } else {
-    await alert('아직 저장된 V-MBTI 결과가 없습니다.\n테스트를 진행하고 결과를 저장해보세요! 🏐');
+    await alert(MSG.MBTI_EMPTY);
     closeModal('mypage');
     openMBTIModal();
   }
@@ -1591,17 +1647,17 @@ async function openCookingBattleModal() {
   const name = localStorage.getItem('participantName'); 
   if (!name) { 
       window.pendingAction = openCookingBattleModal;
-      await alert('MT 참가 신청 후 이용 가능합니다'); 
+      await alert(MSG.APPLY_REQUIRED_ALT); 
       openModal('login'); 
       return; 
   }
 
   try {
-    const meRes = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+    const meRes = await fetch(`${API_BASE}/Participants/me`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (meRes.ok) {
         const p = await meRes.json();
         if (!p.isRegistered || p.isCancelRequested) {
-            await alert('취소 신청 상태이거나 취소된 참가자는 행사 도구를 이용할 수 없습니다.');
+            await alert(MSG.RESTRICTED_ACCESS);
             return;
         }
     }
@@ -1635,7 +1691,7 @@ async function openCookingBattleModal() {
 
 async function refreshCookingStatus() {
   try {
-    const res = await fetch(`${API_BASE}/CookingBattle/status`, { credentials: 'include' });
+    const res = await fetch(`${API_BASE}/CookingBattle/status`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (res.status === 401) return logout();
     if (!res.ok) return null;
     const data = await res.json();
@@ -1786,12 +1842,10 @@ async function openMyTeamModal() {
 async function applyForChef() {
   const exp = document.getElementById('cook-exp').value.trim();
   const dish = document.getElementById('cook-dish').value.trim();
-  if (!exp || !dish) return alert('포부와 자신있는 요리를 입력해주세요.');
+  if (!exp || !dish) return alert(MSG.COOKING_APPLY_REQUIRED);
 
   try {
-    const res = await fetch(`${API_BASE}/CookingBattle/apply`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch(`${API_BASE}/CookingBattle/apply`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
       body: JSON.stringify({ experience: exp, signatureDish: dish }),
       credentials: 'include'
     });
@@ -1802,7 +1856,7 @@ async function applyForChef() {
       const msg = await res.text();
       alert(msg || '지원 실패');
     }
-  } catch (e) { alert('서버 오류'); }
+  } catch (e) { alert(MSG.SERVER_ERROR); }
 }
 
 async function cheerTeam(team) {
@@ -1827,12 +1881,12 @@ async function cheerTeam(team) {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/CookingBattle/cheer/${team}`, { method: 'POST', credentials: 'include' });
+    const res = await fetch(`${API_BASE}/CookingBattle/cheer/${team}`, { headers: { 'X-ClubMT-Source': 'WebApp' }, method: 'POST', credentials: 'include' });
     if (res.ok) {
       // Background refresh to sync with real data
       refreshCookingStatus();
     } else if (res.status === 429) {
-      alert('응원하기 횟수가 소진되었습니다.');
+      alert(MSG.CHEER_EXHAUSTED);
       refreshCookingStatus();
     } else {
       let msg = '응원 실패';
@@ -1855,9 +1909,9 @@ async function cheerTeam(team) {
 async function voteTeam(team) {
   if (!await confirm(`${team === 'Black' ? '흑팀' : '백팀'}에 투표하시겠습니까? 한번 투표하면 변경할 수 없습니다.`)) return;
   try {
-    const res = await fetch(`${API_BASE}/CookingBattle/vote/${team}`, { method: 'POST', credentials: 'include' });
+    const res = await fetch(`${API_BASE}/CookingBattle/vote/${team}`, { headers: { 'X-ClubMT-Source': 'WebApp' }, method: 'POST', credentials: 'include' });
     if (res.ok) {
-      alert('🗳️ 투표가 완료되었습니다!');
+      alert(MSG.VOTE_SUCCESS);
       refreshCookingStatus();
     } else {
       let msg = '투표 실패';
@@ -1870,19 +1924,20 @@ async function voteTeam(team) {
       }
       alert(msg);
     }
-  } catch (e) { alert('서버 오류'); }
+  } catch (e) { alert(MSG.SERVER_ERROR); }
 }
 
 async function refreshCookingComments() {
   const fetchComments = async (team) => {
     try {
-      const res = await fetch(`${API_BASE}/CookingBattle/comments/${team}`);
+      const res = await fetch(`${API_BASE}/CookingBattle/comments/${team}`, { headers: { 'X-ClubMT-Source': 'WebApp' } });
       if (!res.ok) return;
       const comments = await res.json();
       const list = document.getElementById(`cook-comment-list-${team.toLowerCase()}`);
       if (list) {
         list.innerHTML = comments.map(c => `
           <div style="font-size: 11px; padding: 6px 10px; background: ${team === 'Black' ? '#f4f4f4' : '#fafafa'}; border-radius: 6px; line-height: 1.4;">
+            <span style="font-weight: 800; color: var(--blue-deep); margin-right: 5px;">${escapeHTML(c.author)}:</span>
             ${escapeHTML(c.content)}
           </div>
         `).join('') || '<div style="text-align:center; color:#999; font-size:11px; padding:10px;">첫 한줄평을 남겨보세요!</div>';
@@ -1901,9 +1956,7 @@ async function postCookComment(team) {
   if (!content) return;
 
   try {
-    const res = await fetch(`${API_BASE}/CookingBattle/comments/${team}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch(`${API_BASE}/CookingBattle/comments/${team}`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),
       credentials: 'include'
     });
@@ -1943,38 +1996,38 @@ async function openVehicleModal() {
   const name = localStorage.getItem('participantName'); 
   if (!name) { 
       window.pendingAction = openVehicleModal;
-      await alert('MT 참가 신청 후 확인 가능합니다'); 
+      await alert(MSG.APPLY_REQUIRED); 
       openModal('login'); 
       return; 
   }
 
   try {
-    const meRes = await fetch(`${API_BASE}/Participants/me`, { credentials: 'include' });
+    const meRes = await fetch(`${API_BASE}/Participants/me`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (meRes.ok) {
         const p = await meRes.json();
         if (!p.isRegistered || p.isCancelRequested) {
-            await alert('취소 신청 상태이거나 취소된 참가자는 행사 도구를 이용할 수 없습니다.');
+            await alert(MSG.RESTRICTED_ACCESS);
             return;
         }
     }
   } catch (e) {}
 
   try {
-    const res = await fetch(`${API_BASE}/Vehicle/my`, { credentials: 'include' });
+    const res = await fetch(`${API_BASE}/Vehicle/my`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (res.status === 401) {
-        await alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+        await alert(MSG.SESSION_EXPIRED);
         logout();
         return;
     }
     if (res.status === 404) {
-        await alert('아직 차량이 배정되지 않았습니다. 관리자의 배정을 기다려주세요.');
+        await alert(MSG.VEHICLE_NOT_ASSIGNED);
         return;
     }
     if (!res.ok) { showToast('데이터 로드에 실패했습니다.'); return; }
 
     const data = await res.json();
     if (!data.isPublic && !window.isAdmin) {
-        await alert('🔒 아직 차량 배정표가 공개되지 않았습니다.');
+        await alert(MSG.VEHICLE_PRIVATE);
         return;
     }
 
@@ -2021,7 +2074,7 @@ async function fetchVehicleMy() {
   const myContent = document.getElementById('vehicle-my-content');
 
   try {
-    const res = await fetch(`${API_BASE}/Vehicle/my`, { credentials: 'include' });
+    const res = await fetch(`${API_BASE}/Vehicle/my`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (res.status === 401) {
       if (myContent) myContent.style.display = 'none';
       if (privateMsg) {
@@ -2111,7 +2164,7 @@ async function fetchVehicleAll() {
   const allContent = document.getElementById('vehicle-all-content');
 
   try {
-    const res = await fetch(`${API_BASE}/Vehicle/all`, { credentials: 'include' });
+    const res = await fetch(`${API_BASE}/Vehicle/all`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (!res.ok) throw new Error();
 
     const data = await res.json();
@@ -2155,9 +2208,7 @@ async function updateVehicleStatus(status) {
   if (!window.myVehicleId) return;
   const statusMap = { 'Called': 1, 'Moving': 2, 'Arrived': 3 };
   try {
-    const res = await fetch(`${API_BASE}/Vehicle/status`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const res = await fetch(`${API_BASE}/Vehicle/status`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
       body: JSON.stringify({ vehicleId: window.myVehicleId, status: statusMap[status] }),
       credentials: 'include'
     });
@@ -2197,7 +2248,7 @@ async function updatePhotoSection() {
 
   try {
     photoFetched = true;
-    const res = await fetch(`${API_BASE}/Photo/all-photos`);
+    const res = await fetch(`${API_BASE}/Photo/all-photos`, { headers: { 'X-ClubMT-Source': 'WebApp' } });
     if (!res.ok) return;
     const photos = await res.json();
 
@@ -2245,7 +2296,7 @@ async function openPhotoModal() {
   const emptyMsg = document.getElementById('photo-empty-msg');
 
   try {
-    const res = await fetch(`${API_BASE}/Photo/sessions`);
+    const res = await fetch(`${API_BASE}/Photo/sessions`, { headers: { 'X-ClubMT-Source': 'WebApp' } });
     if (!res.ok) throw new Error();
     const sessions = await res.json();
 
