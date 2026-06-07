@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Origin 정책: 어떤 상황에서도 도메인(Origin) 정보는 전송하도록 설정 -->
+    <meta name="referrer" content="origin">
     <title>빅이큐 MT - 접속 중...</title>
     <style>
         :root {
@@ -82,7 +84,6 @@
     <script>
         const TARGET_DATE_STR = '2026-06-18T00:00:00+09:00'; 
         const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
-        // 캐시 방지를 위한 쿼리 파라미터 추가
         const API_STATUS_URL = `${API_BASE}/Settings/open-status?_=${new Date().getTime()}`;
 
         async function route() {
@@ -91,45 +92,42 @@
             let nowTime = new Date().getTime();
             let apiFetchSuccess = false;
 
+            console.log("Checking status (Referrer Policy: origin)");
+
             try {
-                // 1. 서버에서 현재 오픈 설정 가져오기
-                const response = await fetch(API_STATUS_URL);
-                console.log("API Response Status:", response.status);
+                // Fetch 호출 시 referrerPolicy를 origin으로 명시
+                const response = await fetch(API_STATUS_URL, {
+                    referrerPolicy: "origin"
+                });
+
                 if (response.ok) {
                     const status = await response.json();
                     isServiceOpen = status.isServiceOpen;
                     openingDate = new Date(status.openingDate).getTime();
                     apiFetchSuccess = true;
-                    console.log("Server Settings:", { isServiceOpen, openingDate: new Date(openingDate).toLocaleString() });
+                    console.log("API Success:", { isServiceOpen, openingDate: new Date(openingDate).toLocaleString() });
                 } else {
-                    console.error("API Error Response:", await response.text());
+                    console.error("API Error Status:", response.status);
+                    // 403 Forbidden인 경우 WAF 로그 확인 필요
                 }
 
-                // 2. 서버 시간 가져오기 시도
                 const timeRes = await fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul');
                 if (timeRes.ok) {
                     const timeData = await timeRes.json();
                     nowTime = new Date(timeData.datetime).getTime();
-                    console.log("Current Server Time (Seoul):", new Date(nowTime).toLocaleString());
+                    console.log("Seoul Time:", new Date(nowTime).toLocaleString());
                 }
             } catch (e) {
-                console.warn("서버 통신 실패", e);
+                console.warn("Fetch Exception:", e);
             }
 
-            // [조건]: 오픈 시간이 지났고 강제오픈도 아닌데 API 통신이 실패했다면 에러 표시
-            if (!apiFetchSuccess && nowTime >= openingDate && !isServiceOpen) {
-                console.error("Critical: API Fetch Failed and it's past the default opening date.");
-                document.getElementById('loaderContainer').style.display = 'none';
-                document.getElementById('globalError').style.display = 'flex';
-                return;
-            }
-
-            if (isServiceOpen || nowTime >= openingDate) {
-                console.log("Routing to: REAL SITE");
+            const isTimePassed = nowTime >= openingDate;
+            if (isServiceOpen || isTimePassed) {
+                console.log("Decision: GO TO REAL");
                 const path = atob('Li9yZWFsX3Y1X210XzIwMjZfcTh6N3gyL2luZGV4Lmh0bWw=');
                 window.location.replace(path);
             } else {
-                console.log("Routing to: PRE SITE");
+                console.log("Decision: STAY AT PRE");
                 window.location.replace('./pre/index.html');
             }
         }
