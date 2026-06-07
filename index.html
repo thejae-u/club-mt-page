@@ -82,7 +82,8 @@
     <script>
         const TARGET_DATE_STR = '2026-06-18T00:00:00+09:00'; 
         const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
-        const API_STATUS_URL = `${API_BASE}/Settings/open-status`;
+        // 캐시 방지를 위한 쿼리 파라미터 추가
+        const API_STATUS_URL = `${API_BASE}/Settings/open-status?_=${new Date().getTime()}`;
 
         async function route() {
             let isServiceOpen = false;
@@ -93,11 +94,15 @@
             try {
                 // 1. 서버에서 현재 오픈 설정 가져오기
                 const response = await fetch(API_STATUS_URL);
+                console.log("API Response Status:", response.status);
                 if (response.ok) {
                     const status = await response.json();
                     isServiceOpen = status.isServiceOpen;
                     openingDate = new Date(status.openingDate).getTime();
                     apiFetchSuccess = true;
+                    console.log("Server Settings:", { isServiceOpen, openingDate: new Date(openingDate).toLocaleString() });
+                } else {
+                    console.error("API Error Response:", await response.text());
                 }
 
                 // 2. 서버 시간 가져오기 시도
@@ -105,6 +110,7 @@
                 if (timeRes.ok) {
                     const timeData = await timeRes.json();
                     nowTime = new Date(timeData.datetime).getTime();
+                    console.log("Current Server Time (Seoul):", new Date(nowTime).toLocaleString());
                 }
             } catch (e) {
                 console.warn("서버 통신 실패", e);
@@ -112,17 +118,18 @@
 
             // [조건]: 오픈 시간이 지났고 강제오픈도 아닌데 API 통신이 실패했다면 에러 표시
             if (!apiFetchSuccess && nowTime >= openingDate && !isServiceOpen) {
+                console.error("Critical: API Fetch Failed and it's past the default opening date.");
                 document.getElementById('loaderContainer').style.display = 'none';
                 document.getElementById('globalError').style.display = 'flex';
                 return;
             }
 
             if (isServiceOpen || nowTime >= openingDate) {
-                // 실제 사이트로 이동 (경로 난독화 처리)
+                console.log("Routing to: REAL SITE");
                 const path = atob('Li9yZWFsX3Y1X210XzIwMjZfcTh6N3gyL2luZGV4Lmh0bWw=');
                 window.location.replace(path);
             } else {
-                // 아직 오픈 전이면 프리사이트로 이동
+                console.log("Routing to: PRE SITE");
                 window.location.replace('./pre/index.html');
             }
         }
