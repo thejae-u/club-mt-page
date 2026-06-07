@@ -57,7 +57,16 @@
     <header>
         <div class="header-inner">
             <span class="logo-text">☀️ 2026 빅이큐 MT</span>
-            <button class="theme-btn" id="themeBtn">🌙</button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="theme-btn guide-btn" onclick="openModal('guide')" title="이용 가이드">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+                <button class="theme-btn" id="themeBtn">🌙</button>
+            </div>
         </div>
     </header>
 
@@ -551,6 +560,12 @@
             <div class="modal-title">💳 회비 지출 내역</div>
             <div class="modal-sub">투명한 회비 운영을 위해 지출 내역을 공개합니다.</div>
 
+            <!-- PERSONAL DEPOSIT STATUS (Only for members) -->
+            <div id="fee-personal-status" class="card" style="display:none; margin-bottom:16px; border-left:4px solid var(--blue);">
+                <div style="font-size:12px; color:var(--text3);">나의 회비 입금 확인 상태</div>
+                <div id="fee-my-deposit-status" style="font-size:18px; font-weight:800;">...</div>
+            </div>
+
             <div class="card" style="margin-bottom:20px; background:var(--blue-soft); border:none;">
                 <div style="display:flex; justify-content:center; align-items:center;">
                     <div style="text-align:center; font-size:14px; color:var(--text3); font-weight:700;">
@@ -558,18 +573,23 @@
                     </div>
                 </div>
             </div>
-
-            <table class="generation-table" id="feeTable">
-                <thead>
-                    <tr>
-                        <th>항목</th>
-                        <th style="text-align:right;">금액</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be populated by app.js -->
-                </tbody>
-            </table>
+<div style="position:relative;">
+    <table class="generation-table" id="feeTable">
+        <thead>
+            <tr>
+                <th>항목</th>
+                <th style="text-align:right;">금액</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div id="fee-login-overlay" style="display:none; position:absolute; inset:0; background:rgba(255,255,255,0.1); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:12px; z-index:10;">
+        <div style="font-size:24px; margin-bottom:12px;">🔒</div>
+        <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;">로그인 후 확인 가능합니다</div>
+        <div style="font-size:12px; color:var(--text3); margin-bottom:16px;">상세 지출 내역은 참가자에게만 공개됩니다</div>
+        <button onclick="closeModal('fee'); openModal('login')" style="padding:10px 20px; background:var(--blue); color:var(--text); border:none; border-radius:100px; font-weight:700; cursor:pointer; font-size:13px;">로그인하기</button>
+    </div>
+</div>
             <p style="font-size:11px; color:var(--text3); margin-top:15px; text-align:center;">실시간으로 업데이트되는 공식 회비 내역입니다.
             </p>
         </div>
@@ -943,7 +963,19 @@
     <div class="toast" id="toast"></div>
 
     <!-- ERROR OVERLAY -->
-    <div id="globalError"
+    <!-- GUIDE -->
+    <div class="modal-overlay" id="modal-guide" onclick="closeBg(event,'guide')">
+        <div class="modal-sheet large-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('guide')">✕</button>
+            <div class="modal-title"></div>
+            <div class="modal-sub"></div>
+            <div class="guide-content">
+                <!-- Content injected by guide-content.js -->
+            </div>
+        </div>
+    </div>
+
+    <div id="globalError">
         style="display:none; position:fixed; inset:0; z-index:9999; background:var(--bg); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
         <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
         <h1 style="font-size: 24px; font-weight: 900; color: var(--text); margin-bottom: 12px; letter-spacing: -0.5px;">
@@ -955,6 +987,7 @@
             style="padding: 16px 40px; background: var(--blue-deep); color: white; border-radius: 16px; font-size: 16px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(45,70,141,0.25); transition: transform 0.2s;">🔄
             페이지 새로고침</button>
     </div>
+    <script src="../guide-content.js?v=5"></script>
     <script src="js/app.js?v=5"></script>
 </body>
 

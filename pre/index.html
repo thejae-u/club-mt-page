@@ -57,7 +57,16 @@
     <header>
         <div class="header-inner">
             <span class="logo-text">☀️ 2026 빅이큐 MT</span>
-            <button class="theme-btn" id="themeBtn">🌙</button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="theme-btn guide-btn" onclick="openModal('guide')" title="이용 가이드">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+                <button class="theme-btn" id="themeBtn">🌙</button>
+            </div>
         </div>
     </header>
 
@@ -354,8 +363,21 @@
         </div>
     </div>
 
+    <!-- GUIDE -->
+    <div class="modal-overlay" id="modal-guide" onclick="closeBg(event,'guide')">
+        <div class="modal-sheet large-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('guide')">✕</button>
+            <div class="modal-title"></div>
+            <div class="modal-sub"></div>
+            <div class="guide-content">
+                <!-- Content injected by guide-content.js -->
+            </div>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
+    <script src="../guide-content.js?v=5"></script>
     <script src="js/app.js?v=5"></script>
 </body>
 

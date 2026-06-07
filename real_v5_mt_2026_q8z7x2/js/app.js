@@ -378,25 +378,83 @@ function renderMembers(members) {
   members.sort((a, b) => a.generation - b.generation || a.name.localeCompare(b.name));
   tableBody.innerHTML = members.map(p => `<tr data-generation-val="${p.generation}"><td>${p.generation}기</td><td class="name-cell"><b>${p.name}</b></tr>`).join('');
 }
+
 async function updateFeeTable() {
+  const tbody = document.querySelector('#feeTable tbody');
+  const expenseEl = document.getElementById('fee-expense');
+  const personalStatus = document.getElementById('fee-personal-status');
+  const myDepositStatus = document.getElementById('fee-my-deposit-status');
+  const loginOverlay = document.getElementById('fee-login-overlay');
+
+  if (!tbody || !expenseEl) return;
+
+  const catMap = { 'Food': '음식/장보기', 'Rent': '숙소/대관', 'Transport': '교통/유류비', 'General': '기타 지출' };
+  const isLoggedIn = !!window.currentParticipant;
+
   try {
-    const [resList, resSummary] = await Promise.all([fetch(`${API_BASE}/Fee`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' }), fetch(`${API_BASE}/Fee/summary`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' })]);
-    if (resList.ok) {
-      const fees = await resList.json();
-      const tbody = document.querySelector('#feeTable tbody');
-      if (tbody) {
-        if (fees.length === 0) tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 20px; color: var(--text3);">등록된 지출 내역이 없습니다.</td></tr>';
-        else {
-          const catMap = { 'Food': '음식/장보기', 'Rent': '숙소/대관', 'Transport': '교통/유류비', 'General': '기타 지출' };
-          tbody.innerHTML = fees.map(f => `<tr><td><div style="font-weight:600;">${f.description}</div><div style="font-size:10px; color:var(--text3);">${catMap[f.category] || f.category}</div></td><td style="text-align:right; font-weight:700; color:#E5484D">${Math.abs(f.amount).toLocaleString()}원</td></tr>`).join('');
+    if (isLoggedIn) {
+      // 1. Authenticated User: Show real data
+      if (loginOverlay) loginOverlay.style.display = 'none';
+      tbody.style.filter = 'none';
+      expenseEl.style.filter = 'none';
+
+      // Show and update personal deposit status
+      if (personalStatus && myDepositStatus) {
+        personalStatus.style.display = 'block';
+        const p = window.currentParticipant;
+        if (p.isDepositConfirmed) {
+            myDepositStatus.textContent = '✅ 입금 확인 완료';
+            myDepositStatus.style.color = '#22C55E';
+            personalStatus.style.borderLeftColor = '#22C55E';
+        } else if (p.isWaitlisted) {
+            myDepositStatus.textContent = '⏳ 대기 순번 (입금 전)';
+            myDepositStatus.style.color = '#F5A623';
+            personalStatus.style.borderLeftColor = '#F5A623';
+        } else {
+            myDepositStatus.textContent = '❌ 미입금 (입금 대기)';
+            myDepositStatus.style.color = '#E5484D';
+            personalStatus.style.borderLeftColor = '#E5484D';
         }
       }
+
+      const [resList, resSummary] = await Promise.all([
+        fetch(`${API_BASE}/Fee`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' }),
+        fetch(`${API_BASE}/Fee/summary`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' })
+      ]);
+
+      if (resList.ok) {
+        const fees = await resList.json();
+        if (fees.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 20px; color: var(--text3);">등록된 지출 내역이 없습니다.</td></tr>';
+        } else {
+          tbody.innerHTML = fees.map(f => `<tr><td><div style="font-weight:600;">${escapeHTML(f.description)}</div><div style="font-size:10px; color:var(--text3);">${catMap[f.category] || f.category}</div></td><td style="text-align:right; font-weight:700; color:#E5484D">${Math.abs(f.amount).toLocaleString()} 원</td></tr>`).join('');
+        }
+      }
+      if (resSummary.ok) {
+        const summary = await resSummary.json();
+        expenseEl.textContent = `${summary.totalExpense.toLocaleString()}원`;
+      }
+    } else {
+      // 2. Guest User: Show blurred mock data
+      if (loginOverlay) loginOverlay.style.display = 'flex';
+      if (personalStatus) personalStatus.style.display = 'none';
+      tbody.style.filter = 'blur(4px)';
+      expenseEl.style.filter = 'blur(6px)';
+
+      const mockList = [
+        {description: '엥 이거 가짜', category: 'Food', amount: -245000},
+        {description: '데이터인데', category: 'Rent', amount: -600000},
+        {description: '가나다라', category: 'Transport', amount: -120000},
+        {description: '아 배고프다', category: 'General', amount: -45000}
+      ];
+
+      tbody.innerHTML = mockList.map(f => `<tr><td><div style="font-weight:600;">${f.description}</div><div style="font-size:10px; color:var(--text3);">${catMap[f.category] || f.category}</div></td><td style="text-align:right; font-weight:700; color:#E5484D">${Math.abs(f.amount).toLocaleString()}원</td></tr>`).join('');
+      expenseEl.textContent = '100,000,000원';
     }
-    if (resSummary.ok) {
-      const summary = await resSummary.json();
-      const el = document.getElementById('fee-expense'); if (el) el.textContent = `${summary.totalExpense.toLocaleString()}원`;
-    }
-  } catch (err) { console.error(err); }
+  } catch (err) { 
+    console.error(err); 
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; padding: 20px; color: var(--text3);">데이터 로드 실패</td></tr>';
+  }
 }
 
 function setBarW(id, pct) { const el = document.getElementById(id); if (el) { el.style.transition = 'width .9s cubic-bezier(0.4,0,0.2,1)'; el.style.width = Math.min(100, pct) + '%'; } }
