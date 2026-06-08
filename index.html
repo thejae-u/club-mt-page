@@ -88,7 +88,7 @@
         const API_STATUS_URL = `${API_BASE}/Settings/open-status?_=${new Date().getTime()}`;
 
         async function route() {
-            const targetTime = new Date(TARGET_DATE_STR).getTime();
+            let targetTime = new Date(TARGET_DATE_STR).getTime(); // Default fallback
             let isServiceOpen = false;
             let nowTime = new Date().getTime(); // Default: Client time
 
@@ -97,7 +97,7 @@
             const timeoutId = setTimeout(() => controller.abort(), 3000);
 
             try {
-                // 2. Check server status and server time in a single call
+                // 2. Check server status, opening date, and server time in a single call
                 const response = await fetch(API_STATUS_URL, { 
                     headers: { 'X-ClubMT-Source': 'WebApp' },
                     referrerPolicy: "origin",
@@ -107,13 +107,18 @@
                 if (response.ok) {
                     const status = await response.json();
                     isServiceOpen = status.isServiceOpen;
+                    
+                    // 서버가 준 설정값으로 업데이트 (동기화 핵심)
+                    if (status.openingDate) {
+                        targetTime = new Date(status.openingDate).getTime();
+                    }
                     if (status.serverTime) {
                         nowTime = new Date(status.serverTime).getTime();
                     }
-                    console.log("API Success:", { isServiceOpen, serverTime: new Date(nowTime).toLocaleString() });
+                    console.log("API Success:", { isServiceOpen, targetTime: new Date(targetTime).toLocaleString(), serverTime: new Date(nowTime).toLocaleString() });
                 }
             } catch (e) {
-                console.warn("Server check failed or timed out. Falling back to local time.", e);
+                console.warn("Server check failed or timed out. Falling back to local time and hardcoded date.", e);
             } finally {
                 clearTimeout(timeoutId);
             }
