@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Origin 정책: 어떤 상황에서도 도메인(Origin) 정보는 전송하도록 설정 -->
     <meta name="referrer" content="origin">
+    <link rel="preconnect" href="https://api-mt.thejaeu.com">
     <title>빅이큐 MT - 접속 중...</title>
     <style>
         :root {
@@ -87,41 +88,38 @@
         const API_STATUS_URL = `${API_BASE}/Settings/open-status?_=${new Date().getTime()}`;
 
         async function route() {
+            const targetTime = new Date(TARGET_DATE_STR).getTime();
             let isServiceOpen = false;
-            let openingDate = new Date(TARGET_DATE_STR).getTime();
-            let nowTime = new Date().getTime();
-            let apiFetchSuccess = false;
+            let nowTime = new Date().getTime(); // Default: Client time
 
-            console.log("Checking status (Referrer Policy: origin)");
+            // 1. Set 3-second timeout using AbortController
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
 
             try {
-                // Fetch 호출 시 referrerPolicy를 origin으로 명시
-                const response = await fetch(API_STATUS_URL, { headers: { 'X-ClubMT-Source': 'WebApp' },
-                    referrerPolicy: "origin"
+                // 2. Check server status and server time in a single call
+                const response = await fetch(API_STATUS_URL, { 
+                    headers: { 'X-ClubMT-Source': 'WebApp' },
+                    referrerPolicy: "origin",
+                    signal: controller.signal
                 });
 
                 if (response.ok) {
                     const status = await response.json();
                     isServiceOpen = status.isServiceOpen;
-                    openingDate = new Date(status.openingDate).getTime();
-                    apiFetchSuccess = true;
-                    console.log("API Success:", { isServiceOpen, openingDate: new Date(openingDate).toLocaleString() });
-                } else {
-                    console.error("API Error Status:", response.status);
-                    // 403 Forbidden인 경우 WAF 로그 확인 필요
-                }
-
-                const timeRes = await fetch('https://worldtimeapi.org/api/timezone/Asia/Seoul');
-                if (timeRes.ok) {
-                    const timeData = await timeRes.json();
-                    nowTime = new Date(timeData.datetime).getTime();
-                    console.log("Seoul Time:", new Date(nowTime).toLocaleString());
+                    if (status.serverTime) {
+                        nowTime = new Date(status.serverTime).getTime();
+                    }
+                    console.log("API Success:", { isServiceOpen, serverTime: new Date(nowTime).toLocaleString() });
                 }
             } catch (e) {
-                console.warn("Fetch Exception:", e);
+                console.warn("Server check failed or timed out. Falling back to local time.", e);
+            } finally {
+                clearTimeout(timeoutId);
             }
 
-            const isTimePassed = nowTime >= openingDate;
+            // 3. Final decision and redirect
+            const isTimePassed = nowTime >= targetTime;
             if (isServiceOpen || isTimePassed) {
                 console.log("Decision: GO TO REAL");
                 const path = atob('Li9yZWFsX3Y1X210XzIwMjZfcTh6N3gyL2luZGV4Lmh0bWw=');
