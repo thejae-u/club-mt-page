@@ -1,0 +1,36 @@
+name: Obfuscate and Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # club-mt-page 저장소의 메인 브랜치명
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Obfuscator
+        run: npm install -g javascript-obfuscator
+
+      - name: Obfuscate JS Files
+        run: |
+          # 현재 저장소 루트를 기준으로 JS 파일 난독화
+          javascript-obfuscator ./real_v5_mt_2026_q8z7x2/js --output ./real_v5_mt_2026_q8z7x2/js --string-array true --string-array-encoding 'base64' --unicode-escape-sequence true
+
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: .        # 현재 저장소 전체를 배포
+          branch: gh-pages # GitHub Pages용 브랜치
+          clean: true
