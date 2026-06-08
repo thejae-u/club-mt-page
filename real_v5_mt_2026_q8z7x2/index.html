@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <title>빅이큐 MT</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏐</text></svg>">
+    <link
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .letter-tooltip {
+            position: absolute;
+            background: var(--blue-deep);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            z-index: 1000;
+            pointer-events: none;
+            box-shadow: 0 10px 25px rgba(45, 70, 141, 0.3);
+            white-space: nowrap;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            transform: translate(-50%, 0) scale(0.6);
+            transform-origin: bottom center;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .letter-tooltip.active {
+            opacity: 1;
+            transform: translate(-50%, -100%) scale(1);
+            margin-top: -12px;
+        }
+
+        .letter-tooltip::after {
+            content: "";
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0 6px;
+            border-style: solid;
+            border-color: var(--blue-deep) transparent transparent transparent;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="header-inner">
+            <span class="logo-text">☀️ 2026 빅이큐 MT</span>
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button class="theme-btn guide-btn" onclick="openModal('guide')" title="이용 가이드">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </button>
+                <button class="theme-btn" id="themeBtn">🌙</button>
+            </div>
+        </div>
+    </header>
+
+
+    <main>
+
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-badge">✨ 5th 총동문 MT</div>
+            <h1>제 0회 빅이큐<br><span>총동문 MT</span></h1>
+            <p class="hero-sub"></p>
+            <div style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-bottom:22px;">
+                <div class="dday-block" id="mtDDayBlock" style="margin-bottom:0; display:none;">
+                    <span class="dday-label">MT까지 D-</span>
+                    <span class="dday-num" id="ddayNum">--</span>
+                    <span class="dday-unit">일</span>
+                </div>
+                <div class="dday-block" id="deadlineBlock" style="margin-bottom:0; border-color:#E5484D; display:none;">
+                    <span class="dday-label" style="color:#E5484D;">신청마감 D-</span>
+                    <span class="dday-num" id="ddayDeadline" style="color:#E5484D;">--</span>
+                    <span class="dday-unit" style="color:#E5484D;">일</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-chip">📅 2025년 8월 22일 (금) ~ 24일 (일)</div>
+                <div class="info-chip" onclick="openLocationModal()" title="클릭하여 장소 상세 보기">📍 OO 리조트 <span
+                        style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span></div>
+                <div class="info-chip" onclick="openFeeModal()" title="클릭하여 회비 사용 내역 보기">💳 회비 0원 <span
+                        style="font-size:10px; opacity:0.7; margin-left:2px;">▶</span></div>
+            </div>
+            <div class="hero-actions" id="heroActions"
+                style="display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap;">
+                <button id="btnApply" class="btn-apply" onclick="openModal('apply')">✍️ 신청하기</button>
+                <button id="btnEditInfo" class="btn-apply" style="display:none;" onclick="openEditFromHome()">✍️ 신청 정보
+                    수정</button>
+                <button id="btnLoginOpen" class="btn-apply secondary" onclick="openModal('login')">🔐 로그인/수정</button>
+                <button id="btnMyPageOpen" class="btn-apply secondary" style="display:none;" onclick="openMyPage()">👤
+                    마이페이지</button>
+            </div>
+        </section>
+
+
+        <!-- 기대평 -->
+        <section id="expectationSection">
+            <div class="section-title">기대평</div>
+            <div class="marquee-outer">
+                <div class="marquee-track" id="marqueeTrack"></div>
+            </div>
+        </section>
+
+        <!-- 신청 현황 -->
+        <section>
+            <div class="section-title">실시간 신청 현황</div>
+            <div class="card">
+                <div class="status-header">
+                    <div>
+                        <div style="font-size:12px;color:var(--text3);margin-bottom:2px">총 신청 인원</div>
+                        <span class="status-count" id="totalCount">0명</span>
+                        <span style="font-size:13px;color:var(--text3)" id="totalCapacityLabel"> / 0명 정원</span>
+                    </div>
+                </div>
+                <div class="bar-wrap">
+                    <div class="bar-label"><span>🙋 일반 신청</span><span style="font-weight:700;color:var(--blue)"
+                            id="genLabel">0명 /
+                            0명</span></div>
+                    <div class="bar-track">
+                        <div class="bar-fill" id="barGen"></div>
+                    </div>
+                </div>
+                <div class="bar-wrap">
+                    <div class="bar-label"><span>🫡 군인 우선 예약</span><span style="font-weight:700;color:var(--army)"
+                            id="armyLabel">0명 / 0명</span></div>
+                    <div class="bar-track">
+                        <div class="bar-fill army-bar" id="barArmy"></div>
+                    </div>
+                </div>
+                <button class="btn-detail" onclick="openModal('status')">📊 자세히 보기 →</button>
+            </div>
+        </section>
+
+        <!-- 일정 한줄 3칸 -->
+        <section>
+            <div class="section-title">일정</div>
+            <div class="schedule-row" id="scheduleCards">
+                <!-- Dynamic Content -->
+            </div>
+        </section>
+
+        <!-- 기수 / 마니또 -->
+        <section>
+            <div class="section-title">프로그램</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="card" style="cursor:pointer; padding:16px;" onclick="openGenerationModal()">
+                    <div class="generation-card">
+                        <div class="generation-icon" style="width:40px; height:40px; font-size:20px;">👥</div>
+                        <div class="generation-text">
+                            <h3 style="font-size:14px;">기수/동기 확인</h3>
+                            <p style="font-size:11px;">동문 명단 검색</p>
+                        </div>
+                        <div class="generation-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                    </div>
+                </div>
+                <div class="card" style="cursor:pointer; padding:16px;" onclick="openManittoModal()">
+                    <div class="generation-card">
+                        <div class="generation-icon" style="width:40px; height:40px; font-size:20px;">🎁</div>
+                        <div class="generation-text">
+                            <h3 style="font-size:14px;">마니또 확인</h3>
+                            <p style="font-size:11px;">내 마니또와 미션</p>
+                        </div>
+                        <div class="generation-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                    </div>
+                </div>
+                <div class="card" style="cursor:pointer; padding:16px;" onclick="openCookingBattleModal()">
+                    <div class="generation-card">
+                        <div class="generation-icon" style="width:40px; height:40px; font-size:20px;">🍳</div>
+                        <div class="generation-text">
+                            <h3 style="font-size:14px;">요리 배틀</h3>
+                            <p style="font-size:11px;">팀 확인 및 응원</p>
+                        </div>
+                        <div class="generation-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                    </div>
+                </div>
+                <div class="card" style="cursor:pointer; padding:16px;" onclick="openVehicleModal()">
+                    <div class="generation-card">
+                        <div class="generation-icon" style="width:40px; height:40px; font-size:20px;">🚗</div>
+                        <div class="generation-text">
+                            <h3 style="font-size:14px;">차량 배정</h3>
+                            <p style="font-size:11px;">이동수단 및 현황</p>
+                        </div>
+                        <div class="generation-arrow" style="width:24px; height:24px; font-size:12px;">→</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 군인 우대 -->
+        <section>
+            <div class="section-title">군인 우대 혜택</div>
+            <div class="card">
+                <div class="army-badge-tag">🫡 군인 우대</div>
+                <p class="army-desc">국방을 책임지는 군인 부원들을 위해 특별 우대를 해드립니다 :)</p>
+                <div class="bar-wrap">
+                    <div class="bar-label"><span>🫡 군인 우선 예약 현황</span><span style="font-weight:700;color:var(--army)"
+                            id="armyMainLabel">0명 / 4명</span></div>
+                    <div class="bar-track">
+                        <div class="bar-fill army-bar" id="barArmyMain"></div>
+                    </div>
+                </div>
+                <button class="btn-detail" onclick="openModal('army')">🫡 군인 우대 혜택 자세히 보기 →</button>
+            </div>
+        </section>
+
+        <!-- PHOTO STUDIO -->
+        <section id="photoSection" style="display: none;">
+            <div class="section-title">그땐 그랬지...</div>
+            <div class="marquee-outer" style="cursor: pointer;" onclick="openPhotoModal()">
+                <div class="marquee-track" id="photoMarqueeTrack"></div>
+            </div>
+        </section>
+
+        <!-- 배구 MBTI -->
+        <section>
+            <div class="section-title">재미로 보는 배구 MBTI</div>
+            <div class="card card-mbti-entry" style="cursor: pointer;" onclick="openMBTIModal()">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <div class="mbti-icon-box"
+                        style="width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow-sm);">
+                        🏐</div>
+                    <div style="flex: 1;">
+                        <h3 style="font-size: 16px; font-weight: 800; color: var(--blue-deep); margin-bottom: 4px;">나의
+                            배구 MBTI 알아보기
+                        </h3>
+                        <p style="font-size: 12px; color: var(--text3); line-height: 1.4;">질문을 통해 나의 배구 스타일을 알아보세요!</p>
+                    </div>
+                    <div
+                        style="width: 32px; height: 32px; border-radius: 50%; background: var(--blue-deep); color: white; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                        →</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer
+            style="padding: 40px 20px 60px; text-align: center; background: var(--bg2); border-top: 1px solid var(--border); margin-top: 40px;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 8px;">빅이큐 총동문 MT 시스템
+            </div>
+            <div style="font-size: 11px; color: var(--text3); line-height: 1.6;">
+                © 2026 빅이큐 총동문 MT. All rights reserved.<br>
+                문의: <a href="mailto:contact@thejaeu.com"
+                    style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">contact@thejaeu.com</a><br>
+                <span style="opacity: 0.5;">Powered by thejaeu, Assisted by AI Agent</span>
+            </div>
+            <button class="btn-detail" id="btnRefresh" onclick="handleRefresh(this)"
+                style="max-width: 200px; margin: 20px auto 0; background: var(--card);">데이터 새로고침</button>
+            <script>
+                function handleRefresh(btn) {
+                    btn.disabled = true;
+                    btn.innerText = '로딩 중...';
+                    window.location.href = '/';
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerText = '데이터 새로고침';
+                    }, 2000);
+                }
+            </script>
+        </footer>
+    </main>
+
+    <!-- ====== MODALS ====== -->
+    <div id="dynamicModals"></div>
+
+    <!-- COOKING BATTLE MODAL -->
+    <div class="modal-overlay" id="modal-cooking" onclick="closeBg(event,'cooking')">
+        <div class="modal-sheet" style="max-height: 90vh;">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cooking')">✕</button>
+            <div class="modal-title" style="text-align: center;">🍳 요리 배틀</div>
+
+            <!-- TOP ACTIONS -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px;">
+                <button class="btn-submit" onclick="openModal('cook-apply')" id="btnCookApply"
+                    style="background: var(--blue-deep); color: white; margin-top: 0; font-size: 14px;">👨‍🍳 오더 셰프
+                    지원</button>
+                <button class="btn-submit" onclick="openMyTeamModal()" id="btnMyTeam"
+                    style="background: var(--bg3); color: var(--text2); margin-top: 0; font-size: 14px; opacity: 0.5;"
+                    disabled>🏃
+                    나의 팀 확인하기</button>
+            </div>
+
+            <!-- NOTICES -->
+            <div
+                style="background: var(--bg2); padding: 15px; border-radius: 12px; margin-bottom: 24px; border: 1px solid var(--border);">
+                <h4 style="font-size: 13px; font-weight: 800; color: var(--text); margin-bottom: 4px;">📢 요리 배틀 안내</h4>
+                <p style="font-size: 12px; color: var(--text3); line-height: 1.5;">흑팀 vs 백팀의 자존심 대결! 셰프의 지시에 따라 팀원들과 최고의
+                    요리를 완성해
+                    보세요.</p>
+            </div>
+
+            <!-- TEAMS (Always Visible) -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+                <!-- BLACK TEAM -->
+                <div class="card" style="padding: 12px; border: 2px solid #333;">
+                    <div
+                        style="font-size: 12px; font-weight: 800; color: white; background: #333; display: inline-block; padding: 2px 8px; border-radius: 4px; margin-bottom: 12px;">
+                        흑팀</div>
+                    <div id="black-chef-info" style="margin-bottom: 12px; min-height: 60px;">
+                        <div style="font-size: 11px; color: #666;">오더 셰프</div>
+                        <div id="black-chef-name" style="font-size: 15px; font-weight: 800;">-</div>
+                        <div id="black-chef-desc"
+                            style="font-size: 11px; color: #999; margin-top: 4px; line-height: 1.4;">지원자 중 선발
+                            예정</div>
+                    </div>
+                    <div id="black-members" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 0;">
+                    </div>
+                    <div style="display: flex; align-items: stretch; justify-content: center; gap: 12px;">
+                        <div
+                            style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+                            <div class="heart-btn-wrap" id="btn-cheer-black"
+                                style="position: relative; width: 90px; height: 90px; cursor: not-allowed; opacity: 0.5; pointer-events: none;"
+                                onclick="cheerTeam('Black')">
+                                <div
+                                    style="position: absolute; width: 100%; height: 100%; font-size: 80px; line-height: 90px; text-align: center; color: #eee;">
+                                    ♥</div>
+                                <div id="black-cheer-bar"
+                                    style="position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; overflow: hidden; transition: height 0.5s;">
+                                    <div
+                                        style="position: absolute; bottom: 0; left: 0; width: 100%; height: 90px; font-size: 80px; line-height: 90px; text-align: center; color: #E5484D;">
+                                        ♥</div>
+                                </div>
+                            </div>
+                            <div style="text-align: center; font-size: 12px; font-weight: 800; color: #333;">응원하기</div>
+                        </div>
+                        <button class="btn-detail vote-btn" id="btn-vote-black" onclick="voteTeam('Black')"
+                            style="flex: 1; aspect-ratio: 1; font-size: 16px; font-weight: 800; background: #333; color: white; border: none; border-radius: 12px; opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; justify-content: center;"
+                            disabled>투표하기</button>
+                    </div>
+                    <div style="margin-top: 16px; border-top: 1px dashed #ccc; padding-top: 12px;">
+                        <h4 style="font-size: 12px; font-weight: 800; margin-bottom: 8px;">💬 흑팀 한줄평</h4>
+                        <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+                            <input type="text" id="cook-comment-black" placeholder="팀 공개 후 작성 가능합니다."
+                                style="flex: 1; height: 30px; font-size: 11px; padding: 0 8px; margin-bottom: 0;"
+                                disabled>
+                            <button id="btn-comment-black" onclick="postCookComment('Black')"
+                                style="width: 44px; height: 30px; background: #333; color: white; border-radius: 6px; border: none; font-size: 11px; font-weight: 800; opacity: 0.5; cursor: not-allowed;"
+                                disabled>등록</button>
+                        </div>
+                        <div id="cook-comment-list-black"
+                            style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+                        </div>
+                    </div>
+                </div>
+                <!-- WHITE TEAM -->
+                <div class="card" style="padding: 12px; border: 2px solid var(--blue-mid);">
+                    <div
+                        style="font-size: 12px; font-weight: 800; color: var(--blue-deep); background: var(--blue-soft); border: 1px solid var(--blue-mid); display: inline-block; padding: 2px 8px; border-radius: 4px; margin-bottom: 12px;">
+                        백팀</div>
+                    <div id="white-chef-info" style="margin-bottom: 12px; min-height: 60px;">
+                        <div style="font-size: 11px; color: #666;">오더 셰프</div>
+                        <div id="white-chef-name" style="font-size: 15px; font-weight: 800;">-</div>
+                        <div id="white-chef-desc"
+                            style="font-size: 11px; color: #999; margin-top: 4px; line-height: 1.4;">지원자 중 선발
+                            예정</div>
+                    </div>
+                    <div id="white-members" style="margin-bottom: 12px; display: flex; flex-direction: column; gap: 0;">
+                    </div>
+                    <div style="display: flex; align-items: stretch; justify-content: center; gap: 12px;">
+                        <div
+                            style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+                            <div class="heart-btn-wrap" id="btn-cheer-white"
+                                style="position: relative; width: 90px; height: 90px; cursor: not-allowed; opacity: 0.5; pointer-events: none;"
+                                onclick="cheerTeam('White')">
+                                <div
+                                    style="position: absolute; width: 100%; height: 100%; font-size: 80px; line-height: 90px; text-align: center; color: #eee;">
+                                    ♥</div>
+                                <div id="white-cheer-bar"
+                                    style="position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; overflow: hidden; transition: height 0.5s;">
+                                    <div
+                                        style="position: absolute; bottom: 0; left: 0; width: 100%; height: 90px; font-size: 80px; line-height: 90px; text-align: center; color: #E5484D;">
+                                        ♥</div>
+                                </div>
+                            </div>
+                            <div style="text-align: center; font-size: 12px; font-weight: 800; color: #333;">응원하기</div>
+                        </div>
+                        <button class="btn-detail vote-btn" id="btn-vote-white" onclick="voteTeam('White')"
+                            style="flex: 1; aspect-ratio: 1; font-size: 16px; font-weight: 800; background: var(--blue-deep); color: white; border: none; border-radius: 12px; opacity: 0.5; cursor: not-allowed; display: flex; align-items: center; justify-content: center;"
+                            disabled>투표하기</button>
+                    </div>
+                    <div style="margin-top: 16px; border-top: 1px dashed #ccc; padding-top: 12px;">
+                        <h4 style="font-size: 12px; font-weight: 800; margin-bottom: 8px;">💬 백팀 한줄평</h4>
+                        <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+                            <input type="text" id="cook-comment-white" placeholder="팀 공개 후 작성 가능합니다."
+                                style="flex: 1; height: 30px; font-size: 11px; padding: 0 8px; margin-bottom: 0;"
+                                disabled>
+                            <button id="btn-comment-white" onclick="postCookComment('White')"
+                                style="width: 44px; height: 30px; background: #fff; color: #333; border: 1px solid #ddd; border-radius: 6px; font-size: 11px; font-weight: 800; opacity: 0.5; cursor: not-allowed;"
+                                disabled>등록</button>
+                        </div>
+                        <div id="cook-comment-list-white"
+                            style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COOKING APPLY MODAL -->
+    <div class="modal-overlay" id="modal-cook-apply" onclick="closeBg(event,'cook-apply')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cook-apply')">✕</button>
+            <div class="modal-title">👨‍🍳 오더 셰프 지원</div>
+            <div id="cooking-apply-form">
+                <p style="font-size: 13px; color: var(--text3); line-height: 1.6; margin-bottom: 20px;">
+                    팀원들을 이끌어 최고의 요리를 완성해 주실 분을 찾습니다!<br>지원 내용은 관리자만 볼 수 있습니다.
+                </p>
+                <div class="form-group"><label>경력 혹은 포부</label><input type="text" id="cook-exp"
+                        placeholder="예: 자취 5년차, 웍질 가능">
+                </div>
+                <div class="form-group"><label>자신있는 요리</label><input type="text" id="cook-dish"
+                        placeholder="예: 김치찌개, 파스타">
+                </div>
+                <button class="btn-submit" onclick="applyForChef()"
+                    style="background: var(--blue-deep); color: white; margin-top: 10px;">셰프 지원 완료하기</button>
+            </div>
+            <div id="cooking-apply-done" style="display: none; text-align: center; padding: 20px 0;">
+                <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+                <div style="font-size: 16px; font-weight: 800; color: var(--blue-deep); margin-bottom: 8px;">지원이
+                    완료되었습니다!</div>
+                <p style="font-size: 13px; color: var(--text3);">관리자가 선발 후 팀 구성 시 공개됩니다.</p>
+                <button class="btn-submit" onclick="closeModal('cook-apply')"
+                    style="margin-top: 24px; background: var(--bg3); color: var(--text2);">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MY TEAM MODAL -->
+    <div class="modal-overlay" id="modal-cook-team" onclick="closeBg(event,'cook-team')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('cook-team')">✕</button>
+            <div class="modal-title">🏃 나의 팀 정보</div>
+            <div class="card" style="text-align: center; padding: 32px 20px; background: var(--bg2); border: none;">
+                <div id="my-cooking-role-large"
+                    style="font-size: 18px; font-weight: 800; color: var(--text); line-height: 1.6;"></div>
+            </div>
+            <div
+                style="background: #FFF9DB; padding: 15px; border-radius: 12px; margin-top: 20px; border: 1px solid #FFE066;">
+                <h4 style="font-size: 13px; font-weight: 800; color: #856404; margin-bottom: 4px;">📢 팀 구성 안내</h4>
+                <p style="font-size: 12px; color: #856404; line-height: 1.6;">아바타와 보조 셰프는 현장 상황에 따라 유동적으로 운영될 수 있습니다.
+                    즐거운 대결
+                    되세요!</p>
+            </div>
+            <button class="btn-submit" onclick="closeModal('cook-team')" style="margin-top: 24px;">확인</button>
+        </div>
+    </div>
+
+    <!-- V-MBTI MODAL -->
+    <div class="modal-overlay" id="modal-mbti" onclick="closeBg(event,'mbti')">
+        <div class="modal-sheet" style="max-height: 85vh;">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('mbti')">✕</button>
+            <div class="modal-title" style="text-align: center;">🏐 빅이큐 V-MBTI</div>
+
+            <div id="mbti-start" style="text-align: center; padding: 20px 0;">
+                <div style="font-size: 64px; margin-bottom: 20px;">🏐</div>
+                <div style="font-size: 18px; font-weight: 800; margin-bottom: 10px; color: var(--text);">나의 배구 포지션은?
+                </div>
+                <p style="font-size: 14px; color: var(--text3); line-height: 1.6; margin-bottom: 30px;">
+                    경기 스타일부터 술자리 성향까지!<br>
+                    간단한 5가지 질문으로 알아보는<br>
+                    빅이큐 전용 배구 MBTI 테스트
+                </p>
+                <button class="btn-submit" onclick="startMBTI()" style="background: var(--blue-deep); color: white;">테스트
+                    시작하기</button>
+            </div>
+
+            <div id="mbti-quiz" style="display: none; padding: 10px 0;">
+                <div
+                    style="background: var(--bg2); border-radius: 12px; height: 6px; margin-bottom: 24px; overflow: hidden;">
+                    <div id="mbti-progress"
+                        style="height: 100%; background: var(--blue); width: 0%; transition: width 0.3s;">
+                    </div>
+                </div>
+                <div id="mbti-q-num" style="font-size: 12px; font-weight: 800; color: var(--blue); margin-bottom: 8px;">
+                    Q1.
+                </div>
+                <div id="mbti-question"
+                    style="font-size: 18px; font-weight: 800; color: var(--text); margin-bottom: 24px; line-height: 1.4;">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button class="btn-detail" onclick="selectMBTIAnswer('A')" id="mbti-opt-a"
+                        style="text-align: left; padding: 20px; font-size: 15px; border-width: 1.5px; white-space: normal; height: auto; justify-content: flex-start;"></button>
+                    <button class="btn-detail" onclick="selectMBTIAnswer('B')" id="mbti-opt-b"
+                        style="text-align: left; padding: 20px; font-size: 15px; border-width: 1.5px; white-space: normal; height: auto; justify-content: flex-start;"></button>
+                </div>
+            </div>
+
+            <div id="mbti-result" style="display: none; text-align: center; padding: 15px 0;">
+                <div style="font-size: 14px; font-weight: 700; color: var(--text3); margin-bottom: 12px;">당신의 V-MBTI
+                    결과는?</div>
+                <div id="res-mbti-code"
+                    style="font-size: 12px; font-weight: 800; color: var(--blue); margin-bottom: 12px; letter-spacing: 2px; position: relative;">
+                    APLS
+                </div>
+                <div id="res-title" style="font-size: 24px; font-weight: 900; color: var(--text); margin-bottom: 24px;">
+                    전술적 폭격기형</div>
+
+                <div class="card mbti-res-card-blue" style="text-align: left; border: none; margin-bottom: 20px;">
+                    <div style="font-weight: 800; font-size: 14px; color: var(--blue-deep); margin-bottom: 8px;">🏐 배구
+                        스타일</div>
+                    <p id="res-desc" style="font-size: 14px; line-height: 1.6; color: var(--text);"></p>
+                </div>
+
+                <div class="card mbti-res-card-red" style="text-align: left; border: none; margin-bottom: 16px;">
+                    <div style="font-weight: 800; font-size: 14px; color: #E5484D; margin-bottom: 8px;">🍺 MT 성향</div>
+                    <p id="res-mt" style="font-size: 14px; line-height: 1.6; color: var(--text);"></p>
+                </div>
+
+                <p
+                    style="font-size: 11px; color: var(--text3); line-height: 1.5; margin-bottom: 28px; word-break: keep-all;">
+                    ⚠️ 주의: 5문항짜리 초간단 테스트이니 재미로만 즐겨주기!<br>안 맞으면 한 번 더 해보세요 :)
+                </p>
+
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-submit" onclick="startMBTI()"
+                        style="flex: 1; background: var(--bg2); color: var(--text2);">다시 하기</button>
+                    <button class="btn-submit" onclick="saveMBTIResult()" id="btnSaveMbti"
+                        style="flex: 1.5; background: #22C55E; color: white;">저장하기</button>
+                    <button class="btn-submit" onclick="closeModal('mbti')" style="flex: 1;">닫기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOCATION MODAL -->
+    <div class="modal-overlay" id="modal-location" onclick="closeBg(event,'location')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('location')">✕</button>
+            <div class="modal-title">📍 장소 안내</div>
+            <div id="location-name"
+                style="font-size:18px; font-weight:800; color:var(--blue-deep); margin-bottom:10px;">장소 이름
+            </div>
+            <div id="location-detail"
+                style="font-size:14px; line-height:1.6; color:var(--text); margin-bottom:24px; white-space:pre-wrap;">장소
+                상세 설명이
+                여기에 표시됩니다.</div>
+
+            <a id="btnOpenMap" href="#" target="_blank" rel="noopener noreferrer" class="btn-submit"
+                style="display:block; text-align:center; text-decoration:none;">네이버 지도에서 보기</a>
+        </div>
+    </div>
+
+    <!-- FEE HISTORY -->
+    <div class="modal-overlay" id="modal-fee" onclick="closeBg(event,'fee')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('fee')">✕</button>
+            <div class="modal-title">💳 회비 지출 내역</div>
+            <div class="modal-sub">투명한 회비 운영을 위해 지출 내역을 공개합니다.</div>
+
+            <!-- PERSONAL DEPOSIT STATUS (Only for members) -->
+            <div id="fee-personal-status" class="card"
+                style="display:none; margin-bottom:16px; border-left:4px solid var(--blue);">
+                <div style="font-size:12px; color:var(--text3);">나의 회비 입금 확인 상태</div>
+                <div id="fee-my-deposit-status" style="font-size:18px; font-weight:800;">...</div>
+            </div>
+
+            <div class="card" style="margin-bottom:20px; background:var(--blue-soft); border:none;">
+                <div style="display:flex; justify-content:center; align-items:center;">
+                    <div style="text-align:center; font-size:14px; color:var(--text3); font-weight:700;">
+                        총 지출 합계: <span id="fee-expense" style="color:var(--blue-deep); font-size:18px;">0원</span>
+                    </div>
+                </div>
+            </div>
+            <div style="position:relative;">
+                <table class="generation-table" id="feeTable">
+                    <thead>
+                        <tr>
+                            <th>항목</th>
+                            <th style="text-align:right;">금액</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div id="fee-login-overlay"
+                    style="display:none; position:absolute; inset:0; background:rgba(255,255,255,0.1); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:12px; z-index:10;">
+                    <div style="font-size:24px; margin-bottom:12px;">🔒</div>
+                    <div style="font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;">로그인 후 확인 가능합니다
+                    </div>
+                    <div style="font-size:12px; color:var(--text3); margin-bottom:16px;">상세 지출 내역은 참가자에게만 공개됩니다</div>
+                    <button onclick="closeModal('fee'); openModal('login')"
+                        style="padding:10px 20px; background:var(--blue); color:var(--text); border:none; border-radius:100px; font-weight:700; cursor:pointer; font-size:13px;">로그인하기</button>
+                </div>
+            </div>
+            <p style="font-size:11px; color:var(--text3); margin-top:15px; text-align:center;">실시간으로 업데이트되는 공식 회비 내역입니다.
+            </p>
+        </div>
+    </div>
+
+    <!-- APPLY MODAL (Unified) -->
+    <div class="modal-overlay" id="modal-apply" onclick="closeBg(event,'apply')">
+        <div class="modal-sheet" style="max-height: 85vh;">
+            <div class="modal-handle"></div>
+            <button class="modal-close" onclick="closeModal('apply')">✕</button>
+            <div class="modal-title">✍️ MT 신청서</div>
+            <div class="modal-sub" id="apply-subtitle">제 0회 빅이큐 총동문 MT</div>
+
+            <!-- Personalized Header for Edit Mode -->
+            <div id="editHeader"
+                style="display:none; justify-content:space-between; align-items:center; background:var(--blue-soft); padding:14px; border-radius:14px; margin-bottom:20px; border:1.5px solid var(--blue-mid);">
+                <div>
+                    <div id="editHeaderInfo" style="font-weight:800; color:var(--blue-deep); font-size:15px;"></div>
+                    <div id="cancelPendingNotice"
+                        style="display:none; color:#E5484D; font-size:12px; font-weight:700; margin-top:4px;">⏳ 신청 취소 승인
+                        대기 중</div>
+                </div>
+                <button id="btnActualCancel" onclick="cancelRegistration()"
+                    style="padding:8px 16px; background:#E5484D; color:white; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(229,72,77,0.25);">신청
+                    취소</button>
+                <button id="btnUndoCancel" onclick="undoCancelRegistration()"
+                    style="display:none; padding:8px 16px; background:#22C55E; color:white; border:none; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; box-shadow:0 4px 12px rgba(34,197,94,0.25);">재참여
+                    신청</button>
+            </div>
+
+            <div id="typeSelectionArea">
+                <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">본인 소속을 선택해주세요</div>
+                <div class="type-btns">
+                    <button class="type-btn active" onclick="switchType(this,'student')">📗 재학생</button>
+                    <button class="type-btn" onclick="switchType(this,'grad')">🎓 졸업생</button>
+                    <button class="type-btn" onclick="switchType(this,'leave')">📚 휴학생</button>
+                    <button class="type-btn" onclick="switchType(this,'army')">🫡 군인</button>
+                    <button class="type-btn" onclick="switchType(this,'etc')">👋 기타</button>
+                </div>
+            </div>
+
+            <div class="form-section active" id="form-unified" style="padding-top: 20px;">
+                <!-- Core Identity Fields -->
+                <div class="form-row">
+                    <div class="form-group"><label>이름 *</label><input type="text" id="nameUnified" placeholder="홍길동">
+                    </div>
+                    <div class="form-group">
+                        <label>기수 *</label>
+                        <select id="genUnified">
+                            <option value="">선택</option>
+                            <option value="1">1기</option>
+                            <option value="2">2기</option>
+                            <option value="3">3기</option>
+                            <option value="4">4기</option>
+                            <option value="5">5기</option>
+                            <option value="6">6기</option>
+                            <option value="7">7기</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group"><label>연락처 *</label><input type="tel" id="telUnified"
+                        placeholder="01012345678 (숫자만 입력)" pattern="010[0-9]{7,8}" maxlength="11"></div>
+
+                <!-- Dynamic Survey Container -->
+                <div id="survey-content-unified"></div>
+
+                <!-- Password Section -->
+                <div id="pwGroupUnified" class="form-group" style="margin-top: 20px;">
+                    <button id="btnChangePwUnified" type="button" class="btn-detail" onclick="openChangePasswordPopup()"
+                        style="background: var(--bg2); color: var(--text2); margin-top: 0; display: none;">🔒 비밀번호
+                        변경하기</button>
+                    <div id="pwLabelUnified_New"><label>비밀번호 입력 * (로그인 및 신청 정보 수정에 필요)</label></div>
+                    <input type="password" id="pwUnified" placeholder="8자리 이상 영문+숫자 입력" style="margin-top: 0;" required>
+                </div>
+
+                <div style="font-size:11px; color:var(--text3); margin-top:20px; text-align:center; opacity:0.8;">
+                    개인정보는 오직 행사를 위해서만 사용됩니다.
+                </div>
+                <div style="margin-top:10px;">
+                    <button id="btnSubmitUnified" class="btn-submit" onclick="doSubmit('unified')">🎉 신청 완료하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATUS -->
+    <div class="modal-overlay" id="modal-status" onclick="closeBg(event,'status')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('status')">✕</button>
+            <div class="modal-title">📊 실시간 신청 현황</div>
+            <div class="modal-sub" id="modalTotalLabel">총 정원 00명 (군인 우선 0명 포함)</div>
+            <div class="generation-thermo-wrap" id="thermoRows"></div>
+        </div>
+    </div>
+
+    <!-- generation -->
+    <div class="modal-overlay" id="modal-generation" onclick="closeBg(event,'generation')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('generation')">✕</button>
+            <div class="modal-title">👥 기수 / 동기 확인</div>
+            <div class="modal-sub">이름으로 검색하거나 기수별로 필터링해보세요</div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:12px; margin-bottom:20px;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:11px; margin-bottom:4px;">기수 선택</label>
+                    <select id="generationFilter" onchange="applyGenerationFilter()">
+                        <option value="all">전체 기수</option>
+                        <option value="1">1기</option>
+                        <option value="2">2기</option>
+                        <option value="3">3기</option>
+                        <option value="4">4기</option>
+                        <option value="5">5기</option>
+                        <option value="6">6기</option>
+                        <option value="7">7기</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label style="font-size:11px; margin-bottom:4px;">이름 검색</label>
+                    <input type="text" id="nameSearchFilter" placeholder="🔍 검색어 입력..."
+                        oninput="applyGenerationFilter()">
+                </div>
+            </div>
+
+            <table class="generation-table" id="generationTable">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">기수</th>
+                        <th style="width: 50%;">이름</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ARMY -->
+    <div class="modal-overlay" id="modal-army" onclick="closeBg(event,'army')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('army')">✕</button>
+            <div class="modal-title">🫡 군인 우대 혜택 안내</div>
+            <div class="modal-sub">국방을 책임지는 군인 부원들을 위한 특별 혜택</div>
+            <div class="bar-wrap" style="margin-bottom:20px">
+                <div class="bar-label"><span>군인 우선 예약 현황</span><span id="armyModalLabel"
+                        style="font-weight:700;color:var(--army)">0 / 4명</span></div>
+                <div class="bar-track" style="height:13px">
+                    <div class="bar-fill army-bar" id="barArmyModal"></div>
+                </div>
+            </div>
+            <div class="benefit-item">
+                <h4>1. 🎯 우선 예약권</h4>
+                <p id="armyBenefitText">선착순 마감과 관계없이 군인 우선 배정 — 별도 4자리가 먼저 배정됩니다.</p>
+            </div>
+            <div class="benefit-item">
+                <h4>2. 💸 휴가 취소 시 회비 100% 환불</h4>
+                <p>군부대 사정으로 불참하게 될 경우 취소 처리 및 회비 전액 환불해드립니다.</p>
+            </div>
+            <div class="army-alert">⚠️ 단! 참석 여부 확정 즉시 운영진에게 공유 필수 !!!!<br>확정 후 미공유 시 환불이 어려울 수 있습니다.</div>
+            <button class="btn-submit" style="margin-top:18px" onclick="closeModal('army');openApplyArmy()">🫡 군인 우선 예약
+                신청하기</button>
+        </div>
+    </div>
+
+    <!-- PHOTO MODAL -->
+    <div class="modal-overlay" id="modal-photo" onclick="closeBg(event,'photo')">
+        <div class="modal-sheet" style="max-height: 85vh;">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('photo')">✕</button>
+            <div class="modal-title">📸 그땐 그랬지...</div>
+            <div class="modal-sub" style="margin-bottom: 24px;">역대 MT의 즐거운 순간들을 확인해보세요</div>
+
+            <div id="photo-session-list">
+                <!-- Sessions and Photos will be rendered here dynamically -->
+            </div>
+
+            <div id="photo-empty-msg"
+                style="display: none; text-align: center; padding: 40px 20px; color: var(--text3);">
+                아직 등록된 사진이 없습니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- PHOTO FULL VIEW MODAL -->
+    <div class="modal-overlay" id="modal-photo-full" onclick="closeBg(event,'photo-full')"
+        style="z-index: 300; align-items: center; padding: 20px;">
+        <div
+            style="position: relative; max-width: 100%; max-height: 100%; display: flex; align-items: center; justify-content: center;">
+            <button class="modal-close" onclick="closeModal('photo-full')"
+                style="top: -40px; right: 0; background: rgba(255,255,255,0.2); color: white;">✕</button>
+            <img id="photo-full-img" src=""
+                style="max-width: 100%; max-height: 90vh; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+        </div>
+    </div>
+
+    <!-- MY PAGE -->
+    <div class="modal-overlay" id="modal-mypage" onclick="closeBg(event,'mypage')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('mypage')">✕</button>
+            <div class="modal-title">🏠 마이페이지</div>
+            <div class="modal-sub" id="mypage-name-gen">...</div>
+            <div class="card" style="margin-bottom:16px; border-left:4px solid var(--blue);">
+                <div style="font-size:12px; color:var(--text3);">입금 확인 상태</div>
+                <div id="mypage-deposit-status" style="font-size:18px; font-weight:800;">...</div>
+            </div>
+            <div class="section-title">공동 체크리스트</div>
+            <div id="common-checklist-container"
+                style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
+            </div>
+
+            <div class="section-title">개인 체크리스트</div>
+            <div class="form-group" style="display:flex; gap:10px; margin-bottom:16px;">
+                <input type="text" id="checklist-input" placeholder="새 할 일 추가..." style="flex:1; margin-bottom:0;">
+                <button onclick="addChecklistItem()"
+                    style="padding:0 20px; height:48px; background:var(--blue); color:var(--text); border:none; border-radius:12px; font-weight:700; cursor:pointer; white-space:nowrap;">추가</button>
+            </div>
+            <div id="checklist-container" style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
+            </div>
+            <button class="btn-submit" onclick="openManittoModal()" style="background:#E5484D; margin-top:20px;">🎁 내
+                마니또
+                확인</button>
+            <button class="btn-submit" onclick="viewMBTIFromMyPage()"
+                style="background:var(--blue-deep); margin-top:10px;">🏐
+                내 V-MBTI 확인</button>
+            <button id="btnMyPageEdit" class="btn-detail" onclick="openEditFromMyPage()" style="margin-top:10px;">✍️ 정보
+                수정</button>
+            <button id="btnMyPageCancel" class="btn-detail" onclick="cancelRegistration()"
+                style="margin-top:10px; color:#E5484D; display:none;">❌ 신청 취소</button>
+            <button class="btn-detail" onclick="logout()" style="margin-top:10px;">로그아웃</button>
+        </div>
+    </div>
+    <!-- MANITTO -->
+    <div class="modal-overlay" id="modal-manitto" onclick="closeBg(event,'manitto')">
+        <div class="modal-sheet" style="max-height: 85vh;">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('manitto')">✕</button>
+            <div class="modal-title">🎁 마니또 정보</div>
+
+            <div class="tab-wrap">
+                <button class="tab-btn active" onclick="switchManittoTab('target')">내 마니또</button>
+                <button class="tab-btn" onclick="switchManittoTab('mission')">미션</button>
+                <button class="tab-btn" onclick="switchManittoTab('report')">제보 게시판</button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div id="manitto-target" class="manitto-tab-content active">
+                <div class="card"
+                    style="text-align:center; padding:30px 20px; background:linear-gradient(135deg, #FFF5F5 0%, #FFF0F0 100%); border:1.5px dashed #E5484D;">
+                    <div style="font-size:14px; color:#E5484D; font-weight:700; margin-bottom:10px;">당신의 마니또는?</div>
+                    <div id="manitto-target-name" style="font-size:28px; font-weight:900; color:#212529;">---</div>
+                    <div id="manitto-target-gen" style="font-size:16px; color:#666; margin-top:5px;">---</div>
+                </div>
+            </div>
+
+            <div id="manitto-mission" class="manitto-tab-content" style="display:none;">
+                <div class="card" style="background:#F0F7FF; border:1.5px solid #8BA0CE;">
+                    <div style="font-size:13px; color:#2D468D; font-weight:700; margin-bottom:12px;">🕵️ 비밀 미션 (3개)
+                    </div>
+                    <div id="manitto-mission-container">
+                        <!-- Dynamic missions will be rendered here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="manitto-report" class="manitto-tab-content" style="display:none;">
+                <div class="form-group" style="display:flex; gap:8px; margin-bottom:15px;">
+                    <input type="text" id="report-input" placeholder="목격담을 익명으로 제보하세요..."
+                        style="flex:1; margin-bottom:0;">
+                    <button onclick="postReport()"
+                        style="padding:0 16px; background:#212529; color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer;">제보</button>
+                </div>
+                <div id="report-container"
+                    style="display:flex; flex-direction:column; gap:10px; max-height:250px; overflow-y:auto; padding-right:5px;">
+                    <!-- Reports -->
+                </div>
+            </div>
+
+            <!-- Guidelines -->
+            <div
+                style="margin-top:25px; padding:15px; background:#f8f9fa; border-radius:14px; font-size:11px; line-height:1.6; color:#666;">
+                <div style="font-weight:800; color:#212529; margin-bottom:8px; font-size:12px;">📣 마니또 안내사항</div>
+                <p><b>1. 비밀 엄수:</b> 사소한 힌트도 금지! 공식 발표 전까지는 절대 비밀로 유지해 주세요.</p>
+                <p><b>2. 선물은 5,000원~7,000원:</b> 금액보다는 정성! 너무 비싼 선물은 부담스러워요.</p>
+                <p><b>3. 미션 수행:</b> 미션을 들키지 않고 수행해 주세요. 완료하지 않으면 실패로 간주됩니다.</p>
+                <p><b>4. 소외되는 사람 없게 하기:</b> 내 마니또가 어색한 사이일수록 더 잘 챙겨주세요!</p>
+                <p><b>5. 선물 전달은 '비밀스럽게':</b> 절대!! 들키지 마세요.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- VEHICLE ASSIGNMENT MODAL -->
+    <div class="modal-overlay" id="modal-vehicle" onclick="closeBg(event,'vehicle')">
+        <div class="modal-sheet" style="max-height: 90vh;">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('vehicle')">✕</button>
+            <div class="modal-title" style="text-align: center;">🚗 차량 배정</div>
+
+            <!-- TABS -->
+            <div class="tab-wrap">
+                <button class="tab-btn active" onclick="switchVehicleTab('my')" id="tab-vehicle-my">이동수단</button>
+                <button class="tab-btn" onclick="switchVehicleTab('all')" id="tab-vehicle-all">현황</button>
+            </div>
+
+            <!-- MY VEHICLE TAB -->
+            <div id="vehicle-my-content" class="vehicle-tab-content">
+                <h3 id="vehicle-my-title"
+                    style="font-size: 17px; font-weight: 800; margin-bottom: 16px; color: var(--blue-deep);">
+                    --- 님의 이동수단: [---]
+                </h3>
+                <div id="vehicle-my-info" class="card"
+                    style="background: var(--bg2); border: 1.5px solid var(--blue-mid); padding: 20px;">
+                    <!-- Dynamic content -->
+                </div>
+                <div id="vehicle-driver-actions" style="margin-top: 20px; display: none;">
+                    <div style="font-size: 13px; color: var(--text3); margin-bottom: 10px; font-weight: 700;">🚨 차장 전용
+                        상태 관리</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                        <button class="btn-submit" onclick="updateVehicleStatus('Called')"
+                            style="margin-top: 0; background: #666; font-size: 12px; padding: 12px 0;">호출 완료</button>
+                        <button class="btn-submit" onclick="updateVehicleStatus('Moving')"
+                            style="margin-top: 0; background: var(--blue-mid); font-size: 12px; padding: 12px 0;">이동중</button>
+                        <button class="btn-submit" onclick="updateVehicleStatus('Arrived')"
+                            style="margin-top: 0; background: var(--blue-deep); font-size: 12px; padding: 12px 0;">도착</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ALL VEHICLES TAB -->
+            <div id="vehicle-all-content" class="vehicle-tab-content" style="display: none;">
+                <div id="vehicle-list-container" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+
+            <div id="vehicle-private-msg"
+                style="display: none; text-align: center; padding: 40px 20px; color: var(--text3);">
+                🔒 아직 차량 배정표가 공개되지 않았습니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="modal-overlay" id="modal-login" onclick="closeBg(event,'login')">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('login')">✕</button>
+            <div class="modal-title">🔒 로그인</div>
+            <div class="form-group"><label>이름</label><input type="text" id="login-name"></div>
+            <div class="form-group"><label>기수</label><select id="login-gen">
+                    <option value="">선택</option>
+                    <option value="1">1기</option>
+                    <option value="2">2기</option>
+                    <option value="3">3기</option>
+                    <option value="4">4기</option>
+                    <option value="5">5기</option>
+                    <option value="6">6기</option>
+                    <option value="7">7기</option>
+                </select></div>
+            <div class="form-group"><label>비밀번호</label><input type="password" id="login-password"></div>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="btn-submit" onclick="closeModal('login'); openModal('apply');"
+                    style="background: var(--bg3); color: var(--text2); flex: 1; margin-top: 0;">✍️ 참가신청</button>
+                <button class="btn-submit" onclick="doLogin()" style="flex: 1.5; margin-top: 0;">로그인</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CUSTOM POPUP -->
+    <div class="modal-overlay" id="modal-alert" style="z-index: 9999;">
+        <div class="modal-sheet" style="max-width: 400px; padding-bottom: 24px;">
+            <div class="modal-handle"></div>
+            <div class="modal-title" id="alert-title">알림</div>
+            <div class="modal-sub" id="alert-message" style="white-space: pre-wrap; line-height: 1.5;"></div>
+            <div id="alert-input-wrap" style="display: none; margin-bottom: 24px;"><input type="password"
+                    id="alert-input"><input type="password" id="alert-input-new"
+                    style="display: none; margin-top:12px;"></div>
+            <div id="alert-buttons" style="display: flex; gap: 12px;"><button class="btn-submit"
+                    id="btn-alert-confirm">확인</button><button class="btn-submit" id="btn-alert-cancel"
+                    style="background: var(--bg3); color: var(--text2); display: none;">취소</button></div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- ERROR OVERLAY -->
+    <!-- GUIDE -->
+    <div class="modal-overlay" id="modal-guide" onclick="closeBg(event,'guide')">
+        <div class="modal-sheet large-sheet">
+            <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('guide')">✕</button>
+            <div class="modal-title"></div>
+            <div class="modal-sub"></div>
+            <div class="guide-content">
+                <!-- Content injected by guide-content.js -->
+            </div>
+        </div>
+    </div>
+
+    <div id="globalError">
+        style="display:none; position:fixed; inset:0; z-index:9999; background:var(--bg); flex-direction:column;
+        align-items:center; justify-content:center; text-align:center; padding:20px; backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);">
+        <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
+        <h1 style="font-size: 24px; font-weight: 900; color: var(--text); margin-bottom: 12px; letter-spacing: -0.5px;">
+            서버와
+            통신에 실패하였습니다</h1>
+        <p style="font-size: 15px; color: var(--text3); line-height: 1.6; margin-bottom: 32px;">관리자에게 문의해주세요.<br>잠시 후 다시
+            시도해보시기 바랍니다.</p>
+        <button onclick="location.reload()"
+            style="padding: 16px 40px; background: var(--blue-deep); color: white; border-radius: 16px; font-size: 16px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(45,70,141,0.25); transition: transform 0.2s;">🔄
+            페이지 새로고침</button>
+    </div>
+    <script src="../guide-content.js?v=5"></script>
+    <script src="js/app.js?v=5"></script>
+</body>
+
+</html>

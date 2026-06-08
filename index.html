@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Origin 정책: 어떤 상황에서도 도메인(Origin) 정보는 전송하도록 설정 -->
+    <meta name="referrer" content="origin">
+    <link rel="preconnect" href="https://api-mt.thejaeu.com">
+    <title>빅이큐 MT - 접속 중...</title>
+    <style>
+        :root {
+            --bg: #f4f6fb;
+            --text: #212529;
+            --text3: #868e96;
+            --blue-deep: #2d468d;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--blue-deep);
+        }
+        .loader-container {
+            text-align: center;
+        }
+        .loader {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid var(--blue-deep);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #globalError {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--bg);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .error-btn {
+            padding: 16px 40px;
+            background: var(--blue-deep);
+            color: white;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(45,70,141,0.25);
+            transition: transform 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <div class="loader-container" id="loaderContainer">
+        <div class="loader"></div>
+        <p id="status-text">잠시만 기다려 주세요...</p>
+    </div>
+
+    <!-- ERROR OVERLAY -->
+    <div id="globalError">
+        <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
+        <h1 style="font-size: 24px; font-weight: 900; color: var(--text); margin-bottom: 12px; letter-spacing: -0.5px;">
+            서버와 통신에 실패하였습니다</h1>
+        <p style="font-size: 15px; color: var(--text3); line-height: 1.6; margin-bottom: 32px;">관리자에게 문의해주세요.<br>잠시 후 다시 시도해보시기 바랍니다.</p>
+        <button class="error-btn" onclick="location.reload()">🔄 페이지 새로고침</button>
+    </div>
+
+    <script>
+        const TARGET_DATE_STR = '2026-06-18T00:00:00+09:00'; 
+        const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
+        const API_STATUS_URL = `${API_BASE}/Settings/open-status?_=${new Date().getTime()}`;
+
+        async function route() {
+            const targetTime = new Date(TARGET_DATE_STR).getTime();
+            let isServiceOpen = false;
+            let nowTime = new Date().getTime(); // Default: Client time
+
+            // 1. Set 3-second timeout using AbortController
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+            try {
+                // 2. Check server status and server time in a single call
+                const response = await fetch(API_STATUS_URL, { 
+                    headers: { 'X-ClubMT-Source': 'WebApp' },
+                    referrerPolicy: "origin",
+                    signal: controller.signal
+                });
+
+                if (response.ok) {
+                    const status = await response.json();
+                    isServiceOpen = status.isServiceOpen;
+                    if (status.serverTime) {
+                        nowTime = new Date(status.serverTime).getTime();
+                    }
+                    console.log("API Success:", { isServiceOpen, serverTime: new Date(nowTime).toLocaleString() });
+                }
+            } catch (e) {
+                console.warn("Server check failed or timed out. Falling back to local time.", e);
+            } finally {
+                clearTimeout(timeoutId);
+            }
+
+            // 3. Final decision and redirect
+            const isTimePassed = nowTime >= targetTime;
+            if (isServiceOpen || isTimePassed) {
+                console.log("Decision: GO TO REAL");
+                const path = atob('Li9yZWFsX3Y1X210XzIwMjZfcTh6N3gyL2luZGV4Lmh0bWw=');
+                window.location.replace(path);
+            } else {
+                console.log("Decision: STAY AT PRE");
+                window.location.replace('./pre/index.html');
+            }
+        }
+
+        route();
+    </script>
+</body>
+</html>
