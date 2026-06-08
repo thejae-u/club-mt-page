@@ -254,27 +254,33 @@
             style="padding: 40px 20px 60px; text-align: center; background: var(--bg2); border-top: 1px solid var(--border); margin-top: 40px;">
             <div style="font-size: 13px; font-weight: 700; color: var(--text2); margin-bottom: 8px;">빅이큐 총동문 MT 시스템
             </div>
-            <div style="font-size: 11px; color: var(--text3); line-height: 1.6;">
+            <div style="font-size: 11px; color: var(--text3); line-height: 1.6; margin-bottom: 20px;">
                 © 2026 빅이큐 총동문 MT. All rights reserved.<br>
                 문의: <a href="mailto:contact@thejaeu.com"
                     style="color: var(--blue-mid); text-decoration: none; font-weight: 600;">contact@thejaeu.com</a><br>
                 <span style="opacity: 0.5;">Powered by thejaeu, Assisted by AI Agent</span>
             </div>
+
+            <a href="https://thejaeu.com/club-mt-page" target="_blank" rel="noopener noreferrer" 
+               style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text3); text-decoration: none; padding: 8px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 100px; transition: all 0.2s; margin-bottom: 20px;">
+                <svg height="14" width="14" viewBox="0 0 16 16" fill="currentColor" style="opacity: 0.7;">
+                    <path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+                </svg>
+                <span>Open Source Transparency</span>
+            </a>
+
             <button class="btn-detail" id="btnRefresh" onclick="handleRefresh(this)"
-                style="max-width: 200px; margin: 20px auto 0; background: var(--card);">데이터 새로고침</button>
+                style="max-width: 200px; margin: 0 auto; background: var(--card);">데이터 새로고침</button>
             <script>
                 function handleRefresh(btn) {
                     btn.disabled = true;
                     btn.innerText = '로딩 중...';
-                    window.location.href = '/';
-                    setTimeout(() => {
-                        btn.disabled = false;
-                        btn.innerText = '데이터 새로고침';
-                    }, 2000);
+                    // 강력 새로고침: 타임스탬프를 붙여 브라우저 캐시 우회
+                    window.location.href = '/?_t=' + new Date().getTime();
                 }
             </script>
         </footer>
-    </main>
+        </main>
 
     <!-- ====== MODALS ====== -->
     <div id="dynamicModals"></div>
@@ -990,19 +996,12 @@
         </div>
     </div>
 
-    <div id="globalError">
-        style="display:none; position:fixed; inset:0; z-index:9999; background:var(--bg); flex-direction:column;
-        align-items:center; justify-content:center; text-align:center; padding:20px; backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);">
+    <div id="globalError" style="display:none; position:fixed; inset:0; z-index:9999; background:var(--bg); flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:20px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);">
         <div style="font-size: 64px; margin-bottom: 24px;">⚠️</div>
-        <h1 style="font-size: 24px; font-weight: 900; color: var(--text); margin-bottom: 12px; letter-spacing: -0.5px;">
-            서버와
-            통신에 실패하였습니다</h1>
-        <p style="font-size: 15px; color: var(--text3); line-height: 1.6; margin-bottom: 32px;">관리자에게 문의해주세요.<br>잠시 후 다시
-            시도해보시기 바랍니다.</p>
+        <h1 style="font-size: 24px; font-weight: 900; color: var(--text); margin-bottom: 12px; letter-spacing: -0.5px;">서버와 통신에 실패하였습니다</h1>
+        <p style="font-size: 15px; color: var(--text3); line-height: 1.6; margin-bottom: 32px;">관리자에게 문의해주세요.<br>잠시 후 다시 시도해보시기 바랍니다.</p>
         <button onclick="location.reload()"
-            style="padding: 16px 40px; background: var(--blue-deep); color: white; border-radius: 16px; font-size: 16px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(45,70,141,0.25); transition: transform 0.2s;">🔄
-            페이지 새로고침</button>
+            style="padding: 16px 40px; background: var(--blue-deep); color: white; border-radius: 16px; font-size: 16px; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(45,70,141,0.25); transition: transform 0.2s;">🔄 페이지 새로고침</button>
     </div>
     <script src="../guide-content.js?v=5"></script>
     <script src="js/app.js?v=5"></script>
