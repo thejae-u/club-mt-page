@@ -31,6 +31,7 @@ function switchTab(tabId) {
     if (tabId === 'manitto') loadManittoTab();
     if (tabId === 'cooking') loadCookingTab();
     if (tabId === 'vehicle') loadVehicleTab();
+    if (tabId === 'volleyball') loadVolleyballTab();
     if (tabId === 'photo') fetchPhotoSessions();
     if (tabId === 'board') loadBoard();
     if (tabId === 'modifications') loadModifications();
@@ -1181,8 +1182,8 @@ async function loadParticipants() {
         const res = await fetch(`${API_BASE}/Participants`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.status === 401) return logout(true);
         const list = await res.json();
-        // Sort by CreatedAt Ascending
-        list.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+        // Sort by SortOrder (Backend already sends it sorted, but this ensures it)
+        list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
 
         const tbody = document.getElementById('participantList');
         if (!tbody) return;
@@ -1190,43 +1191,67 @@ async function loadParticipants() {
         const registered = list.filter(p => p.isRegistered && !p.isCancelRequested);
         const canceledOrRequested = list.filter(p => p.isCancelRequested || !p.isRegistered);
 
-        const confirmedArmy = registered.filter(p => p.type === 3 && !p.isWaitlisted).length;
-        const confirmedGen = registered.filter(p => p.type !== 3 && !p.isWaitlisted).length;
+        const confirmedList = registered.filter(p => !p.isWaitlisted);
+        const waitlistedList = registered.filter(p => p.isWaitlisted);
+
+        const confirmedArmy = confirmedList.filter(p => p.type === 3).length;
+        const confirmedGen = confirmedList.filter(p => p.type !== 3).length;
 
         // Render Active Participants
         if (registered.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="padding: 30px; text-align: center; color: #999;">신청자가 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" style="padding: 30px; text-align: center; color: #999;">신청자가 없습니다.</td></tr>';
         } else {
-            tbody.innerHTML = registered.map(p => {
-                const isWait = p.isWaitlisted;
+            const confirmedHtml = confirmedList.map((p, index) => {
                 const isArmy = p.type === 3;
-                const isFull = isArmy ? (confirmedArmy >= MAX_ARMY) : (confirmedGen >= MAX_GEN);
-                
                 return `
-                <tr style="${isWait ? 'background: #FFF0F0;' : ''}">
-                    <td><b>${p.name}${isWait ? ' <span style="color:#E5484D; font-size:10px;">(대기)</span>' : ''}</b></td>
+                <tr>
+                    <td style="font-size:12px; color:#999;">#${index + 1}</td>
+                    <td><b>${p.name}</b></td>
                     <td>${typeLabels[p.type] || '기타'}</td>
                     <td>${p.generation}기</td>
                     <td style="font-size:12px;">${p.phoneNumber || '-'}</td>
-                    <td>
-                        ${isWait ? 
-                            `<div style="display:flex; align-items:center; gap:5px;">
-                                <span style="color:#E5484D; font-weight:700; font-size:11px;">대기자</span>
-                                <button onclick="toggleWaitlist(${p.id})" ${isFull ? 'disabled' : ''} style="width:auto; padding:2px 6px; background:${isFull ? '#ccc' : '#E5484D'}; color:white; font-size:10px; margin:0; cursor:${isFull ? 'not-allowed' : 'pointer'};">
-                                    신청 전환
-                                </button>
-                            </div>` : 
-                            `<button onclick="toggleDeposit(${p.id})" style="padding: 4px 8px; background: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; color:white; font-size: 11px; margin:0; width:auto;">
+                    <td style="white-space:nowrap;">
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <button onclick="toggleDeposit(${p.id})" style="padding: 2px 6px; background: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; color:white; font-size: 10px; margin:0; width:auto;">
                                 ${p.isDepositConfirmed ? '입금완료' : '입금대기'}
-                            </button>`
-                        }
+                            </button>
+                            <button onclick="toggleWaitlist(${p.id}, ${p.isDepositConfirmed})" style="width:auto; padding:2px 6px; background:#999; color:white; font-size:10px; margin:0;">
+                                대기전환
+                            </button>
+                        </div>
                     </td>
                     <td style="text-align: center; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
                         <button onclick="openEditModal(${p.id})" style="padding: 4px 8px; background: var(--blue-deep); color:white; font-size: 11px; margin:0; width:auto;">수정</button>
-                        <button onclick="deleteParticipant(${p.id})" style="padding: 4px 8px; background: #ff4d4d; color:white; font-size: 11px; margin:0; width:auto;">삭제</button>
                     </td>
                 </tr>`;
             }).join('');
+
+            const waitlistedHtml = waitlistedList.map((p, index) => {
+                const isArmy = p.type === 3;
+                const isFull = isArmy ? (confirmedArmy >= MAX_ARMY) : (confirmedGen >= MAX_GEN);
+                return `
+                <tr style="background: #FFF0F0;">
+                    <td style="font-size:11px; color:#E5484D; font-weight:700;">대기 ${index + 1}</td>
+                    <td><b>${p.name} <span style="color:#E5484D; font-size:10px;">(대기)</span></b></td>
+                    <td>${typeLabels[p.type] || '기타'}</td>
+                    <td>${p.generation}기</td>
+                    <td style="font-size:12px;">${p.phoneNumber || '-'}</td>
+                    <td style="white-space:nowrap;">
+                        <div style="display:flex; align-items:center; gap:5px;">
+                             <button onclick="toggleWaitlist(${p.id}, ${p.isDepositConfirmed})" 
+                                     title="${isFull ? '정원이 가득 찼습니다. 설정에서 정원을 늘려주세요.' : '확정 인원으로 승인'}"
+                                     style="width:auto; padding:2px 6px; background:${isFull ? '#999' : '#E5484D'}; color:white; font-size:10px; margin:0; cursor:pointer;">
+                                승인
+                             </button>
+                        </div>
+                    </td>
+                    <td style="text-align: center; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap;">
+                        <button onclick="openEditModal(${p.id})" style="padding: 4px 8px; background: var(--blue-deep); color:white; font-size: 11px; margin:0; width:auto;">수정</button>
+                    </td>
+                </tr>`;
+            }).join('');
+
+            tbody.innerHTML = confirmedHtml + waitlistedHtml;
         }
 
         // Render Cancelled or Requested Participants
@@ -1353,7 +1378,11 @@ async function resetPassword() {
     } catch (e) { await alert('서버 연결 오류'); }
 }
 
-async function toggleWaitlist(id) {
+async function toggleWaitlist(id, isDepositConfirmed) {
+    if (isDepositConfirmed) {
+        await alert("이미 입금완료된 신청자입니다.\n상태를 변경하려면 먼저 입금 확인을 해제해주세요.");
+        return;
+    }
     try {
         const res = await fetch(`${API_BASE}/Participants/${id}/toggle-waitlist`, { headers: { 'X-ClubMT-Source': 'WebApp' }, 
             method: 'POST',
@@ -2592,3 +2621,338 @@ window.addPhotoSession = addPhotoSession;
 window.deletePhotoSession = deletePhotoSession;
 window.addPhotoToSession = addPhotoToSession;
 window.deletePhoto = deletePhoto;
+
+
+// --- VOLLEYBALL LEAGUE MANAGEMENT (MANUAL MATCHES) ---
+let currentVballSession = 1; 
+let allParticipantsCached = [];
+
+async function loadVolleyballTab() {
+    try {
+        const pRes = await fetch(`${API_BASE}/Participants`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
+        allParticipantsCached = await pRes.json();
+    } catch(e) { console.error("Participant fetch failed", e); }
+    await fetchVolleyballData();
+}
+
+async function switchVballSession(session) {
+    currentVballSession = session;
+    const t1 = document.getElementById('vball-tab-1');
+    const t2 = document.getElementById('vball-tab-2');
+    if (t1) t1.classList.toggle('active', session === 1);
+    if (t2) t2.classList.toggle('active', session === 2);
+    await fetchVolleyballData();
+}
+
+async function fetchVolleyballData() {
+    try {
+        const res = await fetch(`${API_BASE}/Volleyball/dashboard`, { 
+            headers: { 'X-ClubMT-Source': 'WebApp' }, 
+            credentials: 'include' 
+        });
+        if (res.status === 401) return logout(true);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const btn1 = document.getElementById('btnVballPublic1');
+        const btn2 = document.getElementById('btnVballPublic2');
+        if (btn1) {
+            btn1.innerHTML = data.settings.isFirstHalfPublic ? '🔓 1부 공개 중' : '🔒 1부 비공개';
+            btn1.style.background = data.settings.isFirstHalfPublic ? '#22C55E' : '#212529';
+        }
+        if (btn2) {
+            btn2.innerHTML = data.settings.isSecondHalfPublic ? '🔓 2부 공개 중' : '🔒 2부 비공개';
+            btn2.style.background = data.settings.isSecondHalfPublic ? '#22C55E' : '#212529';
+        }
+
+        const sessionTeams = data.teams.filter(t => t.session === currentVballSession);
+        const sessionMatches = data.matches.filter(m => m.session === currentVballSession);
+        
+        updateMatchDropdowns(sessionTeams);
+        renderVolleyballRankings(sessionTeams);
+        renderVolleyballMatches(sessionMatches, sessionTeams);
+        renderVolleyballTeamsManual(sessionTeams, data.members);
+        initVolleyballDragAndDrop();
+    } catch (e) { console.error(e); }
+}
+
+function updateMatchDropdowns(teams) {
+    const s1 = document.getElementById('matchTeam1');
+    const s2 = document.getElementById('matchTeam2');
+    if (!s1 || !s2) return;
+    const html = `<option value="">팀 선택...</option>` + teams.map(t => `<option value="${t.id}">${t.name}팀</option>`).join('');
+    s1.innerHTML = html;
+    s2.innerHTML = html;
+}
+
+function renderVolleyballRankings(teams) {
+    const tbody = document.getElementById('volleyballRankList');
+    if (!tbody) return;
+    const sorted = [...teams].sort((a, b) => b.points - a.points || b.wins - a.wins);
+    tbody.innerHTML = sorted.map((t, i) => `
+        <tr>
+            <td>#${i+1}</td>
+            <td><b>${t.name}팀</b></td>
+            <td>${t.wins}승 / ${t.losses}패</td>
+            <td>${t.miniGamePoints}</td>
+            <td><b style="color:var(--blue-deep)">${t.points}</b></td>
+        </tr>
+    `).join('');
+}
+
+function renderVolleyballMatches(matches, teams) {
+    const tbody = document.getElementById('volleyballMatchList');
+    if (!tbody) return;
+    if (matches.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:#999;">매칭이 없습니다. 위에서 팀을 선택해 경기를 추가하세요.</td></tr>';
+        return;
+    }
+    tbody.innerHTML = matches.map(m => {
+        const t1 = teams.find(t => t.id === m.team1Id);
+        const t2 = teams.find(t => t.id === m.team2Id);
+        const statusText = m.status === 0 ? '<span style="color:#999;">대기</span>' : 
+                          m.status === 1 ? '<span style="color:var(--blue-deep); font-weight:800;">진행중</span>' : 
+                          '<span style="color:#22C55E;">완료</span>';
+        return `
+            <tr>
+                <td>#${m.matchOrder}</td>
+                <td><b>${t1?.name || '?'}</b> vs <b>${t2?.name || '?'}</b></td>
+                <td>${statusText}</td>
+                <td>
+                    <div style="display:flex; gap:5px; justify-content:center;">
+                    ${m.status === 2 ? 
+                        `<b>${teams.find(t => t.id === m.winnerTeamId)?.name} 승</b>` : 
+                        m.status === 1 ?
+                        `<div class="volleyball-match-actions">
+                            <button onclick="setVolleyballMatchResult(${m.id}, ${m.team1Id})" style="padding:4px 8px; font-size:10px; background:#2D468D; color:white; margin:0; width:auto; cursor:pointer; border:none; border-radius:4px;">${t1?.name} 승</button>
+                            <button onclick="setVolleyballMatchResult(${m.id}, ${m.team2Id})" style="padding:4px 8px; font-size:10px; background:#E5484D; color:white; margin:0; width:auto; cursor:pointer; border:none; border-radius:4px;">${t2?.name} 승</button>
+                        </div>` :
+                        `<button onclick="startVolleyballMatch(${m.id})" style="padding:4px 10px; font-size:10px; background:var(--blue-deep); color:white; margin:0; width:auto;">시작</button>
+                         <button onclick="deleteVolleyballMatch(${m.id})" style="padding:4px 10px; font-size:10px; background:#eee; color:#999; margin:0; width:auto;">삭제</button>`
+                    }
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).reverse().join(''); 
+}
+
+function renderVolleyballTeamsManual(teams, allMembers) {
+    const grid = document.getElementById('volleyballTeamGrid');
+    if (!grid) return;
+    const assignedIds = allMembers.filter(m => teams.some(t => t.id === m.teamId)).map(m => m.participantId);
+    const available = allParticipantsCached.filter(p => p.isRegistered && !assignedIds.includes(p.id));
+
+    grid.innerHTML = teams.map(t => {
+        const teamMembers = allMembers.filter(m => m.teamId === t.id);
+        const selectId = `add-member-to-${t.id}`;
+        return `
+            <div class="card" style="padding:15px; border:1.5px solid #eee; background:#fff;">
+                <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:12px;">
+                    <h4 style="font-size:16px; margin:0;">${t.name}팀 (${teamMembers.length}명)</h4>
+                    <button onclick="deleteVolleyballTeam(${t.id})" style="padding:2px 6px; background:#eee; color:#999; font-size:10px; width:auto; margin:0; border:none; cursor:pointer;">삭제</button>
+                </div>
+                <div style="display:flex; gap:5px; margin-bottom:15px;">
+                    <select id="${selectId}" style="flex:1; padding:5px; font-size:12px; border-radius:6px; border:1px solid #ddd;">
+                        <option value="">인원 추가...</option>
+                        ${available.map(p => `<option value="${p.id}">${p.name} (${p.generation}기)</option>`).join('')}
+                    </select>
+                    <button onclick="addTeamMember(${t.id}, '${selectId}')" style="width:auto; padding:5px 10px; background:var(--blue-deep); color:white; font-size:12px; margin:0; border:none; border-radius:4px; cursor:pointer;">+</button>
+                </div>
+                <ul class="volleyball-member-list" data-team-id="${t.id}" style="list-style:none; padding:0; min-height:40px; border:1px dashed #eee; border-radius:8px; padding:5px; cursor:grab;">
+                    ${teamMembers.map(m => `
+                        <li data-id="${m.participantId}" style="padding:8px 10px; background:#f8f9fa; margin-bottom:5px; border-radius:6px; font-size:13px; border:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                            <span>☰ ${m.participantName}</span>
+                            <span onclick="removeTeamMember(${m.id})" style="cursor:pointer; color:#ccc; font-size:14px; font-weight:900;">&times;</span>
+                        </li>
+                    `).join('')}
+                </ul>
+                <div style="margin-top:15px; padding-top:10px; border-top:1px solid #eee;">
+                    <div style="font-size:11px; font-weight:800; color:#666; margin-bottom:8px;">🎯 미니게임: ${t.miniGamePoints}점</div>
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; margin-bottom:4px;">
+                        <button onclick="addMiniScore(${t.id}, 1)" style="padding:5px; font-size:10px; background:#f1f3f5; border:1px solid #ddd; border-radius:4px; cursor:pointer;">+1</button>
+                        <button onclick="addMiniScore(${t.id}, 2)" style="padding:5px; font-size:10px; background:#f1f3f5; border:1px solid #ddd; border-radius:4px; cursor:pointer;">+2</button>
+                        <button onclick="addMiniScore(${t.id}, 3)" style="padding:5px; font-size:10px; background:#f1f3f5; border:1px solid #ddd; border-radius:4px; cursor:pointer;">+3</button>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:4px;">
+                        <button onclick="addMiniScore(${t.id}, -1)" style="padding:5px; font-size:10px; background:#fff; border:1px solid #eee; border-radius:4px; color:#ccc; cursor:pointer;">-1</button>
+                        <button onclick="addMiniScore(${t.id}, -2)" style="padding:5px; font-size:10px; background:#fff; border:1px solid #eee; border-radius:4px; color:#ccc; cursor:pointer;">-2</button>
+                        <button onclick="addMiniScore(${t.id}, -3)" style="padding:5px; font-size:10px; background:#fff; border:1px solid #eee; border-radius:4px; color:#ccc; cursor:pointer;">-3</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function initVolleyballDragAndDrop() {
+    if (typeof Sortable === 'undefined') return;
+    document.querySelectorAll('.volleyball-member-list').forEach(el => {
+        if (el.dataset.sortableActive) return;
+        el.dataset.sortableActive = "true";
+        Sortable.create(el, {
+            group: 'volleyball-members',
+            animation: 150,
+            onEnd: async (evt) => {
+                const participantId = evt.item.dataset.id;
+                const newTeamId = evt.to.dataset.teamId;
+                if (evt.from === evt.to) return;
+                try {
+                    await fetch(`${API_BASE}/Volleyball/update-members-batch`, {
+                        method: 'POST',
+                        headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
+                        body: JSON.stringify([{ participantId: parseInt(participantId), teamId: parseInt(newTeamId) }]),
+                        credentials: 'include'
+                    });
+                    await fetchVolleyballData();
+                } catch (e) { console.error(e); }
+            }
+        });
+    });
+}
+
+async function createVolleyballTeam() {
+    try {
+        const res = await fetch(`${API_BASE}/Volleyball/teams`, {
+            method: 'POST',
+            headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
+            body: JSON.stringify(currentVballSession),
+            credentials: 'include'
+        });
+        if (res.ok) await fetchVolleyballData();
+        else await alert(await res.text());
+    } catch (e) { console.error(e); }
+}
+
+async function deleteVolleyballTeam(id) {
+    if (!await confirm("팀을 삭제하시겠습니까?")) return;
+    try {
+        await fetch(`${API_BASE}/Volleyball/teams/${id}`, { method: 'DELETE', headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
+        await fetchVolleyballData();
+    } catch (e) { console.error(e); }
+}
+
+async function addTeamMember(teamId, dropdownId) {
+    const pId = document.getElementById(dropdownId).value;
+    if (!pId) return;
+    try {
+        const res = await fetch(`${API_BASE}/Volleyball/teams/${teamId}/members`, {
+            method: 'POST',
+            headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
+            body: JSON.stringify(parseInt(pId)),
+            credentials: 'include'
+        });
+        if (res.ok) await fetchVolleyballData();
+        else await alert(await res.text());
+    } catch (e) { console.error(e); }
+}
+
+async function removeTeamMember(memberId) {
+    try {
+        await fetch(`${API_BASE}/Volleyball/members/${memberId}`, { method: 'DELETE', headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
+        await fetchVolleyballData();
+    } catch (e) { console.error(e); }
+}
+
+async function addMiniScore(teamId, pts) {
+    try {
+        await fetch(`${API_BASE}/Volleyball/teams/${teamId}/score-mini`, {
+            method: 'POST',
+            headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
+            body: JSON.stringify(pts),
+            credentials: 'include'
+        });
+        await fetchVolleyballData();
+    } catch (e) { console.error(e); }
+}
+
+async function toggleVballPublic(session) {
+    try {
+        await fetch(`${API_BASE}/Volleyball/toggle-public`, {
+            method: 'POST',
+            headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
+            body: JSON.stringify(session),
+            credentials: 'include'
+        });
+        await fetchVolleyballData();
+    } catch (e) { console.error(e); }
+}
+
+async function createManualMatch() {
+    const t1Id = document.getElementById('matchTeam1').value;
+    const t2Id = document.getElementById('matchTeam2').value;
+    if (!t1Id || !t2Id) return await alert("두 팀을 모두 선택해주세요.");
+    if (t1Id === t2Id) return await alert("서로 다른 팀을 선택해주세요.");
+    try {
+        const res = await fetch(`${API_BASE}/Volleyball/matches`, {
+            method: 'POST',
+            headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ team1Id: parseInt(t1Id), team2Id: parseInt(t2Id), session: currentVballSession }),
+            credentials: 'include'
+        });
+        if (res.ok) await fetchVolleyballData();
+        else await alert(await res.text());
+    } catch (e) { console.error(e); }
+}
+
+async function deleteVolleyballMatch(id) {
+    if (!await confirm("경기를 삭제하시겠습니까?")) return;
+    try {
+        const res = await fetch(`${API_BASE}/Volleyball/matches/${id}`, { method: 'DELETE', headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
+        if (res.ok) await fetchVolleyballData();
+        else await alert(await res.text());
+    } catch (e) { console.error(e); }
+}
+
+async function resetVballMatches() {
+    if (!await confirm("모든 경기 기록을 초기화하시겠습니까?")) return;
+    try {
+        await fetch(`${API_BASE}/Volleyball/sessions/${currentVballSession}/reset-matches`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
+        await fetchVolleyballData();
+    } catch (e) { console.error(e); }
+}
+
+async function resetVolleyballData() {
+    if (!await confirm("⚠️ 배구 데이터를 전체 삭제하시겠습니까? (팀/멤버/경기 포함)")) return;
+    try {
+        const res = await fetch(`${API_BASE}/Volleyball/reset`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
+        if (res.ok) await fetchVolleyballData();
+    } catch (e) { console.error(e); }
+}
+
+async function startVolleyballMatch(matchId) {
+    try {
+        const res = await fetch(`${API_BASE}/Volleyball/matches/${matchId}/start`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
+        if (res.ok) await fetchVolleyballData();
+    } catch (e) { console.error(e); }
+}
+
+async function setVolleyballMatchResult(matchId, winnerId) {
+    if (!await confirm("승자를 기록하시겠습니까?")) return;
+    try {
+        const res = await fetch(`${API_BASE}/Volleyball/matches/${matchId}/result`, {
+            method: 'POST',
+            headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
+            body: JSON.stringify(winnerId),
+            credentials: 'include'
+        });
+        if (res.ok) await fetchVolleyballData();
+    } catch (e) { console.error(e); }
+}
+
+// Attach to window for global access
+window.loadVolleyballTab = loadVolleyballTab;
+window.switchVballSession = switchVballSession;
+window.createVolleyballTeam = createVolleyballTeam;
+window.deleteVolleyballTeam = deleteVolleyballTeam;
+window.addTeamMember = addTeamMember;
+window.removeTeamMember = removeTeamMember;
+window.addMiniScore = addMiniScore;
+window.toggleVballPublic = toggleVballPublic;
+window.createManualMatch = createManualMatch;
+window.deleteVolleyballMatch = deleteVolleyballMatch;
+window.resetVballMatches = resetVballMatches;
+window.resetVolleyballData = resetVolleyballData;
+window.startVolleyballMatch = startVolleyballMatch;
+window.setVolleyballMatchResult = setVolleyballMatchResult;
+window.fetchVolleyballData = fetchVolleyballData;
