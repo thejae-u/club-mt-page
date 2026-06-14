@@ -12,6 +12,48 @@
         href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         rel="stylesheet">
     <link rel="stylesheet" href="css/admin.css">
+    <style>
+        /* Responsive controls for Volleyball */
+        .volleyball-controls-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            align-items: end;
+        }
+        
+        .volleyball-controls-grid button {
+            width: 100%;
+            margin: 0;
+            padding: 12px;
+            height: auto;
+            font-size: 13px;
+        }
+
+        @media (min-width: 768px) {
+            .volleyball-controls-grid {
+                grid-template-columns: 1fr auto auto auto;
+                gap: 12px;
+            }
+            .volleyball-controls-grid button {
+                width: auto;
+                padding: 10px 15px;
+                height: 44px;
+            }
+        }
+
+        /* Match result buttons responsiveness */
+        .volleyball-match-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        @media (min-width: 600px) {
+            .volleyball-match-actions {
+                flex-direction: row;
+            }
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
     <script src="js/admin.js?v=5" defer></script>
 </head>
@@ -64,6 +106,7 @@
             <button class="tab-btn" onclick="switchTab('manitto')">🎁 마니또 관리</button>
             <button class="tab-btn" onclick="switchTab('cooking')">🍳 요리 배틀 관리</button>
             <button class="tab-btn" onclick="switchTab('vehicle')">🚗 차량 배정 관리</button>
+            <button class="tab-btn" onclick="switchTab('volleyball')">🏐 배구 리그 관리</button>
             <button class="tab-btn" onclick="switchTab('board')">📝 제보 관리</button>
             <button class="tab-btn" onclick="switchTab('modifications')">🛠️ 수정 요청</button>
             <button class="tab-btn" onclick="switchTab('accounts')">🔐 계정 관리</button>
@@ -288,6 +331,85 @@
         </div>
 
         <!-- TAB: BOARD MANAGEMENT -->
+        <!-- VOLLEYBALL MANAGEMENT -->
+        <div id="tab-volleyball" class="tab-content">
+            <div class="card">
+                <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2 class="card-title" style="margin:0;">🏐 배구 리그 관리</h2>
+                    <div style="display:flex; gap:8px;">
+                        <button id="vball-tab-1" class="tab-btn active" onclick="switchVballSession(1)" style="width:auto; padding:8px 16px;">1부 (당일)</button>
+                        <button id="vball-tab-2" class="tab-btn" onclick="switchVballSession(2)" style="width:auto; padding:8px 16px;">2부 (사전)</button>
+                    </div>
+                </div>
+
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e0e4ef;">
+                    <div class="volleyball-controls-grid">
+                        <button onclick="createVolleyballTeam()" style="background:var(--blue-deep); color:white;">➕ 팀 추가 (A~D)</button>
+                        <button id="btnVballPublic1" onclick="toggleVballPublic(1)" style="background:#212529; color:white;">🔒 1부 비공개</button>
+                        <button id="btnVballPublic2" onclick="toggleVballPublic(2)" style="background:#212529; color:white;">🔒 2부 비공개</button>
+                        <button onclick="resetVolleyballData()" style="background:#E5484D; color:white;">🗑️ 초기화</button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <h3 style="font-size:15px; margin:0;">🏆 리그 순위 및 점수</h3>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>순위</th>
+                                <th>팀명</th>
+                                <th>승/패</th>
+                                <th>미니게임</th>
+                                <th>총점</th>
+                            </tr>
+                        </thead>
+                        <tbody id="volleyballRankList"></tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top:25px;" class="table-wrapper">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="font-size:15px; margin:0;">📅 경기 일정 관리</h3>
+                        <button onclick="resetVballMatches()" style="width:auto; padding:6px 12px; background:#666; color:white; font-size:12px; margin:0;">매칭 초기화</button>
+                    </div>
+                    
+                    <!-- Manual Match Creation Interface -->
+                    <div style="background:#f8f9fa; padding:15px; border-radius:12px; border:1px solid #e0e4ef; margin-bottom:15px; display:flex; gap:10px; align-items:end;">
+                        <div style="flex:1;">
+                            <label style="font-size:11px; display:block; margin-bottom:5px;">팀 1</label>
+                            <select id="matchTeam1" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ddd;"></select>
+                        </div>
+                        <div style="font-size:14px; font-weight:900; color:#999; padding-bottom:12px;">VS</div>
+                        <div style="flex:1;">
+                            <label style="font-size:11px; display:block; margin-bottom:5px;">팀 2</label>
+                            <select id="matchTeam2" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ddd;"></select>
+                        </div>
+                        <button onclick="createManualMatch()" style="width:auto; padding:10px 20px; background:var(--blue-deep); color:white; margin:0; border-radius:6px;">경기 추가</button>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>순서</th>
+                                <th>매칭</th>
+                                <th>상태</th>
+                                <th>관리/결과</th>
+                            </tr>
+                        </thead>
+                        <tbody id="volleyballMatchList"></tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top:25px;">
+                    <h3 style="font-size:15px; margin-bottom:10px;">👥 팀별 멤버 관리 (드래그/추가)</h3>
+                    <p style="font-size:11px; color:#666; margin-bottom:15px;">• 드롭다운으로 추가하거나, 목록 간 드래그하여 이동할 수 있습니다.</p>
+                    <div id="volleyballTeamGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:15px;"></div>
+                </div>
+            </div>
+        </div>
+
         <div id="tab-board" class="tab-content">
             <div class="card">
                 <h1>📝 제보 게시판 관리</h1>
@@ -538,6 +660,7 @@
                     <table>
                         <thead>
                             <tr>
+                                <th style="width: 50px;">순번</th>
                                 <th>이름</th>
                                 <th>구분</th>
                                 <th>기수</th>
