@@ -50,23 +50,35 @@
 
         /* VOLLEYBALL DASHBOARD STYLES */
         .volleyball-section-title {
-            font-size: 14px;
-            font-weight: 800;
-            color: var(--blue-deep);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--blue);
+            letter-spacing: .8px;
+            text-transform: uppercase;
             margin: 24px 0 12px 4px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
+        .volleyball-section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        [data-theme="dark"] .volleyball-section-title { color: #FFFFFF; }
 
         .volleyball-card {
-            background: white;
+            background: var(--card);
             border-radius: 16px;
             padding: 20px;
             position: relative;
             box-shadow: 0 10px 25px rgba(45, 70, 141, 0.08);
-            border: 1.5px solid #eee;
+            border: 1.5px solid var(--border);
             overflow: hidden;
+        }
+        [data-theme="dark"] .volleyball-card:not(.my-team-card):not(.active-match-card) {
+            background: var(--bg2);
         }
 
         .my-team-card {
@@ -78,6 +90,9 @@
         .active-match-card {
             border: 2px solid #E5484D;
             background: #FFF0F0;
+        }
+        [data-theme="dark"] .active-match-card {
+            background: rgba(229, 72, 77, 0.15);
         }
 
         .card-tag {
@@ -111,18 +126,19 @@
         }
 
         .volleyball-table th {
-            background: #f8f9fa;
+            background: var(--bg2);
             color: var(--text3);
             font-weight: 700;
             padding: 12px;
             text-align: center;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border);
         }
 
         .volleyball-table td {
             padding: 14px 12px;
             text-align: center;
-            border-bottom: 1px solid #f1f3f5;
+            border-bottom: 1px solid var(--border);
+            color: var(--text2);
         }
 
         .volleyball-table tr:last-child td {
@@ -140,15 +156,19 @@
             justify-content: space-between;
             align-items: center;
             padding: 14px 18px;
-            background: white;
+            background: var(--card);
             border-radius: 14px;
-            border: 1.5px solid #f1f3f5;
+            border: 1.5px solid var(--border);
             transition: transform 0.2s;
+            color: var(--text);
+        }
+        [data-theme="dark"] .match-item {
+            background: var(--bg2);
         }
 
         .match-item.completed {
             opacity: 0.8;
-            background: #fcfcfc;
+            background: var(--bg2);
         }
 
         .match-status-badge {
@@ -166,9 +186,13 @@
 
         .team-mini-card {
             padding: 14px;
-            background: white;
-            border: 1.5px solid #f1f3f5;
+            background: var(--card);
+            border: 1.5px solid var(--border);
             border-radius: 14px;
+            color: var(--text);
+        }
+        [data-theme="dark"] .team-mini-card {
+            background: var(--bg2);
         }
 
         .letter-tooltip.active {
@@ -259,7 +283,6 @@
         <!-- 신청 현황 -->
         <section>
             <div class="section-title">실시간 신청 현황</div>
-            <p class="notice-text">MT 준비 위원회 우대 등의 이유로 실제 신청 순번과 결과는 다를 수 있습니다.</p>
             <div class="card">
                 <div class="status-header">
                     <div>
@@ -290,7 +313,6 @@
         <!-- 일정 한줄 3칸 -->
         <section>
             <div class="section-title">일정</div>
-            <p class="notice-text">일정은 상황에 따라 유동적으로 변동될 수 있습니다.</p>
             <div class="schedule-row" id="scheduleCards">
                 <!-- Dynamic Content -->
             </div>
@@ -332,7 +354,7 @@
                 </div>
                 <div class="card" style="cursor:pointer; padding:16px;" onclick="openVolleyballModal()">
                     <div class="generation-card">
-                        <div class="generation-icon" style="width:40px; height:40px; font-size:20px; background:#e2f2ff; color:#007AFF;">🏐</div>
+                        <div class="generation-icon" style="width:40px; height:40px; font-size:20px;">🏐</div>
                         <div class="generation-text">
                             <h3 style="font-size:14px;">배구 대진표</h3>
                             <p style="font-size:11px;">실시간 대진 및 순위</p>
@@ -835,6 +857,7 @@
                     개인정보는 오직 행사를 위해서만 사용됩니다.
                 </div>
                 <div style="margin-top:10px;">
+                    <p class="notice-text" style="text-align:center; margin-bottom:10px;">MT 준비 위원회 우대 등의 이유로 실제 신청 순번과 결과는 다를 수 있습니다.</p>
                     <button id="btnSubmitUnified" class="btn-submit" onclick="doSubmit('unified')">🎉 신청 완료하기</button>
                 </div>
             </div>
@@ -846,7 +869,6 @@
         <div class="modal-sheet">
             <div class="modal-handle"></div><button class="modal-close" onclick="closeModal('status')">✕</button>
             <div class="modal-title">📊 실시간 신청 현황</div>
-            <p class="notice-text" style="margin-top: 8px; margin-bottom: 20px;">MT 준비 위원회 우대 등의 이유로 실제 신청 순번과 결과는 다를 수 있습니다.</p>
             <div class="modal-sub" id="modalTotalLabel">총 정원 00명 (군인 우선 0명 포함)</div>
             <div class="generation-thermo-wrap" id="thermoRows"></div>
         </div>
