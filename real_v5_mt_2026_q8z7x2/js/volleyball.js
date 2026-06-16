@@ -142,7 +142,7 @@ function renderUserMatches(matches, teams) {
         else if (m.status === 1) badge = '<span class="match-status-badge" style="background:#E5484D; color:white;">진행 중</span>';
         else {
             const winner = teams.find(t => t.id === m.winnerTeamId);
-            badge = `<span class="match-status-badge" style="background:#e2f2ff; color:#007AFF;">${winner?.name}팀 승리</span>`;
+            badge = `<span class="match-status-badge" style="background:var(--blue-pale); color:#007AFF;">${winner?.name}팀 승리</span>`;
             classList += ' completed';
         }
         return `
