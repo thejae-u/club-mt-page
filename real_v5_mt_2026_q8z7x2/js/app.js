@@ -137,6 +137,7 @@ window.currentChecklist = [];
 window.currentCommonStatus = {};
 window.curType = 'student';
 window.pendingAction = null; 
+window.isSubmittingApp = false; 
 
 // ===== DASHBOARD & UI =====
 
@@ -1082,6 +1083,8 @@ async function postReport() {
 
 // ===== SUBMIT FORM =====
 async function submitApplication(formId) {
+  if (window.isSubmittingApp) return;
+
   const name = document.getElementById('nameUnified')?.value.trim();
   const generation = parseInt(document.getElementById('genUnified')?.value) || 0;
   const phoneNumber = document.getElementById('telUnified')?.value.trim();
@@ -1143,6 +1146,14 @@ async function submitApplication(formId) {
     currentPassword = await prompt('정보 수정을 위해 기존 비밀번호를 입력해주세요.'); if (!currentPassword) return;
   }
   
+  const btn = document.getElementById('btnSubmitUnified');
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.textContent = '처리 중...';
+  }
+  window.isSubmittingApp = true;
+
   const payload = {
     name, generation, phoneNumber, password: finalPassword, currentPassword, type: getParticipantType(window.curType), studentId: surveyData.stdId, participationCount: parseInt(surveyData.participationCount) || 0,
     memoryOrExpectation: surveyData.memory, oneLineExpectation: surveyData.expectation, hasDriverLicense: surveyData.hasDriverLicense, driverLicenseType: surveyData.licenseType, canDrive: surveyData.canDrive === 'yes',
@@ -1164,8 +1175,24 @@ async function submitApplication(formId) {
     if (res.ok) {
       if (isEdit) { await alert(MSG.EDIT_SUCCESS); logout(); }
       else { await alert((await res.json()).message || MSG.APPLY_SUCCESS); location.reload(); }
-    } else showToast(`❌ 오류: ${await res.text()}`);
-  } catch (err) { showToast('서버 연결 오류가 발생했습니다.'); }
+    } else {
+      showToast(`❌ 오류: ${await res.text()}`);
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.textContent = '🎉 신청 완료하기';
+      }
+      window.isSubmittingApp = false;
+    }
+  } catch (err) { 
+    showToast('서버 연결 오류가 발생했습니다.'); 
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.textContent = '🎉 신청 완료하기';
+    }
+    window.isSubmittingApp = false;
+  }
 }
 
 function getParticipantType(typeStr) { const map = { student: 0, grad: 1, leave: 2, army: 3, etc: 4 }; return map[typeStr] ?? 0; }
@@ -1897,10 +1924,16 @@ async function openMyTeamModal() {
   openModal('cook-team');
 }
 
+let isApplyingChef = false;
 async function applyForChef() {
+  if (isApplyingChef) return;
   const exp = document.getElementById('cook-exp').value.trim();
   const dish = document.getElementById('cook-dish').value.trim();
   if (!exp || !dish) return alert(MSG.COOKING_APPLY_REQUIRED);
+
+  const btn = document.getElementById('btnApplyChefSubmit'); // I'll check the ID in index.html
+  if (btn) btn.disabled = true;
+  isApplyingChef = true;
 
   try {
     const res = await fetch(`${API_BASE}/CookingBattle/apply`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
@@ -1909,12 +1942,17 @@ async function applyForChef() {
     });
     if (res.ok) {
       showToast('✅ 셰프 지원 완료!');
+      closeModal('cook-apply');
       refreshCookingStatus();
     } else {
       const msg = await res.text();
       alert(msg || '지원 실패');
     }
   } catch (e) { alert(MSG.SERVER_ERROR); }
+  finally {
+    isApplyingChef = false;
+    if (btn) btn.disabled = false;
+  }
 }
 
 async function cheerTeam(team) {
@@ -2007,11 +2045,17 @@ async function refreshCookingComments() {
   await fetchComments('White');
 }
 
+let isPostingComment = false;
 async function postCookComment(team) {
+  if (isPostingComment) return;
   const input = document.getElementById(`cook-comment-${team.toLowerCase()}`);
+  const btn = document.getElementById(`btn-comment-${team.toLowerCase()}`);
   if (!input) return;
   const content = input.value.trim();
   if (!content) return;
+
+  if (btn) btn.disabled = true;
+  isPostingComment = true;
 
   try {
     const res = await fetch(`${API_BASE}/CookingBattle/comments/${team}`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
@@ -2023,6 +2067,10 @@ async function postCookComment(team) {
       refreshCookingComments();
     }
   } catch (e) {}
+  finally {
+    isPostingComment = false;
+    if (btn) btn.disabled = false;
+  }
 }
 
 window.openMBTIModal = openMBTIModal;
