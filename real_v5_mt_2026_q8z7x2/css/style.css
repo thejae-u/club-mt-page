@@ -53,6 +53,7 @@
 [data-theme="dark"] * { color: inherit; }
 [data-theme="dark"] body { color: #FFFFFF; }
 [data-theme="dark"] .text2-override { color: #FFFFFF !important; }
+[onclick] { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;overflow-x:hidden;}
@@ -119,7 +120,7 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 [data-theme="dark"] .section-title{color:#FFFFFF;}
 .section-title::after{content:'';flex:1;height:1px;background:var(--border);}
 
-.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);transition:border .2s;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-sm);transition:border .2s;word-break:break-word;}
 @media (hover: hover) { .card:hover{border-color:var(--blue-mid);} }
 [data-theme="dark"] .card{background:var(--bg2);}
 
@@ -146,7 +147,7 @@ section:nth-child(7){animation:fadeIn .5s .35s both;}
 .marquee-track{display:flex;gap:12px;animation:marquee 60s linear infinite;width:max-content;padding-left: 40px;}
 @media (hover: hover) { .marquee-track:hover{animation-play-state:paused;} }
 @keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(var(--marquee-end, -50%))}}
-.exp-chip{flex-shrink:0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 16px;font-size:13px;color:var(--text2);line-height:1.5;width:210px;}
+.exp-chip{flex-shrink:0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:12px 16px;font-size:13px;color:var(--text2);line-height:1.5;width:210px;word-break:break-word;}
 [data-theme="dark"] .exp-chip{color:#FFFFFF;}
 .exp-chip .exp-author{font-size:11px;color:var(--text3);margin-top:6px;font-weight:600;}
 [data-theme="dark"] .exp-chip .exp-author{color:#FFFFFF;}

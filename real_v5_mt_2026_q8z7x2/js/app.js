@@ -138,6 +138,8 @@ window.currentCommonStatus = {};
 window.curType = 'student';
 window.pendingAction = null; 
 window.isSubmittingApp = false; 
+window.isCheering = false;
+window.isVoting = false;
 
 // ===== DASHBOARD & UI =====
 
@@ -153,7 +155,10 @@ function renderExpectations(expectations) {
 
     expectationSection.style.display = 'block';
     const items = expectations.map(e => {
-        return `<div class="exp-chip"><div class="m-text">${escapeHTML(e.text)}</div><div class="exp-author">${escapeHTML(e.author)}</div></div>`;
+        return `<div class="exp-chip">
+            <div class="exp-text">${escapeHTML(e.text)}</div>
+            <div class="exp-author">${escapeHTML(e.author)}</div>
+        </div>`;
     });
 
     marqueeTrack.innerHTML = items.join('') + items.join('') + items.join('');
@@ -366,8 +371,7 @@ async function updateGenerationTable() {
     const res = await fetch(`${API_BASE}/Management/members`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (res.ok) { window.cachedMembers = await res.json(); renderMembers(window.cachedMembers); }
     else if (res.status === 401) {
-        await alert(MSG.SESSION_EXPIRED);
-        logout();
+        logout(MSG.SESSION_EXPIRED);
     }
   } catch (err) { console.error(err); }
 }
@@ -598,6 +602,25 @@ async function doLogin() {
   }
 }
 
+async function syncAuthStatus() {
+  const name = localStorage.getItem('participantName');
+  if (!name) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/Participants/me`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
+    if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem('participantName');
+        window.currentParticipant = null;
+        updateAuthUI();
+      }
+    } else {
+      window.currentParticipant = await res.json();
+      updateAuthUI();
+    }
+  } catch (e) { console.error('Auth sync failed', e); }
+}
+
 function updateAuthUI() {
   const name = localStorage.getItem('participantName');
   const loginBtn = document.getElementById('btnLoginOpen'); const mypageBtn = document.getElementById('btnMyPageOpen'); const applyBtn = document.getElementById('btnApply'); const editInfoBtn = document.getElementById('btnEditInfo');
@@ -719,10 +742,9 @@ async function openMyPage() {
       }
       renderCommonChecklist(window.siteSettings.commonChecklistJson, p.commonChecklistStatusJson); renderChecklist(p.checklistJson); openModal('mypage');
     } else { 
-        await alert(MSG.SESSION_EXPIRED);
-        logout(); 
+        logout(MSG.SESSION_EXPIRED);
     }
-  } catch (err) { console.error(err); }
+  } catch (err) { console.error(err); showToast('정보를 불러오는데 실패했습니다.'); }
 }
 
 function renderCommonChecklist(commonJson, statusJson) {
@@ -771,8 +793,7 @@ async function openEditFromMyPage() {
     }
 
     if (!p) {
-        showToast('세션 정보가 부족합니다. 다시 로그인해주세요.');
-        logout();
+        logout('세션 정보가 부족합니다. 다시 로그인해주세요.');
         return;
     }
 
@@ -831,15 +852,20 @@ async function openEditFromMyPage() {
     openModal('apply');
 }
 
-function logout() {
+async function logout(msg = null) {
   fetch(`${API_BASE}/auth/logout`, { headers: { 'X-ClubMT-Source': 'WebApp' }, method: 'POST', credentials: 'include' }).catch(e => {});
   localStorage.removeItem('participantName'); 
   window.editingPassword = null; 
   window.currentParticipant = null; 
   window.editingParticipantId = null; 
   
-  showToast('로그아웃 되었습니다.');
-  setTimeout(() => location.reload(), 1000);
+  if (msg) {
+      await alert(msg);
+      location.reload();
+  } else {
+      showToast('로그아웃 되었습니다.');
+      setTimeout(() => location.reload(), 1000);
+  }
 }
 
 function resetApplyForm() {
@@ -940,8 +966,7 @@ async function openManittoModal() {
   try {
     const res = await fetch(`${API_BASE}/Manitto/me`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' }); 
     if (res.status === 401) {
-        await alert(MSG.SESSION_EXPIRED);
-        logout();
+        logout(MSG.SESSION_EXPIRED);
         return;
     }
     if (!res.ok) { showToast('신청 데이터가 없거나 로드에 실패했습니다.'); return; }
@@ -1012,7 +1037,10 @@ async function loadReports() {
         const res = await fetch(`${API_BASE}/Manitto/reports`, { headers: { 'X-ClubMT-Source': 'WebApp' } }); if (!res.ok) return;
         const list = await res.json();
         if (list.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:#999; font-size:13px;">아직 올라온 제보가 없습니다.</div>'; return; }
-        container.innerHTML = list.map(r => { const kstDate = new Date(new Date(r.createdAt).getTime() + (9 * 60 * 60 * 1000)); return `<div class="card" style="padding:12px; background:#fff; border:1px solid #eee;"><div style="font-size:14px; line-height:1.5;">${escapeHTML(r.content)}</div><div style="font-size:10px; color:#999; margin-top:8px;">${kstDate.toLocaleString()}</div></div>`; }).join('');
+        container.innerHTML = list.map(r => { 
+            const kstDate = new Date(r.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false, month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); 
+            return `<div class="card" style="padding:12px; background:#fff; border:1px solid #eee;"><div style="font-size:14px; line-height:1.5;">${escapeHTML(r.content)}</div><div style="font-size:10px; color:#999; margin-top:8px;">${kstDate}</div></div>`; 
+        }).join('') || '<div style="text-align:center; padding:20px; color:#999; font-size:13px;">아직 올라온 제보가 없습니다.</div>';
     } catch (e) { console.error(e); }
 }
 
@@ -1056,8 +1084,7 @@ async function postReport() {
         }); 
 
         if (res.status === 401) {
-            await alert(MSG.SESSION_EXPIRED);
-            logout();
+            logout(MSG.SESSION_EXPIRED);
             return;
         }
 
@@ -1087,11 +1114,9 @@ async function submitApplication(formId) {
 
   const name = document.getElementById('nameUnified')?.value.trim();
   const generation = parseInt(document.getElementById('genUnified')?.value) || 0;
-  const phoneNumber = document.getElementById('telUnified')?.value.trim();
-  
-  if (!name) return showToast('이름을 입력해주세요.');
-  if (!generation) return showToast('기수를 선택해주세요.');
-  if (!phoneNumber) return showToast('연락처를 입력해주세요.');
+  const phoneNumberRaw = document.getElementById('telUnified')?.value.trim();
+  if (!phoneNumberRaw) return showToast('연락처를 입력해주세요.');
+  const phoneNumber = phoneNumberRaw.replace(/\D/g, '');
   
   const phoneRegex = /^010\d{7,8}$/;
   if (!phoneRegex.test(phoneNumber)) {
@@ -1167,8 +1192,7 @@ async function submitApplication(formId) {
     const res = await fetch(isEdit ? `${API_BASE}/Participants/${window.editingParticipantId}` : `${API_BASE}/Participants`, { method: isEdit ? 'PUT' : 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' }, body: JSON.stringify(payload), credentials: 'include' });
     
     if (res.status === 401) {
-        await alert(MSG.SESSION_EXPIRED);
-        logout();
+        logout(MSG.SESSION_EXPIRED);
         return;
     }
 
@@ -1325,7 +1349,14 @@ function openModal(id) {
   if (id === 'apply' && !window.editingParticipantId) { resetApplyForm(); const eh = document.getElementById('editHeader'); const ts = document.getElementById('typeSelectionArea'); if (eh) eh.style.display = 'none'; if (ts) ts.style.display = 'block'; }
   el.classList.add('active'); document.body.classList.add('no-scroll');
 }
-function closeModal(id) { 
+async function closeModal(id) { 
+  if (id === 'mbti') {
+    const quiz = document.getElementById('mbti-quiz');
+    if (quiz && quiz.style.display === 'block') {
+      if (!await confirm('진행 중인 테스트 결과가 사라집니다. 정말 닫으시겠습니까?')) return;
+    }
+  }
+
   const el = document.getElementById('modal-' + id); 
   if (el) el.classList.remove('active'); 
   if (!document.querySelector('.modal-overlay.active')) document.body.classList.remove('no-scroll'); 
@@ -1337,11 +1368,11 @@ document.addEventListener('mousedown', e => {
     modalMouseDownTarget = e.target;
 });
 
-function closeBg(e, id) { 
+async function closeBg(e, id) { 
   const overlay = document.getElementById('modal-' + id);
   // Only close if BOTH mousedown and mouseup (click) happened strictly on the overlay
   if (e.target === overlay && modalMouseDownTarget === overlay) {
-      closeModal(id); 
+      await closeModal(id); 
   }
 }
 function switchType(btn, type) { window.curType = type; btn.closest('.type-btns').querySelectorAll('.type-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); renderDynamicSurveys(type); }
@@ -1694,8 +1725,7 @@ async function saveMBTIResult() {
     });
     
     if (res.status === 401) {
-        await alert(MSG.SESSION_EXPIRED);
-        logout();
+        logout(MSG.SESSION_EXPIRED);
         return;
     }
 
@@ -1753,31 +1783,30 @@ async function openCookingBattleModal() {
   await refreshCookingComments();
 
   // Start polling only if public
-  if (cookingPollingInterval) clearInterval(cookingPollingInterval);
+  if (cookingPollingInterval) clearTimeout(cookingPollingInterval);
   if (statusData && statusData.isPublic) {
-    cookingPollingInterval = setInterval(() => {
+    const poll = async () => {
       const modal = document.getElementById('modal-cooking');
       if (modal && modal.classList.contains('active')) {
-        refreshCookingStatus().then(data => {
-            // If it becomes private while polling, stop polling
-            if (data && !data.isPublic) {
-                clearInterval(cookingPollingInterval);
-                cookingPollingInterval = null;
-            }
-        });
-        refreshCookingComments();
+        const data = await refreshCookingStatus();
+        await refreshCookingComments();
+        if (data && data.isPublic) {
+          cookingPollingInterval = setTimeout(poll, 5000);
+        } else {
+          cookingPollingInterval = null;
+        }
       } else {
-        clearInterval(cookingPollingInterval);
         cookingPollingInterval = null;
       }
-    }, 5000);
+    };
+    cookingPollingInterval = setTimeout(poll, 5000);
   }
 }
 
 async function refreshCookingStatus() {
   try {
     const res = await fetch(`${API_BASE}/CookingBattle/status`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
-    if (res.status === 401) return logout();
+    if (res.status === 401) return logout(MSG.SESSION_EXPIRED);
     if (!res.ok) return null;
     const data = await res.json();
 
@@ -1956,9 +1985,14 @@ async function applyForChef() {
 }
 
 async function cheerTeam(team) {
+  if (window.isCheering) return;
+
   const prefix = team.toLowerCase();
   const btnWrap = document.getElementById(`btn-cheer-${prefix}`);
   const bar = document.getElementById(`${prefix}-cheer-bar`);
+
+  window.isCheering = true;
+  if (btnWrap) btnWrap.style.pointerEvents = 'none';
   
   // 1. Optimistic UI: Immediately update the bar slightly
   if (bar) {
@@ -1999,11 +2033,23 @@ async function cheerTeam(team) {
   } catch (e) { 
       console.error(e);
       refreshCookingStatus();
+  } finally {
+      window.isCheering = false;
+      if (btnWrap) btnWrap.style.pointerEvents = 'auto';
   }
 }
 
 async function voteTeam(team) {
+  if (window.isVoting) return;
   if (!await confirm(`${team === 'Black' ? '흑팀' : '백팀'}에 투표하시겠습니까? 한번 투표하면 변경할 수 없습니다.`)) return;
+
+  const btn = document.getElementById(`btn-vote-${team.toLowerCase()}`);
+  window.isVoting = true;
+  if (btn) {
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+  }
+
   try {
     const res = await fetch(`${API_BASE}/CookingBattle/vote/${team}`, { headers: { 'X-ClubMT-Source': 'WebApp' }, method: 'POST', credentials: 'include' });
     if (res.ok) {
@@ -2019,8 +2065,17 @@ async function voteTeam(team) {
         msg = text || msg;
       }
       alert(msg);
+      refreshCookingStatus();
     }
-  } catch (e) { alert(MSG.SERVER_ERROR); }
+  } catch (e) { 
+    alert(MSG.SERVER_ERROR); 
+  } finally {
+    window.isVoting = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  }
 }
 
 async function refreshCookingComments() {
@@ -2088,7 +2143,21 @@ window.logout = logout; window.openMyPage = openMyPage; window.addChecklistItem 
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+  syncAuthStatus();
   updateDashboard(); updateAuthUI(); updatePhotoSection();
+
+  // Mobile Keyboard Helper: Scroll focused input into view
+  document.addEventListener('focusin', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      const type = e.target.type;
+      if (type !== 'checkbox' && type !== 'radio' && type !== 'button' && type !== 'submit' && type !== 'range') {
+        setTimeout(() => {
+          e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+      }
+    }
+  });
+
   const ci = document.getElementById('checklist-input'); if (ci) ci.addEventListener('keypress', (e) => { if (e.key === 'Enter') addChecklistItem(); });
   const tb = document.getElementById('themeBtn'); if (tb) tb.addEventListener('click', function() { const d = document.documentElement.dataset.theme === 'dark'; document.documentElement.dataset.theme = d ? 'light' : 'dark'; this.textContent = d ? '🌙' : '☀️'; });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => closeModal(m.id.replace('modal-', ''))); });
@@ -2121,8 +2190,7 @@ async function openVehicleModal() {
   try {
     const res = await fetch(`${API_BASE}/Vehicle/my`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
     if (res.status === 401) {
-        await alert(MSG.SESSION_EXPIRED);
-        logout();
+        logout(MSG.SESSION_EXPIRED);
         return;
     }
     if (res.status === 404) {
@@ -2141,18 +2209,19 @@ async function openVehicleModal() {
     switchVehicleTab('my');
     
     // Start polling
-    if (vehiclePollingInterval) clearInterval(vehiclePollingInterval);
-    vehiclePollingInterval = setInterval(() => {
+    if (vehiclePollingInterval) clearTimeout(vehiclePollingInterval);
+    const pollV = async () => {
       const modal = document.getElementById('modal-vehicle');
       if (modal && modal.classList.contains('active')) {
         const activeTab = document.querySelector('.tab-btn.active#tab-vehicle-my') ? 'my' : 'all';
-        if (activeTab === 'my') fetchVehicleMy();
-        else fetchVehicleAll();
+        if (activeTab === 'my') await fetchVehicleMy();
+        else await fetchVehicleAll();
+        vehiclePollingInterval = setTimeout(pollV, 5000);
       } else {
-        clearInterval(vehiclePollingInterval);
         vehiclePollingInterval = null;
       }
-    }, 5000);
+    };
+    vehiclePollingInterval = setTimeout(pollV, 5000);
   } catch (err) {
     console.error(err);
     showToast('서버 통신 중 오류가 발생했습니다.');
