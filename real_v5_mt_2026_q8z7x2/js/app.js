@@ -152,7 +152,7 @@ function renderExpectations(expectations) {
 
     expectationSection.style.display = 'block';
     const items = expectations.map(e => {
-        return '<div class="marquee-item"><span class="m-text">' + escapeHTML(e.text) + '</span><span class="m-author">' + escapeHTML(e.author) + '</span></div>';
+        return `<div class="exp-chip"><div class="m-text">${escapeHTML(e.text)}</div><div class="exp-author">${escapeHTML(e.author)}</div></div>`;
     });
 
     marqueeTrack.innerHTML = items.join('') + items.join('') + items.join('');

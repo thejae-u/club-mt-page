@@ -116,7 +116,7 @@ async function loadModifications() {
 
         tbody.innerHTML = tasks.map(t => {
             const commentsHtml = (t.comments || []).map(c => `
-                <div style="font-size:11px; padding:6px 10px; background:#f0f2f5; border-radius:8px; margin-top:5px; display:flex; justify-content:space-between; align-items:flex-start; group/cmt;">
+                <div style="font-size:11px; padding:6px 10px; background:#f0f2f5; border-radius:8px; margin-top:5px; display:flex; justify-content:space-between; align-items:flex-start;">
                     <div style="flex:1;">
                         <span style="font-weight:700; color:var(--blue-deep);">${escapeHTML(c.author)}:</span>
                         <span style="color:#333;">${escapeHTML(c.content)}</span>
