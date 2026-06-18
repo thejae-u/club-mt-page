@@ -55,7 +55,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-    <script src="js/admin.js?v=5" defer></script>
+    <script src="js/admin.js?v=11" defer></script>
 </head>
 
 <body>
@@ -867,6 +867,16 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <label>MT 참여 횟수</label>
+                    <select id="edit-participationCount">
+                        <option value="0">0번 (처음이에요!)</option>
+                        <option value="1">1번</option>
+                        <option value="2">2번</option>
+                        <option value="3">3번</option>
+                        <option value="4">4번</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label>연락처</label>
                     <input type="text" id="edit-phone">
                 </div>
@@ -897,6 +907,31 @@
                 <div class="form-group">
                     <label>출발지</label>
                     <input type="text" id="edit-departure">
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                    <div class="form-group">
+                        <label>참가 일정</label>
+                        <select id="edit-participationSchedule" onchange="document.getElementById('edit-midJoinDetails-row').style.display = (this.value === 'Partial' ? 'block' : 'none')">
+                            <option value="Full">전일정 참여</option>
+                            <option value="Partial">부분 참여 / 중간 합류</option>
+                        </select>
+                    </div>
+                    <div id="edit-midJoinDetails-row" class="form-group" style="display:none;">
+                        <label>부분참여 상세</label>
+                        <input type="text" id="edit-midJoinDetails" placeholder="예: 토요일 오전 합류">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>음식 알레르기</label>
+                    <input type="text" id="edit-allergies">
+                </div>
+                <div class="form-group">
+                    <label>기억/기대 (과거 MT 기억 등)</label>
+                    <textarea id="edit-memoryOrExpectation" style="height:60px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>기대평 한 줄 (메인 노출)</label>
+                    <input type="text" id="edit-oneLineExpectation">
                 </div>
                 <div class="form-group">
                     <label>메모/요청사항</label>
