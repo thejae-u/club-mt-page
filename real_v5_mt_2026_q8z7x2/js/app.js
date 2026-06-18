@@ -334,7 +334,7 @@ function renderStatusModal(data, s) {
           </div>
           <div class="generation-thermo-num" style="min-width: 45px; display:flex; align-items:center; gap:8px;">
             ${count}명
-            ${isLowest ? '<span onclick="goToGeneration(' + gen + '); closeModal(\'status\')" style="font-size:10px; color:#E5484D; font-weight:800; white-space:nowrap; background:#FFF0F0; padding:2px 6px; border-radius:4px; border:1px solid rgba(229,72,77,0.2); cursor:pointer;">분발하세요!</span>' : ''}
+            ${isLowest ? '<span style="font-size:10px; color:#E5484D; font-weight:800; white-space:nowrap; background:#FFF0F0; padding:2px 6px; border-radius:4px; border:1px solid rgba(229,72,77,0.2);">분발하세요!</span>' : ''}
           </div>
         </div>
       `;
