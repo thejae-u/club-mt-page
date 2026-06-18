@@ -1299,10 +1299,19 @@ async function openEditModal(id) {
         document.getElementById('edit-type').value = p.type;
         document.getElementById('edit-phone').value = p.phoneNumber;
         document.getElementById('edit-studentId').value = p.studentId || "";
+        document.getElementById('edit-participationCount').value = p.participationCount || 0;
         document.getElementById('edit-transportation').value = p.transportation || "Car";
         document.getElementById('edit-carpoolAvailable').value = p.isCarpoolAvailable ? "true" : "false";
         document.getElementById('edit-carpoolSeats').value = p.carpoolSeats || 0;
         document.getElementById('edit-departure').value = p.departureArea || "";
+        const midJoin = p.midJoinDetails || p.MidJoinDetails || "";
+        const schedule = p.participationSchedule || p.ParticipationSchedule || "Full";
+        document.getElementById('edit-participationSchedule').value = schedule;
+        document.getElementById('edit-midJoinDetails').value = midJoin;
+        document.getElementById('edit-midJoinDetails-row').style.display = (schedule === 'Partial' ? 'block' : 'none');
+        document.getElementById('edit-allergies').value = p.allergies || "";
+        document.getElementById('edit-memoryOrExpectation').value = p.memoryOrExpectation || "";
+        document.getElementById('edit-oneLineExpectation').value = p.oneLineExpectation || "";
         document.getElementById('edit-remarks').value = p.remarks || "";
         
         document.getElementById('edit-hasDriverLicense').value = p.hasDriverLicense ? "true" : "false";
@@ -1333,10 +1342,16 @@ async function saveParticipantEdit() {
         type: parseInt(document.getElementById('edit-type').value),
         phoneNumber: document.getElementById('edit-phone').value,
         studentId: document.getElementById('edit-studentId').value,
+        participationCount: parseInt(document.getElementById('edit-participationCount').value) || 0,
         transportation: document.getElementById('edit-transportation').value,
         isCarpoolAvailable: document.getElementById('edit-carpoolAvailable').value === "true",
         carpoolSeats: parseInt(document.getElementById('edit-carpoolSeats').value) || 0,
         departureArea: document.getElementById('edit-departure').value,
+        participationSchedule: document.getElementById('edit-participationSchedule').value,
+        midJoinDetails: document.getElementById('edit-midJoinDetails').value,
+        allergies: document.getElementById('edit-allergies').value,
+        memoryOrExpectation: document.getElementById('edit-memoryOrExpectation').value,
+        oneLineExpectation: document.getElementById('edit-oneLineExpectation').value,
         remarks: document.getElementById('edit-remarks').value,
         hasDriverLicense: document.getElementById('edit-hasDriverLicense').value === "true",
         driverLicenseType: document.getElementById('edit-driverLicenseType').value,
@@ -1765,6 +1780,9 @@ function renderTables() {
                 <td><span class="badge" style="background:var(--blue-soft); color:var(--blue-deep);">${typeLabels[p.type] || '기타'}</span></td>
                 <td>${formatPhone(p.phoneNumber)}</td>
                 <td>${p.studentId || '-'}</td>
+                <td>${p.participationCount > 0 ? p.participationCount + '회' : '처음'}</td>
+                <td title="${p.midJoinDetails || p.MidJoinDetails || ''}">${(p.participationSchedule === 'Partial' || p.ParticipationSchedule === 'Partial') ? `<span style="color:#E5484D; font-weight:bold;">부분참여</span><br><span style="font-size:11px;color:#666">${p.midJoinDetails || p.MidJoinDetails || ''}</span>` : `<span style="color:#22C55E;">전체참여</span>`}</td>
+                <td>${p.type === 3 ? (p.isMilitaryPriority ? `✅ 우선<br><span style="font-size:10px;color:#999">${p.militaryStatus || ''}</span>` : `일반<br><span style="font-size:10px;color:#999">${p.militaryStatus || ''}</span>`) : '-'}</td>
                 <td style="color: ${p.isDepositConfirmed ? '#22C55E' : '#F5A623'}; font-weight:bold;">${p.isDepositConfirmed ? '완료' : '대기'}</td>
                 <td>${p.transportation === 'Car' ? '🚗 자차' : '🚌 대중교통'}</td>
                 <td>${p.isCarpoolAvailable ? `✅ ${p.carpoolSeats}석` : '-'}</td>
@@ -1773,6 +1791,8 @@ function renderTables() {
                 <td>${p.canDrive ? '✅ 가능' : '❌ 불가능'}</td>
                 <td>${p.drivingExperience || '-'}</td>
                 <td style="color: #E8392D;">${p.allergies || '-'}</td>
+                <td title="${p.memoryOrExpectation || ''}">${p.memoryOrExpectation || '-'}</td>
+                <td title="${p.oneLineExpectation || ''}">${p.oneLineExpectation || '-'}</td>
                 <td title="${p.remarks || ''}">${p.remarks || '-'}</td>
                 <td style="font-size: 11px; color: #999;">${new Date(p.createdAt).toLocaleDateString()}</td>
                 <td style="text-align: center; display: flex; gap: 4px; justify-content: center; align-items: center; height: 100%;">

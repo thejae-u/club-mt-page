@@ -516,6 +516,8 @@ function getSurveyData(formId) {
     const container = document.getElementById(`survey-content-${formId}`);
     if (!container) return data;
     container.querySelectorAll('[data-survey-id]').forEach(el => { data[el.getAttribute('data-survey-id')] = el.value; });
+    const midJoinInp = document.getElementById(`survey-${formId}-midJoinDetails`);
+    if (midJoinInp) data.midJoinDetails = midJoinInp.value;
     const formSection = document.getElementById(`form-${formId}`);
     const scheduleBtn = formSection.querySelector('button[onclick*="toggleSchedule"].active');
     data.participationSchedule = scheduleBtn ? (scheduleBtn.textContent.includes('전일정') ? 'Full' : 'Partial') : 'Full';
@@ -1182,7 +1184,7 @@ async function submitApplication(formId) {
   const payload = {
     name, generation, phoneNumber, password: finalPassword, currentPassword, type: getParticipantType(window.curType), studentId: surveyData.stdId, participationCount: parseInt(surveyData.participationCount) || 0,
     memoryOrExpectation: surveyData.memory, oneLineExpectation: surveyData.expectation, hasDriverLicense: surveyData.hasDriverLicense, driverLicenseType: surveyData.licenseType, canDrive: surveyData.canDrive === 'yes',
-    drivingExperience: surveyData.drivingExperience, isMilitaryPriority: surveyData.militaryPriority === 'yes', militaryStatus: surveyData.militaryStatus, participationSchedule: surveyData.participationSchedule || "Full",
+    drivingExperience: surveyData.drivingExperience, isMilitaryPriority: surveyData.militaryPriority === 'yes', militaryStatus: surveyData.militaryStatus, participationSchedule: surveyData.participationSchedule || "Full", midJoinDetails: surveyData.midJoinDetails,
     transportation: surveyData.transportation || "Car", isCarpoolAvailable: surveyData.carpoolAvailable === 'yes', carpoolSeats: parseInt(surveyData.carpoolSeats) || 0, departureArea: surveyData.departureArea,
     allergies: surveyData.allergies, remarks: surveyData.remarks || "", createdAt: new Date().toISOString(), isRegistered: true
   };
