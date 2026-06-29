@@ -346,14 +346,29 @@ async function loadManittoTab() {
         if (res.ok) {
             
             const s = await res.json();
+            if (!window.currentSettings) window.currentSettings = {};
+            window.currentSettings.isManittoPublic = s.isManittoPublic;
+            window.currentSettings.isManittoMissionPublic = s.isManittoMissionPublic;
+
             const btn = document.getElementById('btnToggleManittoPublic');
             if (btn) {
                 if (s.isManittoPublic) {
-                    btn.textContent = "✅ 공개 상태";
+                    btn.textContent = "✅ 마니또 공개 상태";
                     btn.style.background = "#22C55E";
                 } else {
-                    btn.textContent = "🔒 비공개 상태";
+                    btn.textContent = "🔒 마니또 비공개 상태";
                     btn.style.background = "#212529";
+                }
+            }
+
+            const btnMission = document.getElementById('btnToggleManittoMissionPublic');
+            if (btnMission) {
+                if (s.isManittoMissionPublic) {
+                    btnMission.textContent = "✅ 미션 공개 상태";
+                    btnMission.style.background = "#22C55E";
+                } else {
+                    btnMission.textContent = "🔒 미션 비공개 상태";
+                    btnMission.style.background = "#212529";
                 }
             }
         }
@@ -369,6 +384,31 @@ async function toggleManittoVisibility() {
         if (res.status === 401) return logout(true);
         if (res.ok) {
             
+            const data = await res.json();
+            await alert(data.message);
+            loadManittoTab();
+        }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
+}
+
+async function toggleManittoMissionVisibility() {
+    try {
+        const res = await fetch(`${API_BASE}/Management/manitto/toggle-mission-visibility`, { headers: { 'X-ClubMT-Source': 'WebApp' }, 
+            method: 'POST', 
+            credentials: 'include' 
+        });
+        if (res.status === 401) return logout(true);
+        if (res.status === 400) {
+            const err = await res.text();
+            let errMsg = err;
+            try {
+                const errObj = JSON.parse(err);
+                if (errObj.message) errMsg = errObj.message;
+            } catch(e) {}
+            await alert(`❌ ${errMsg}`);
+            return;
+        }
+        if (res.ok) {
             const data = await res.json();
             await alert(data.message);
             loadManittoTab();
@@ -1365,9 +1405,9 @@ async function saveParticipantEdit() {
             credentials: 'include'
         });
         if (res.ok) {
-            
             closeEditModal();
             loadParticipants();
+            await alert('✅ 신청 정보가 수정되었습니다.');
         } else {
             await alert('수정 실패');
         }
@@ -1616,6 +1656,8 @@ async function saveSettings() {
         maxGeneralCapacity: parseInt(document.getElementById('maxGeneralCapacity').value),
         maxMilitaryCapacity: parseInt(document.getElementById('maxMilitaryCapacity').value),
         manittoMissionCount: parseInt(document.getElementById('manittoMissionCount')?.value || "3"),
+        isManittoPublic: window.currentSettings?.isManittoPublic || false,
+        isManittoMissionPublic: window.currentSettings?.isManittoMissionPublic || false,
         isCookingBattlePublic: window.currentSettings?.isCookingBattlePublic || false,
         isCookingBattleChefPublic: window.currentSettings?.isCookingBattleChefPublic || false,
         isCookingBattleVotingActive: window.currentSettings?.isCookingBattleVotingActive || false,
@@ -1900,6 +1942,7 @@ window.deleteMission = deleteMission;
 window.toggleSelectAllMissions = toggleSelectAllMissions;
 window.deleteSelectedMissions = deleteSelectedMissions;
 window.toggleManittoVisibility = toggleManittoVisibility;
+window.toggleManittoMissionVisibility = toggleManittoMissionVisibility;
 window.matchManitto = matchManitto;
 window.updateManittoAssignmentLocal = updateManittoAssignmentLocal;
 window.addModification = addModification;

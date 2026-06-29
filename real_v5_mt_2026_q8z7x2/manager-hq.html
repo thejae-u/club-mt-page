@@ -55,7 +55,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-    <script src="js/admin.js?v=11" defer></script>
+    <script src="js/admin.js?v=13" defer></script>
 </head>
 
 <body>
@@ -772,9 +772,11 @@
                 <div style="display: flex; gap: 10px;">
                     <button onclick="matchManitto()" style="background: #E5484D; color:white; flex: 1.5;">🔥 마니또 랜덤 매칭
                         실행</button>
-                    <div style="display: flex; flex: 2; gap: 8px;">
+                    <div style="display: flex; flex: 3; gap: 8px;">
                         <button id="btnToggleManittoPublic" onclick="toggleManittoVisibility()"
-                            style="background: #212529; color:white; flex: 1;">🔒 비공개 상태</button>
+                            style="background: #212529; color:white; flex: 1;">🔒 마니또 비공개</button>
+                        <button id="btnToggleManittoMissionPublic" onclick="toggleManittoMissionVisibility()"
+                            style="background: #212529; color:white; flex: 1;">🔒 미션 비공개</button>
                     </div>
                 </div>
 

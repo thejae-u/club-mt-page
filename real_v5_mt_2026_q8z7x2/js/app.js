@@ -980,7 +980,9 @@ async function openManittoModal() {
     
     const missionContainer = document.getElementById('manitto-mission-container');
     if (missionContainer) {
-        if (data.missions && data.missions.length > 0) {
+        if (data.isMissionPublic === false) {
+            missionContainer.innerHTML = '<div style="text-align:center; padding:20px; color:#999; font-weight:bold;">아직 공개되지 않았습니다.</div>';
+        } else if (data.missions && data.missions.length > 0) {
             missionContainer.innerHTML = data.missions.map(m => `
                 <div class="mission-item" style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:#f8f9fa; border-radius:12px; margin-bottom:8px; border:1px solid ${m.isComplete ? '#22C55E' : '#eee'};">
                     <div style="flex:1; font-size:14px; line-height:1.4; ${m.isComplete ? 'text-decoration:line-through; color:#999;' : ''}">
@@ -988,7 +990,7 @@ async function openManittoModal() {
                     </div>
                     ${m.isComplete ? 
                         '<span style="color:#22C55E; font-weight:800; font-size:12px; margin-left:10px;">✅ 완료</span>' : 
-                        `<button onclick="completeMission(${m.missionId})" style="width:auto; padding:6px 12px; background:var(--blue-deep); color:white; font-size:12px; margin:0 0 0 10px; border-radius:8px;">완료하기</button>`
+                        `<button onclick="completeMission(${m.missionId})" style="width:auto; padding:6px 12px; background:var(--blue-soft); color:var(--blue-deep); border:none; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; margin:0 0 0 10px;">완료하기</button>`
                     }
                 </div>
             `).join('');
@@ -997,15 +999,24 @@ async function openManittoModal() {
         }
     } else {
         // Fallback for old HTML structure
-        document.getElementById('manitto-mission-desc').textContent = data.missions && data.missions.length > 0 ? data.missions[0].description : "미션 없음";
-        const btnC = document.getElementById('btnCompleteMission'); 
-        const bC = document.getElementById('mission-complete-badge');
-        if (data.missions && data.missions.length > 0 && data.missions[0].isComplete) { 
-            if (btnC) btnC.style.display = 'none'; 
-            if (bC) bC.style.display = 'block'; 
-        } else { 
-            if (btnC) btnC.style.display = 'block'; 
-            if (bC) bC.style.display = 'none'; 
+        if (data.isMissionPublic === false) {
+            const desc = document.getElementById('manitto-mission-desc');
+            if (desc) desc.textContent = "아직 공개되지 않았습니다.";
+            const btnC = document.getElementById('btnCompleteMission');
+            if (btnC) btnC.style.display = 'none';
+            const bC = document.getElementById('mission-complete-badge');
+            if (bC) bC.style.display = 'none';
+        } else {
+            document.getElementById('manitto-mission-desc').textContent = data.missions && data.missions.length > 0 ? data.missions[0].description : "미션 없음";
+            const btnC = document.getElementById('btnCompleteMission'); 
+            const bC = document.getElementById('mission-complete-badge');
+            if (data.missions && data.missions.length > 0 && data.missions[0].isComplete) { 
+                if (btnC) btnC.style.display = 'none'; 
+                if (bC) bC.style.display = 'block'; 
+            } else { 
+                if (btnC) btnC.style.display = 'block'; 
+                if (bC) bC.style.display = 'none'; 
+            }
         }
     }
     
