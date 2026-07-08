@@ -753,10 +753,10 @@ function renderCommonChecklist(commonJson, statusJson) {
   const container = document.getElementById('common-checklist-container'); if (!container) return;
   let items = []; try { if (commonJson) items = JSON.parse(commonJson); } catch(e) {}
   let status = {}; try { if (statusJson) status = JSON.parse(statusJson); } catch(e) {}
-  if (items.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text3); font-size:13px;">등록된 공동 체크리스트가 없습니다.</div>'; return; }
+  if (items.length === 0) { container.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text3); font-size:13px;">등록된 공통 체크리스트가 없습니다.</div>'; return; }
   container.innerHTML = items.map((t, i) => { 
     const done = !!status[i]; 
-    return `<div class="card" onclick="toggleCommonCheck(${i})" style="padding:16px; display:flex; align-items:center; gap:12px; cursor:pointer; background:var(--blue-soft); border-color:var(--blue-mid); margin-bottom:0;"><div style="width:24px; height:24px; border:2px solid ${done ? 'var(--blue)' : 'var(--blue-mid)'}; border-radius:6px; display:flex; align-items:center; justify-content:center; background:${done ? 'var(--blue)' : 'transparent'}; color:white; font-size:14px; flex-shrink:0;">${done ? '✓' : ''}</div><span style="flex:1; font-size:15px; font-weight:600; text-decoration:${done ? 'line-through' : 'none'}; color:${done ? 'var(--text3)' : 'var(--text)'}">[공동] ${t}</span></div>`; 
+    return `<div class="card" onclick="toggleCommonCheck(${i})" style="padding:16px; display:flex; align-items:center; gap:12px; cursor:pointer; background:var(--blue-soft); border-color:var(--blue-mid); margin-bottom:0;"><div style="width:24px; height:24px; border:2px solid ${done ? 'var(--blue)' : 'var(--blue-mid)'}; border-radius:6px; display:flex; align-items:center; justify-content:center; background:${done ? 'var(--blue)' : 'transparent'}; color:white; font-size:14px; flex-shrink:0;">${done ? '✓' : ''}</div><span style="flex:1; font-size:15px; font-weight:600; text-decoration:${done ? 'line-through' : 'none'}; color:${done ? 'var(--text3)' : 'var(--text)'}">[공통] ${t}</span></div>`; 
   }).join('');
   window.currentCommonStatus = status;
 }
