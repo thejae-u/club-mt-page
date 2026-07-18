@@ -55,7 +55,7 @@
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-    <script src="js/admin.js?v=13" defer></script>
+    <script src="js/admin.js?v=18" defer></script>
 </head>
 
 <body>
@@ -171,6 +171,11 @@
                         초기화 (셰프 유지)</button>
                     <button onclick="resetCookingBattle()" style="background: #999; color:white; flex: 1;">♻️ 전체
                         초기화</button>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #eee;">
+                    <button onclick="resetCookingCheers()" style="background: #e2e8f0; color:#475569; border: 1px solid #cbd5e1; flex: 1; font-size: 11px; margin: 0; padding: 8px 0; font-weight: 700; height: auto; cursor: pointer; border-radius: 6px;">❤️ 응원 초기화</button>
+                    <button onclick="resetCookingComments()" style="background: #e2e8f0; color:#475569; border: 1px solid #cbd5e1; flex: 1; font-size: 11px; margin: 0; padding: 8px 0; font-weight: 700; height: auto; cursor: pointer; border-radius: 6px;">💬 한줄평 초기화</button>
+                    <button onclick="resetCookingVotes()" style="background: #e2e8f0; color:#475569; border: 1px solid #cbd5e1; flex: 1; font-size: 11px; margin: 0; padding: 8px 0; font-weight: 700; height: auto; cursor: pointer; border-radius: 6px;">🗳️ 투표 초기화</button>
                 </div>
             </div>
 

@@ -87,6 +87,13 @@
         const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') ? '/api' : 'https://api-mt.thejaeu.com/api';
         const API_STATUS_URL = `${API_BASE}/Settings/open-status?_=${new Date().getTime()}`;
 
+        function showServerErrorOverlay() {
+            const loader = document.getElementById('loaderContainer');
+            const errorOverlay = document.getElementById('globalError');
+            if (loader) loader.style.display = 'none';
+            if (errorOverlay) errorOverlay.style.display = 'flex';
+        }
+
         async function route() {
             let targetTime = new Date(TARGET_DATE_STR).getTime(); // Default fallback
             let isServiceOpen = false;
@@ -116,9 +123,30 @@
                         nowTime = new Date(status.serverTime).getTime();
                     }
                     console.log("API Success:", { isServiceOpen, targetTime: new Date(targetTime).toLocaleString(), serverTime: new Date(nowTime).toLocaleString() });
+                } else {
+                    // API 응답은 왔으나 에러 상태 (502, 503 등 점검 상태 또는 404 등 로컬 테스트 환경)
+                    if (response.status === 502 || response.status === 503 || response.status === 404) {
+                        console.warn("Server is undergoing maintenance or route missing. Redirecting.");
+                        window.location.replace('./maintenance.html');
+                        return;
+                    } else {
+                        // 500 Internal Server Error 등은 일반 통신 오류로 처리
+                        console.warn("Server returned error status:", response.status);
+                        showServerErrorOverlay();
+                        return;
+                    }
                 }
             } catch (e) {
-                console.warn("Server check failed or timed out. Falling back to local time and hardcoded date.", e);
+                // 네트워크 접속 실패(서버 오프라인) 또는 타임아웃
+                // 인터넷 연결 자체가 끊긴 상태가 아니라면 점검 중 상태로 포워딩
+                if (!navigator.onLine) {
+                    console.warn("User is offline. Displaying error overlay.");
+                    showServerErrorOverlay();
+                } else {
+                    console.warn("Server connection failed (Offline/Timeout). Redirecting to maintenance.");
+                    window.location.replace('./maintenance.html');
+                }
+                return;
             } finally {
                 clearTimeout(timeoutId);
             }
