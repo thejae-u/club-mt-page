@@ -912,10 +912,10 @@ async function updateCookingUI() {
 
             if (btnPub) {
                 if (s.isCookingBattlePublic) {
-                    btnPub.textContent = "✅ 전체 공개 상태";
+                    btnPub.textContent = "✅ 기능 공개 상태";
                     btnPub.style.background = "#22C55E";
                 } else {
-                    btnPub.textContent = "🔒 전체 비공개 상태";
+                    btnPub.textContent = "🔒 기능 비공개 상태";
                     btnPub.style.background = "#212529";
                 }
             }
@@ -944,49 +944,64 @@ async function updateCookingUI() {
 async function toggleCookingVisibility() {
     if (!window.currentSettings) return;
     const newStatus = !window.currentSettings.isCookingBattlePublic;
-    window.currentSettings.isCookingBattlePublic = newStatus;
     
-    // Rule: When turning on full public, ensure chef public is also turned on.
-    if (newStatus && !window.currentSettings.isCookingBattleChefPublic) {
-        window.currentSettings.isCookingBattleChefPublic = true;
+    if (newStatus) {
+        // 기능 공개로 전환 시, 셰프 선공개가 OFF인 경우
+        if (!window.currentSettings.isCookingBattleChefPublic) {
+            if (!await confirm('기능 공개를 활성화하면 셰프 선공개도 함께 활성화됩니다. 진행하시겠습니까?')) return;
+            window.currentSettings.isCookingBattleChefPublic = true;
+        }
+    } else {
+        // 기능 비공개로 전환 시, 투표 상태가 ON인 경우
+        if (window.currentSettings.isCookingBattleVotingActive) {
+            if (!await confirm('기능을 비공개로 전환하면 투표 상태도 함께 종료됩니다. 진행하시겠습니까?')) return;
+            window.currentSettings.isCookingBattleVotingActive = false;
+        }
     }
 
-    await saveSettings();
+    window.currentSettings.isCookingBattlePublic = newStatus;
+    await saveSettings(false);
     updateCookingUI();
+    await alert(newStatus ? '✅ 요리배틀 기능이 공개되었습니다.' : '🔒 요리배틀 기능이 비공개 처리되었습니다.');
 }
 
 async function toggleCookingChefVisibility() {
     if (!window.currentSettings) return;
 
-    // Rule: If full public is enabled, chef public must remain enabled.
-    if (window.currentSettings.isCookingBattlePublic && window.currentSettings.isCookingBattleChefPublic) {
-        await alert('전체 공개 상태에서는 셰프 명단을 비공개로 전환할 수 없습니다.');
-        return;
-    }
-
     const newStatus = !window.currentSettings.isCookingBattleChefPublic;
     
-    const payload = { ...window.currentSettings, isCookingBattleChefPublic: newStatus };
-    try {
-        const res = await fetch(`${API_BASE}/Settings`, { method: 'PUT', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-            credentials: 'include'
-        });
-        if (res.status === 401) return logout(true);
-        if (res.ok) {
-            
-            window.currentSettings.isCookingBattleChefPublic = newStatus;
-            updateCookingUI();
-            await alert(newStatus ? '✅ 셰프 명단이 선공개되었습니다.' : '🔒 셰프 명단이 비공개 처리되었습니다.');
+    if (!newStatus) {
+        // 셰프 명단 비공개로 전환 시, 기능 공개나 투표 상태가 ON인 경우
+        if (window.currentSettings.isCookingBattlePublic || window.currentSettings.isCookingBattleVotingActive) {
+            if (!await confirm('셰프 명단을 비공개로 전환하면 기능 공개 및 투표 상태도 함께 비활성화됩니다. 진행하시겠습니까?')) return;
+            window.currentSettings.isCookingBattlePublic = false;
+            window.currentSettings.isCookingBattleVotingActive = false;
         }
-    } catch (e) { await alert(MSG.SERVER_ERROR); }
+    }
+
+    window.currentSettings.isCookingBattleChefPublic = newStatus;
+    await saveSettings(false);
+    updateCookingUI();
+    await alert(newStatus ? '✅ 셰프 명단이 선공개되었습니다.' : '🔒 셰프 명단이 비공개 처리되었습니다.');
 }
 
 async function toggleCookingVoteStatus() {
     if (!window.currentSettings) return;
-    window.currentSettings.isCookingBattleVotingActive = !window.currentSettings.isCookingBattleVotingActive;
-    await saveSettings();
+    const newStatus = !window.currentSettings.isCookingBattleVotingActive;
+    
+    if (newStatus) {
+        // 투표 활성화 시, 기능 공개나 셰프 선공개가 OFF인 경우
+        if (!window.currentSettings.isCookingBattlePublic || !window.currentSettings.isCookingBattleChefPublic) {
+            if (!await confirm('투표를 활성화하면 기능 공개와 셰프 선공개도 함께 활성화됩니다. 진행하시겠습니까?')) return;
+            window.currentSettings.isCookingBattlePublic = true;
+            window.currentSettings.isCookingBattleChefPublic = true;
+        }
+    }
+
+    window.currentSettings.isCookingBattleVotingActive = newStatus;
+    await saveSettings(false);
     updateCookingUI();
+    await alert(newStatus ? '🗳️ 요리배틀 투표가 시작되었습니다.' : '⏹️ 요리배틀 투표가 종료되었습니다.');
 }
 
 async function assignCookingTeams() {
@@ -1126,6 +1141,78 @@ async function resetCookingBattle() {
             loadCookingTab();
         } else {
             await alert('초기화 실패');
+        }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
+}
+
+async function resetCookingCheers() {
+    if (!await confirm('정말 응원 데이터를 초기화하시겠습니까? (팀 배정 상태 유지)')) return;
+    const password = await window.prompt('관리자 비밀번호를 입력해주세요:');
+    if (!password) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/reset-cheers`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
+            credentials: 'include' 
+        });
+        if (res.status === 401) {
+            await alert('비밀번호가 일치하지 않거나 권한이 없습니다.');
+            return;
+        }
+        if (res.ok) {
+            await alert('✅ 응원 데이터 초기화 완료');
+            loadCookingTab();
+        } else {
+            const msg = await res.text();
+            await alert(`초기화 실패: ${msg}`);
+        }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
+}
+
+async function resetCookingComments() {
+    if (!await confirm('정말 한줄평 데이터를 초기화하시겠습니까? (팀 배정 상태 유지)')) return;
+    const password = await window.prompt('관리자 비밀번호를 입력해주세요:');
+    if (!password) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/reset-comments`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
+            credentials: 'include' 
+        });
+        if (res.status === 401) {
+            await alert('비밀번호가 일치하지 않거나 권한이 없습니다.');
+            return;
+        }
+        if (res.ok) {
+            await alert('✅ 한줄평 데이터 초기화 완료');
+            loadCookingTab();
+        } else {
+            const msg = await res.text();
+            await alert(`초기화 실패: ${msg}`);
+        }
+    } catch (e) { await alert(MSG.SERVER_ERROR); }
+}
+
+async function resetCookingVotes() {
+    if (!await confirm('정말 투표 데이터를 초기화하시겠습니까? (팀 배정 상태 유지)')) return;
+    const password = await window.prompt('관리자 비밀번호를 입력해주세요:');
+    if (!password) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/Management/cooking-battle/reset-votes`, { method: 'POST', headers: { 'X-ClubMT-Source': 'WebApp', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password }),
+            credentials: 'include' 
+        });
+        if (res.status === 401) {
+            await alert('비밀번호가 일치하지 않거나 권한이 없습니다.');
+            return;
+        }
+        if (res.ok) {
+            await alert('✅ 투표 데이터 초기화 완료');
+            loadCookingTab();
+        } else {
+            const msg = await res.text();
+            await alert(`초기화 실패: ${msg}`);
         }
     } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
@@ -1636,7 +1723,7 @@ function addTimeline(dIdx) { currentSchedule[dIdx].timeline.push({ time: "12:00"
 function removeTimeline(dIdx, tIdx) { currentSchedule[dIdx].timeline.splice(tIdx, 1); renderScheduleEditor(currentSchedule); syncRawJson(); }
 function syncRawJson() { const jsonEl = document.getElementById('scheduleDataJson'); if (jsonEl) jsonEl.value = JSON.stringify(currentSchedule, null, 2); }
 
-async function saveSettings() {
+async function saveSettings(showSuccess = true) {
     const openingDateValue = document.getElementById('openingDate').value;
     const openingDateObj = openingDateValue ? new Date(openingDateValue).toISOString() : new Date().toISOString();
 
@@ -1673,7 +1760,7 @@ async function saveSettings() {
         if (res.status === 401) return logout(true);
         if (res.ok) {
             
-            await alert('✅ 저장되었습니다!');
+            if (showSuccess) await alert('✅ 저장되었습니다!');
         } else {
             const msg = await res.text();
             await alert(`❌ 저장 실패: ${msg || '알 수 없는 오류'}`);
@@ -1968,6 +2055,9 @@ window.toggleCookingVoteStatus = toggleCookingVoteStatus;
 window.assignCookingTeams = assignCookingTeams;
 window.resetCookingTeams = resetCookingTeams;
 window.resetCookingBattle = resetCookingBattle;
+window.resetCookingCheers = resetCookingCheers;
+window.resetCookingComments = resetCookingComments;
+window.resetCookingVotes = resetCookingVotes;
 
 // --- DANGER ZONE ---
 async function resetSettings() {

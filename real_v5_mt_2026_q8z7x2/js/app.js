@@ -1892,7 +1892,7 @@ async function refreshCookingStatus() {
     document.getElementById('white-cheer-bar').style.height = `${data.cheerStats.whitePercent}%`;
 
     // Cheer Buttons and Comment Inputs
-    const canCheer = (data.isPublic || data.isChefPublic) && data.teams && data.teams.some(t => t.chef);
+    const canCheer = data.isPublic && data.teams && data.teams.some(t => t.chef);
     document.querySelectorAll('.heart-btn-wrap').forEach(btn => {
       btn.style.opacity = canCheer ? '1' : '0.5';
       btn.style.cursor = canCheer ? 'pointer' : 'not-allowed';
@@ -1913,11 +1913,39 @@ async function refreshCookingStatus() {
     });
 
     // Voting
+    const hasVoted = !!data.myVote;
+    const voteTeamVal = data.myVote ? (data.myVote.team === 1 || data.myVote.team === 'Black' ? 'Black' : (data.myVote.team === 2 || data.myVote.team === 'White' ? 'White' : null)) : null;
+
     document.querySelectorAll('.vote-btn').forEach(btn => {
       btn.style.display = 'block';
-      btn.disabled = !data.isVotingActive;
-      btn.style.opacity = data.isVotingActive ? '1' : '0.5';
-      btn.style.cursor = data.isVotingActive ? 'pointer' : 'not-allowed';
+      if (hasVoted) {
+        const btnTeam = btn.id.includes('black') ? 'Black' : 'White';
+        if (btnTeam === voteTeamVal) {
+          btn.textContent = '투표완료';
+          btn.disabled = true;
+          btn.style.opacity = '1';
+          btn.style.background = '#22C55E';
+          btn.style.color = 'white';
+          btn.style.cursor = 'default';
+        } else {
+          btn.textContent = '투표하기';
+          btn.disabled = true;
+          btn.style.opacity = '0.3';
+          btn.style.background = '#ccc';
+          btn.style.color = '#888';
+          btn.style.cursor = 'not-allowed';
+        }
+      } else {
+        const canVote = data.isPublic && data.isVotingActive;
+        btn.textContent = '투표하기';
+        btn.disabled = !canVote;
+        btn.style.opacity = canVote ? '1' : '0.5';
+        btn.style.cursor = canVote ? 'pointer' : 'not-allowed';
+        
+        const isBlackTeam = btn.id.includes('black');
+        btn.style.background = isBlackTeam ? '#333' : 'var(--blue-deep)';
+        btn.style.color = 'white';
+      }
     });
 
     return data;
