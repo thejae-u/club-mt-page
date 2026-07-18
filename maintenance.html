@@ -16,7 +16,8 @@
         
         body {
             margin: 0;
-            padding: 0;
+            padding: 20px 0;
+            box-sizing: border-box;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -24,7 +25,8 @@
             background: var(--bg-gradient);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: var(--text-primary);
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         /* Subtle moving grid background for rich aesthetics */
@@ -187,6 +189,37 @@
             color: rgba(148, 163, 184, 0.4);
             letter-spacing: 0.5px;
             text-transform: uppercase;
+        }
+
+        /* Mobile Responsive Adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+            .icon-wrapper {
+                width: 75px;
+                height: 75px;
+                margin-bottom: 20px;
+            }
+            .icon-wrapper svg {
+                width: 38px;
+                height: 38px;
+            }
+            h1 {
+                font-size: 20px;
+                margin-bottom: 12px;
+            }
+            p {
+                font-size: 13.5px;
+                line-height: 1.5;
+                margin-bottom: 24px;
+            }
+            .btn-retry {
+                padding: 14px 0;
+                font-size: 14px;
+                border-radius: 12px;
+            }
         }
     </style>
 </head>
