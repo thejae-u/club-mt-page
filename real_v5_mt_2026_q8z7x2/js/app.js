@@ -945,10 +945,10 @@ async function cancelRegistration() {
 }
 
 // ===== MANITTO =====
-async function openManittoModal() {
+async function openManittoModal(tab = 'target') {
   const name = localStorage.getItem('participantName'); 
   if (!name) { 
-      window.pendingAction = openManittoModal;
+      window.pendingAction = () => openManittoModal(tab);
       await alert(MSG.APPLY_REQUIRED); 
       openModal('login'); 
       return; 
@@ -1020,7 +1020,7 @@ async function openManittoModal() {
         }
     }
     
-    openModal('manitto'); switchManittoTab('target');
+    openModal('manitto'); switchManittoTab(tab);
   } catch (err) { console.error(err); showToast('데이터를 불러오지 못했습니다.'); }
 }
 
@@ -1039,7 +1039,7 @@ async function completeMission(missionId) {
         const res = await fetch(`${API_BASE}/Manitto/me/complete-mission/${id}`, { headers: { 'X-ClubMT-Source': 'WebApp' }, method: 'POST', credentials: 'include' }); 
         if (res.ok) { 
             showToast('✅ 미션 완료! 고생하셨습니다.'); 
-            openManittoModal(); // Refresh UI
+            openManittoModal('mission'); // Refresh UI and stay on mission tab
         } else showToast('완료 처리 실패'); 
     } catch (e) { showToast('서버 연결 오류'); }
 }

@@ -44,7 +44,7 @@ async function loadBoard() {
 
     try {
         const res = await fetch(`${API_BASE}/Manitto/reports`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (!res.ok) throw new Error();
 
         const reports = await res.json();
@@ -82,7 +82,7 @@ async function deleteReport(id) {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             loadBoard();
@@ -99,7 +99,7 @@ async function loadModifications() {
 
     try {
         const res = await fetch(`${API_BASE}/Modification`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (!res.ok) throw new Error();
 
         const tasks = await res.json();
@@ -176,7 +176,7 @@ async function addModificationComment(taskId) {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             loadModifications(); // Reload to show new comment
@@ -196,7 +196,7 @@ async function deleteModificationComment(commentId, taskId) {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.status === 403) return await alert(MSG.PERMISSION_DENIED);
         if (res.ok) {
             
@@ -219,7 +219,7 @@ async function addModification() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             document.getElementById('mod-title').value = '';
@@ -238,7 +238,7 @@ async function updateModificationStatus(id, status) {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             loadModifications();
@@ -255,7 +255,7 @@ async function deleteModification(id) {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             loadModifications();
@@ -272,7 +272,7 @@ async function loadAdmins() {
 
     try {
         const res = await fetch(`${API_BASE}/Management/admins`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (!res.ok) throw new Error();
 
         const admins = await res.json();
@@ -303,7 +303,7 @@ async function addAdminAccount() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             await alert('✅ 새로운 관리자 계정이 생성되었습니다.');
@@ -324,7 +324,7 @@ async function deleteAdminAccount(id, username) {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             await alert(MSG.DELETE_SUCCESS);
@@ -381,7 +381,7 @@ async function toggleManittoVisibility() {
             method: 'POST', 
             credentials: 'include' 
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             const data = await res.json();
@@ -397,7 +397,7 @@ async function toggleManittoMissionVisibility() {
             method: 'POST', 
             credentials: 'include' 
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.status === 400) {
             const err = await res.text();
             let errMsg = err;
@@ -416,6 +416,21 @@ async function toggleManittoMissionVisibility() {
     } catch (e) { await alert(MSG.SERVER_ERROR); }
 }
 
+let isLoggedInAdmin = false;
+
+function checkAuthStatus(res) {
+    if (res && (res.status === 401 || res.status === 403)) {
+        if (isLoggedInAdmin) {
+            logout(true);
+        } else {
+            const loginOverlay = document.getElementById('loginOverlay');
+            if (loginOverlay) loginOverlay.style.display = 'flex';
+        }
+        return true;
+    }
+    return false;
+}
+
 async function checkAuth() {
     const adminContent = document.getElementById('adminContent');
     const loginOverlay = document.getElementById('loginOverlay');
@@ -423,11 +438,10 @@ async function checkAuth() {
     try {
         const res = await fetch(`${API_BASE}/Auth/status`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (res.ok) {
-            
-        const data = await res.json();
-        window.currentAdminUser = data.username; // Save for permission checks
-        if (loginOverlay) loginOverlay.style.display = 'none';
-
+            const data = await res.json();
+            isLoggedInAdmin = true;
+            window.currentAdminUser = data.username; // Save for permission checks
+            if (loginOverlay) loginOverlay.style.display = 'none';
             if (adminContent) adminContent.style.visibility = 'visible';
             
             // Show/Hide Account Management tab based on username
@@ -439,14 +453,16 @@ async function checkAuth() {
             if (document.getElementById('tab-settings')) loadSettings();
             if (window.fetchData) fetchData(); // For admin-detail
         } else {
+            if (isLoggedInAdmin) {
+                isLoggedInAdmin = false;
+                await alert('세션 정보가 만료되었거나 관리자 권한이 없습니다.\n관리자 재로그인이 필요합니다.');
+            }
             if (loginOverlay) {
                 loginOverlay.style.display = 'flex';
                 if (adminContent) adminContent.style.visibility = 'visible';
             } else if (window.location.pathname.includes('manager-detail')) {
                 await alert('로그인이 필요하거나 세션이 만료되었습니다.');
                 window.location.href = 'manager-hq';
-            } else {
-                if (adminContent) adminContent.style.visibility = 'visible';
             }
         }
     } catch (e) {
@@ -455,6 +471,16 @@ async function checkAuth() {
         if (adminContent) adminContent.style.visibility = 'visible';
     }
 }
+
+// Re-check authentication whenever page becomes active/focused
+window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        checkAuth();
+    }
+});
+window.addEventListener('focus', () => {
+    checkAuth();
+});
 
 async function doLogin() {
     const username = document.getElementById('login-username').value;
@@ -472,7 +498,7 @@ async function doLogin() {
         });
 
         if (res.ok) {
-            
+            isLoggedInAdmin = true;
             location.reload();
         } else {
             await alert('로그인 실패: 비밀번호가 올바르지 않습니다.');
@@ -484,14 +510,26 @@ async function doLogin() {
 
 async function logout(isAuto = false) {
     if (isAuto) {
-        await alert('세션 정보가 만료되어 재로그인이 필요합니다.');
+        if (isLoggedInAdmin) {
+            isLoggedInAdmin = false;
+            await alert('세션 정보가 만료되었거나 관리자 권한이 없습니다.\n관리자 재로그인이 필요합니다.');
+        }
     } else {
         if (!await confirm('로그아웃 하시겠습니까?')) return;
+        isLoggedInAdmin = false;
     }
     try {
         await fetch(`${API_BASE}/auth/logout`, { headers: { 'X-ClubMT-Source': 'WebApp' }, method: 'POST', credentials: 'include' });
     } catch (e) {}
-    location.href = 'manager-hq';
+
+    const loginOverlay = document.getElementById('loginOverlay');
+    if (loginOverlay) {
+        loginOverlay.style.display = 'flex';
+        const pwInput = document.getElementById('login-password');
+        if (pwInput) pwInput.value = '';
+    } else {
+        location.href = 'manager-hq';
+    }
 }
 
 // --- MANITTO MANAGEMENT ---
@@ -501,7 +539,7 @@ async function loadMissions() {
 
     try {
         const res = await fetch(`${API_BASE}/Management/manitto/missions`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (!res.ok) throw new Error();
 
         const missions = await res.json();
@@ -543,7 +581,7 @@ async function deleteSelectedMissions() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             await alert('✅ 선택한 미션이 삭제되었습니다.');
@@ -569,7 +607,7 @@ async function addMissions() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             await alert('✅ 미션이 성공적으로 등록되었습니다.');
@@ -588,7 +626,7 @@ async function deleteMission(id) {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         loadMissions();
     } catch (e) { await alert(MSG.DELETE_FAILED); }
 }
@@ -599,7 +637,7 @@ async function loadAssignments() {
 
     try {
         const res = await fetch(`${API_BASE}/Management/manitto/assignments`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         const list = await res.json();
 
         window.currentAssignments = list; // Store for reference
@@ -621,7 +659,11 @@ async function loadAssignments() {
                 <td style="text-align:left; font-size:12px;">
                     ${a.missions && a.missions.length > 0 ? a.missions.map((m, idx) => `
                         <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; padding-bottom:4px; border-bottom:1px solid #f0f0f0;">
-                            <span style="color:${m.isComplete ? '#22C55E' : '#ccc'}; font-size:10px; flex-shrink:0;">●</span>
+                            <button onclick="updateManittoAssignmentLocal(${a.id}, 'IsComplete', ${!m.isComplete}, ${idx})" 
+                                    style="width:auto; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; flex-shrink:0; transition:all 0.2s; ${m.isComplete ? 'background:#22C55E; color:white; border:none;' : 'background:#F3F4F6; color:#6B7280; border:1px solid #D1D5DB;'}" 
+                                    title="클릭 시 성공/미완료 토글 (실수 시 재클릭으로 즉시 원복 가능)">
+                                ${m.isComplete ? '✅ 성공' : '⏳ 미완료'}
+                            </button>
                             <select onchange="updateManittoAssignmentLocal(${a.id}, 'MissionId', this.value, ${idx})" style="font-size:11px; padding:2px; flex:1; border:none; background:transparent;">
                                 ${(window.currentMissions || []).map(mm => `<option value="${mm.id}" ${mm.id === m.missionId ? 'selected' : ''}>${escapeHTML(mm.description)}</option>`).join('')}
                             </select>
@@ -653,7 +695,7 @@ async function updateManittoAssignmentLocal(participantId, field, value, index =
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             // Update local state and re-render subtly if needed, or just reload
@@ -708,7 +750,7 @@ async function matchManitto() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             const result = await res.json();
@@ -1109,7 +1151,7 @@ async function resetCookingTeams() {
             body: JSON.stringify({ password }),
             credentials: 'include' 
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             await alert('✅ 팀 배정 정보가 초기화되었습니다. (오더 셰프 유지)');
@@ -1275,7 +1317,7 @@ async function addFee() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             document.getElementById('fee-desc').value = '';
@@ -1292,7 +1334,7 @@ async function deleteFee(id) {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         loadFees();
     } catch (e) { await alert(MSG.DELETE_FAILED); }
 }
@@ -1307,7 +1349,7 @@ async function loadParticipants() {
         const MAX_ARMY = settings.maxMilitaryCapacity || 4;
 
         const res = await fetch(`${API_BASE}/Participants`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         const list = await res.json();
         // Sort by SortOrder (Backend already sends it sorted, but this ensures it)
         list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
@@ -1530,7 +1572,7 @@ async function toggleWaitlist(id, isDepositConfirmed) {
             method: 'POST',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             loadParticipants();
@@ -1547,7 +1589,7 @@ async function toggleDeposit(id) {
             method: 'POST',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         loadParticipants();
     } catch (e) { await alert('업데이트 실패'); }
 }
@@ -1559,7 +1601,7 @@ async function deleteParticipant(id) {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         loadParticipants();
     } catch (e) { await alert(MSG.DELETE_FAILED); }
 }
@@ -1617,7 +1659,7 @@ async function uploadCsv() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             const result = await res.json();
@@ -1757,7 +1799,7 @@ async function saveSettings(showSuccess = true) {
             body: JSON.stringify(payload),
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             if (showSuccess) await alert('✅ 저장되었습니다!');
@@ -1772,7 +1814,7 @@ async function exportSettings() {
     try {
         const res = await fetch(`${API_BASE}/Settings`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
         if (!res.ok) {
-            if (res.status === 401) return logout(true);
+            if (res.status === 401 || res.status === 403) return logout(true);
             throw new Error();
         }
         
@@ -1818,7 +1860,7 @@ async function importSettings(input) {
                 credentials: 'include'
             });
 
-            if (res.status === 401) return logout(true);
+            if (res.status === 401 || res.status === 403) return logout(true);
             
             if (res.ok) {
             
@@ -2194,7 +2236,7 @@ async function generateVehicleAssignments() {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             await alert('✅ 랜덤 배정이 완료되었습니다.');
@@ -2213,7 +2255,7 @@ async function fetchAdminVehicleList() {
         if (participants.length === 0) await fetchData();
 
         const res = await fetch(`${API_BASE}/Vehicle/all`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (!res.ok) throw new Error('Failed to fetch vehicles');
 
         const data = await res.json();
@@ -2381,7 +2423,7 @@ async function silentSaveVehicleAssignments(showSuccess = false) {
             credentials: 'include'
         });
 
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             if (showSuccess) await alert('✅ 차량 배정 정보가 저장되었습니다.');
@@ -2428,7 +2470,7 @@ async function toggleVehiclePublic() {
             method: 'POST',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             const data = await res.json();
@@ -2610,7 +2652,7 @@ async function fetchPhotoSessions() {
 
     try {
         const res = await fetch(`${API_BASE}/Photo/sessions`, { headers: { 'X-ClubMT-Source': 'WebApp' }, credentials: 'include' });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (!res.ok) throw new Error();
         const sessions = await res.json();
 
@@ -2675,7 +2717,7 @@ async function fetchPhotoSessions() {
                     body: JSON.stringify(updates),
                     credentials: 'include'
                 });
-                if (res.status === 401) return logout(true);
+                if (res.status === 401 || res.status === 403) return logout(true);
                 if (!res.ok) alert('순서 저장 실패');
             } catch (e) { console.error('Reorder error:', e); }
         }
@@ -2693,7 +2735,7 @@ async function addPhotoSession() {
             body: JSON.stringify({ title, order: 999 }), // Set a high default order
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             
             titleInp.value = '';
@@ -2711,7 +2753,7 @@ async function deletePhotoSession(id) {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) fetchPhotoSessions();
         else alert(MSG.DELETE_FAILED);
     } catch (e) { alert(MSG.SERVER_ERROR); }
@@ -2740,7 +2782,7 @@ async function addPhotoToSession(sessionId) {
             body: formData,
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) {
             fileInp.value = '';
             descInp.value = '';
@@ -2763,7 +2805,7 @@ async function deletePhoto(id) {
             method: 'DELETE',
             credentials: 'include'
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (res.ok) fetchPhotoSessions();
         else alert(MSG.DELETE_FAILED);
     } catch (e) { alert(MSG.SERVER_ERROR); }
@@ -2803,7 +2845,7 @@ async function fetchVolleyballData() {
             headers: { 'X-ClubMT-Source': 'WebApp' }, 
             credentials: 'include' 
         });
-        if (res.status === 401) return logout(true);
+        if (res.status === 401 || res.status === 403) return logout(true);
         if (!res.ok) return;
         const data = await res.json();
 
