@@ -120,6 +120,12 @@ input[type="checkbox"]:focus {
     .card { padding: 15px; }
     h1 { font-size: 16px; }
     
+    /* iOS Safari Auto-Zoom Fix for Form Inputs (Excluding compact table controls) */
+    .form-group input, .form-group select, .form-group textarea { font-size: 16px !important; }
+    
+    /* Keep Table Dropdowns & Buttons Compact */
+    table select, td select, .table-wrapper select { font-size: 11px !important; }
+
     .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
     .flex-row { flex-direction: column !important; }
     .flex-row-mobile-col { flex-direction: column !important; }

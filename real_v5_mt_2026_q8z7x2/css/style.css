@@ -55,8 +55,8 @@
 [data-theme="dark"] .text2-override { color: #FFFFFF !important; }
 [onclick] { cursor: pointer; -webkit-tap-highlight-color: transparent; user-select: none; }
 *{margin:0;padding:0;box-sizing:border-box;}
-html{scroll-behavior:smooth;}
-body{font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;overflow-x:hidden;}
+body{font-family:'Pretendard Variable',Pretendard,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;overflow-x:hidden;word-break:break-all;overflow-wrap:break-word;}
+body.modal-open{overflow:hidden !important;touch-action:none;}
 
 header{position:fixed;top:0;left:0;right:0;z-index:100;border-bottom:1px solid var(--border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);background:rgba(255,255,255,0.88);transition:background .3s;}
 [data-theme="dark"] header{background:rgba(10,15,30,0.92);}
@@ -387,6 +387,26 @@ body.no-scroll {
     
     #alert-buttons {
         flex-direction: column !important;
+    }
+
+    /* iOS Safari Auto-Zoom Fix for Form Inputs (Excluding compact table controls) */
+    .form-group input, .form-group select, .form-group textarea,
+    .modal-body input, .modal-body select, .modal-body textarea {
+        font-size: 16px !important;
+    }
+
+    /* Keep Table Dropdowns & Buttons Compact */
+    table select, td select, .table-wrapper select {
+        font-size: 11px !important;
+    }
+
+    /* Touch Scrolling & Safe Area Insets for Notch / Dynamic Island */
+    table, .table-container, .modal-body {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    header {
+        padding-top: max(12px, env(safe-area-inset-top));
     }
 }
 
