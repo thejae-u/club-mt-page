@@ -14,26 +14,36 @@
             --card-border: rgba(244, 114, 182, 0.15);
         }
         
-        body {
-            margin: 0;
-            padding: 20px 0;
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            overflow: hidden;
+            overscroll-behavior: none;
+        }
+
+        body {
+            min-height: 100dvh;
+            padding: max(12px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
             background: var(--bg-gradient);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: var(--text-primary);
-            overflow-x: hidden;
-            overflow-y: auto;
         }
 
         /* Subtle moving grid background for rich aesthetics */
         .background-animation {
-            position: absolute;
-            width: 200%;
-            height: 200%;
+            position: fixed;
+            inset: -50%;
             background-image: linear-gradient(rgba(244, 114, 182, 0.03) 1px, transparent 1px),
                               linear-gradient(90deg, rgba(244, 114, 182, 0.03) 1px, transparent 1px);
             background-size: 40px 40px;
@@ -52,12 +62,13 @@
             position: relative;
             z-index: 10;
             max-width: 480px;
-            width: 90%;
+            width: 100%;
+            max-height: 100%;
             text-align: center;
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 24px;
-            padding: 50px 30px;
+            padding: clamp(18px, 6dvh, 50px) clamp(18px, 6vw, 30px);
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
                         0 0 50px rgba(244, 114, 182, 0.08);
             backdrop-filter: blur(16px);
@@ -78,9 +89,9 @@
 
         .icon-wrapper {
             position: relative;
-            width: 90px;
-            height: 90px;
-            margin: 0 auto 30px;
+            width: clamp(64px, 12dvh, 90px);
+            height: clamp(64px, 12dvh, 90px);
+            margin: 0 auto clamp(16px, 3dvh, 30px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -96,8 +107,8 @@
         }
 
         .icon-wrapper svg {
-            width: 44px;
-            height: 44px;
+            width: clamp(32px, 6dvh, 44px);
+            height: clamp(32px, 6dvh, 44px);
             fill: none;
             stroke: var(--accent);
             stroke-width: 2;
@@ -142,9 +153,9 @@
         }
 
         h1 {
-            font-size: 26px;
+            font-size: clamp(20px, 3.5vw, 26px);
             font-weight: 800;
-            margin: 0 0 12px;
+            margin: 0 0 clamp(8px, 1.5dvh, 12px);
             letter-spacing: -0.5px;
             background: linear-gradient(to right, #ffffff, #fbcfe8);
             -webkit-background-clip: text;
@@ -152,15 +163,15 @@
         }
 
         .subtitle {
-            font-size: 18px;
+            font-size: clamp(15px, 2.5vw, 18px);
             font-weight: 600;
             color: #f472b6;
-            margin-bottom: 24px;
+            margin-bottom: clamp(14px, 3dvh, 24px);
         }
 
         p {
-            font-size: 15px;
-            line-height: 1.7;
+            font-size: clamp(13px, 2vw, 15px);
+            line-height: 1.6;
             color: var(--text-secondary);
             margin: 0;
         }
@@ -168,7 +179,7 @@
         .divider {
             height: 1px;
             background: linear-gradient(to right, transparent, rgba(244, 114, 182, 0.2), transparent);
-            margin: 24px 0;
+            margin: clamp(14px, 3dvh, 24px) 0;
         }
 
         .thanks-msg {
@@ -178,40 +189,16 @@
         }
 
         .footer {
-            margin-top: 16px;
+            margin-top: clamp(10px, 2dvh, 16px);
             font-size: 11px;
             color: rgba(148, 163, 184, 0.4);
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
 
-        /* Mobile Responsive Adjustments */
-        @media (max-width: 480px) {
-            .container {
-                padding: 40px 20px;
-                border-radius: 20px;
-            }
-            .icon-wrapper {
-                width: 80px;
-                height: 80px;
-                margin-bottom: 24px;
-            }
-            .icon-wrapper svg {
-                width: 38px;
-                height: 38px;
-            }
-            h1 {
-                font-size: 22px;
-                margin-bottom: 10px;
-            }
-            .subtitle {
-                font-size: 16px;
-                margin-bottom: 20px;
-            }
-            p {
-                font-size: 14px;
-                line-height: 1.6;
-            }
+        @media (max-height: 430px) {
+            .container { border-radius: 18px; }
+            .pulse-dot { display: none; }
         }
     </style>
 </head>
@@ -230,9 +217,9 @@
         <p>
             2026 빅이큐 MT가 종료됨에 따라<br>
             사이트 이용이 제한됩니다.<br>
-            <br>
-        <div class="subtitle">다음에 또 봐요!</div>
         </p>
+		<br><br>
+        <div class="subtitle">다음에 또 봐요!</div>
 
         <div class="divider"></div>
         <div class="thanks-msg">Thank you</div>
